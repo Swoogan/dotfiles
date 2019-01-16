@@ -1,0 +1,62 @@
+execute pathogen#infect()
+"execute pathogen#helptags()
+syntax on
+filetype plugin indent on
+
+set number
+set ruler
+set cursorline
+set showmatch
+
+au GUIEnter * sim ~x
+
+set background=dark
+colorscheme distinguished
+"colorscheme solarized
+let g:solarized_termcolors=256
+"set term=pcansi
+set t_Co=256
+set t_ut=
+"let &t_AB="\e[48;5;%dm"
+"let &t_AF="\e[38;5;%dm"
+
+" set nowrap
+set expandtab
+set tabstop=4
+set shiftwidth=4
+
+autocmd FileType html set tabstop=2|set shiftwidth=2
+autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
+
+"" Syntastic settings:
+"set statusline+=%#warningmsg#
+"set statusline+=%{SyntasticStatuslineFlag()}
+"set statusline+=%*
+
+"let g:syntastic_javascript_checkers = ['jshint', 'jscs']
+let g:syntastic_javascript_checkers = ['jshint']
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+
+"" Searching
+set hlsearch
+set ignorecase
+set smartcase
+
+"" Simplified window management
+:map <C-h> <C-W>h
+:map <C-j> <C-W>j
+:map <C-k> <C-W>k
+:map <C-l> <C-W>l
+
+"" Disable the arrow keys
+noremap <Up> <NOP>
+noremap <Down> <NOP>
+noremap <Left> <NOP>
+noremap <Right> <NOP>
+
+"" Airline
+set noshowmode       " Don't need mode message with airline plugin
+set laststatus=2     " Status doesn't show up without this
