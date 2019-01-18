@@ -81,7 +81,8 @@ function Get-AuthHeader {
 
         $basicAuthValue = "Basic $base64"
 
-        Write-Output ([PSCustomObject]@{ Authorization = $basicAuthValue })
+        $header = @{ Authorization = $basicAuthValue }
+        Write-Output $header
 	}
 }
 
@@ -236,7 +237,7 @@ function Invoke-Perforce {
 
                 $clientSpec | p4 client -i
                 p4 populate -b "$branchNameRoot$branchName"
-                p4 set P4CLIENT=$wsNameRoot$branchName"
+                p4 set P4CLIENT="$wsNameRoot$branchName"
             }
             "checkout" {
                 $config = Find-Config
