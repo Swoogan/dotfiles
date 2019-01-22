@@ -162,6 +162,12 @@ function Invoke-Perforce {
 	
     process {
 		$client = $(p4 -Ztag -F %clientName% info)
+
+        $config = "$(Find-Config)/config"
+        if (Test-Path $config) {
+            $info = Get-Content -Raw $config
+            Invoke-Expression $info
+        }
 		
 		switch (${__Command__}) {
 			"stash" {
@@ -205,7 +211,7 @@ function Invoke-Perforce {
 				p4 -F %depotFile% opened -c default | p4 -x - reopen -c ${__Remaining__}[0]
 			}
             "ud" { # Update description
-                p4 --field Description="${__Remaining__}[1]" change -o ${__Remaining__}[0] | p4 change -i
+                p4 --field Description=${__Remaining__}[1] change -o ${__Remaining__}[0] | p4 change -i
             }
             "status" {
                 $cls = p4 -z tag -F %change% changes -u $Env:Username -s pending -c $client 
@@ -217,11 +223,6 @@ function Invoke-Perforce {
                 Write-Output ""
             }
             "branch" {
-                $config = "(Find-Config)/config"
-                if (Test-Path $config) {
-                    . $config
-                }
-
                 $branchName = ${__Remaining__}[0]
 
                 # create branch mapping (TODO move to cmdlet for reuse?)
@@ -238,18 +239,16 @@ function Invoke-Perforce {
                 $clientSpec | p4 client -i
                 p4 populate -b "$branchNameRoot$branchName"
                 p4 set P4CLIENT="$wsNameRoot$branchName"
+
+                # store jira
             }
             "checkout" {
-                $config = Find-Config
-                if (Test-Path $config) {
-                    . $config
-                }
-
-                # p4 populate
-                # p4 client -i 
-                # p4 branch -i
-                # store jira
-                
+                $branchName = ${__Remaining__}[0]
+                p4 set P4CLIENT="$wsNameRoot$branchName"
+                Write-Host "Switched to branch $wsNameRoot$branchName"
+            }
+            "which" {
+                Write-Output $client
             }
 			default {
 				p4 ${__Command__} ${__Remaining__}
