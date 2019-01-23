@@ -204,7 +204,9 @@ function Invoke-Perforce {
 				p4 revert -w -c ${__Remaining__}[0] ./...
 			}
 			"new" {
-				$cl = $(p4 change -o) -replace "<enter description here>", ${__Remaining__}[0] -replace "\s*//.*$", "" | p4 change -i | select-string "\b(\d+)" | ForEach-Object {$_.matches[0].value}
+				$cl = New-Changelist ${__Remaining__}[0]  
+                $env:P4CHANGE = $cl
+                #[System.Environment]::SetEnvironmentVariable('P4CHANGE', $cl, [System.EnvironmentVariableTarget]::User)
 				Write-Output $cl
 			}
 			"reopen" {
