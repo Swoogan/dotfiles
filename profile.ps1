@@ -244,6 +244,19 @@ function Invoke-Perforce {
 
                 # store jira
             }
+            "db" {  # Delete branch
+                $branchName = ${__Remaining__}[0]
+
+                p4 set P4CLIENT="$wsNameRoot$branchName"
+
+                echo "$branchesRoot/$branchName/..."
+                $cl = New-Changelist "Removing branch $branchName"
+                p4 delete -c $cl "$branchesRoot/$branchName/..."
+                p4 submit -c $cl
+
+                # p4 branch -d "$branchesRoot$branchName"
+                # p4 client -d "$wsNameRoot$branchName"
+            }
             "checkout" {
                 $branchName = ${__Remaining__}[0]
                 p4 set P4CLIENT="$wsNameRoot$branchName"
