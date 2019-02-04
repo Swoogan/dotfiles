@@ -168,6 +168,11 @@ function Invoke-Perforce {
             $info = Get-Content -Raw $config
             Invoke-Expression $info
         }
+
+        <#
+        TODO: just delete the client for a already deleted branch
+        TODO: just create the client for a already created branch
+        #>
 		
 		switch (${__Command__}) {
 			"stash" {
@@ -254,8 +259,8 @@ function Invoke-Perforce {
                 p4 delete -c $cl "$branchesRoot/$branchName/..."
                 p4 submit -c $cl
 
-                # p4 branch -d "$branchesRoot$branchName"
-                # p4 client -d "$wsNameRoot$branchName"
+                p4 branch -d "$branchNameRoot$branchName"
+                p4 client -d "$wsNameRoot$branchName"
             }
             "checkout" {
                 $branchName = ${__Remaining__}[0]
