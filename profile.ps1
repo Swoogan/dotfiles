@@ -288,8 +288,7 @@ function Invoke-Perforce {
                 Remove-Item -Recurse -Force $branchesRoot/$branchName
             }
             "checkout" {
-                $rc = p4 reconcile -n "$branchesRoot/$($env:P5BRANCH)/..." 2>&1
-                if ($rc.Exception.Message -like $noFiles) { 
+                $switchBranch = {
                     $branchName = ${__Remaining__}[0]
                     p4 set P4CLIENT="$wsNameRoot$branchName"
                     $env:P5BRANCH=$branchName
@@ -300,8 +299,18 @@ function Invoke-Perforce {
 
                     cd "$branchesRoot/$branchName"
                     Write-Host "Switched to branch $wsNameRoot$branchName"
+                }
+
+                if (Test-path env:\P5BRANCH) {
+                    $rc = p4 reconcile -n "$branchesRoot/$($env:P5BRANCH)/..." 2>&1
+
+                    if ($rc.Exception.Message -like $noFiles) { 
+                        Invoke-Command -ScriptBlock $switchBranch
+                    } else {
+                        Write-Warning "You have local changes. Submit or stash."
+                    }
                 } else {
-                    Write-Warning "You have local changes. Submit or stash."
+                    Invoke-Command -ScriptBlock $switchBranch
                 }
             }
             "which" {
