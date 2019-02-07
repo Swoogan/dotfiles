@@ -86,6 +86,11 @@ function Get-AuthHeader {
 	}
 }
 
+function Reset-Colors {
+    [System.Console]::ResetColor()
+}
+    
+
 ##############
 # Perforce
 ##############
@@ -169,6 +174,8 @@ function Invoke-Perforce {
             Invoke-Expression $info
         }
 
+        $noFiles = "*o file(s) to reconcile.*"
+
         <#
         TODO: just delete the client for a already deleted branch
         TODO: just create the client for a already created branch
@@ -185,7 +192,7 @@ function Invoke-Perforce {
 				p4 changes -s shelved -u $Env:Username -c $client
 			}
 			"log" {
-				p4 changes -L -t -s submitted -u $Env:Username -c $client ${__Remaining__} | more
+				p4 changes -L -t -s submitted -u $Env:Username ${__Remaining__} $branchesRoot/$env:P5BRANCH/... | more
 			}        
 			"pending" {
 				p4 changes -u $Env:Username -s pending ${__Remaining__}
@@ -210,7 +217,7 @@ function Invoke-Perforce {
 			}
 			"new" {
 				$cl = New-Changelist ${__Remaining__}[0]  
-                $env:P4CHANGE = $cl
+                $env:P5CHANGE = $cl
                 #[System.Environment]::SetEnvironmentVariable('P4CHANGE', $cl, [System.EnvironmentVariableTarget]::User)
 				Write-Output $cl
 			}
@@ -221,6 +228,16 @@ function Invoke-Perforce {
                 p4 --field Description=${__Remaining__}[1] change -o ${__Remaining__}[0] | p4 change -i
             }
             "status" {
+                p4 reconcile -n
+            }
+            "add" {
+                if (Test-Path env:P5CHANGE)  {
+                    p4 reconcile -c $env:P5CHANGE
+                } else {
+                    Write-Warning "No changelist present"
+                }
+            }
+            "changes" {
                 $cls = p4 -z tag -F %change% changes -u $Env:Username -s pending -c $client 
                 foreach ($cl in $cls) {
                     Write-Output "`n Changelist $cl`n"
@@ -228,6 +245,9 @@ function Invoke-Perforce {
                     $files | % { Write-Output "`t$_" }
                 }
                 Write-Output ""
+            }
+            "branches" {
+                p4 -ztag -F %branch% branches -u $env:username
             }
             "branch" {
                 $branchName = ${__Remaining__}[0]
@@ -247,6 +267,9 @@ function Invoke-Perforce {
                 p4 populate -b "$branchNameRoot$branchName"
                 p4 set P4CLIENT="$wsNameRoot$branchName"
 
+                p4 sync $branchesRoot/$branchName/...
+                cd $branchesRoot/$branchName
+
                 # store jira
             }
             "db" {  # Delete branch
@@ -261,11 +284,25 @@ function Invoke-Perforce {
 
                 p4 branch -d "$branchNameRoot$branchName"
                 p4 client -d "$wsNameRoot$branchName"
+
+                Remove-Item -Recurse -Force $branchesRoot/$branchName
             }
             "checkout" {
-                $branchName = ${__Remaining__}[0]
-                p4 set P4CLIENT="$wsNameRoot$branchName"
-                Write-Host "Switched to branch $wsNameRoot$branchName"
+                $rc = p4 reconcile -n "$branchesRoot/$($env:P5BRANCH)/..." 2>&1
+                if ($rc.Exception.Message -like $noFiles) { 
+                    $branchName = ${__Remaining__}[0]
+                    p4 set P4CLIENT="$wsNameRoot$branchName"
+                    $env:P5BRANCH=$branchName
+
+                    if (-not (Test-Path "$branchesRoot/$branchName")) {
+                        p4 sync "$branchesRoot/$branchName"
+                    }
+
+                    cd "$branchesRoot/$branchName"
+                    Write-Host "Switched to branch $wsNameRoot$branchName"
+                } else {
+                    Write-Warning "You have local changes. Submit or stash."
+                }
             }
             "which" {
                 Write-Output $client
@@ -307,6 +344,7 @@ Set-Alias touch Set-LastWriteToNow
 Set-Alias p5 Invoke-Perforce
 Set-Alias ep Edit-Profile
 Set-Alias ack Find-InFiles
+Set-Alias rc Reset-Colors
 
 $local = "~/.local/profile.ps1"
 
