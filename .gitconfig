@@ -14,6 +14,16 @@
     lf = log --format=format:'%C(bold cyan)%ar %C(reset) %C(green)%f' --name-status
     last = "!f() { git log -${1:-1} --stat ; } ; f"
 
+# branches
+    branch-name = "!$(git fetch) ; git rev-parse --abbrev-ref HEAD"
+
+    # Push the current branch to the remote "origin", and set it to track the upstream branch
+    publish = "!git push -u origin $(git branch-name)"
+
+    # Delete the remote version of the current branch
+    unpublish = "!git push origin :$(git branch-name)"
+    
+
 # Rebasing ----------------------------------------------------------------------------------------
 # like selfbase but will interactive rebase the number that you pass in. Ex
 # 'git nbase 3' will interactive rebase the last 3 commit in the branch.
