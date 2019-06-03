@@ -11,6 +11,8 @@ set ruler
 set cursorline
 set showmatch
 
+autocmd BufReadPost * tab ball
+
 au GUIEnter * simalt ~x
 
 let mapleader=" "
