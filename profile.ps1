@@ -220,6 +220,7 @@ function Invoke-Perforce {
                 $env:P5CHANGE = $cl
                 #[System.Environment]::SetEnvironmentVariable('P4CHANGE', $cl, [System.EnvironmentVariableTarget]::User)
 				Write-Output $cl
+                Reset-Colors
 			}
 			"reopen" {
 				p4 -F %depotFile% opened -c default | p4 -x - reopen -c ${__Remaining__}[0]
@@ -229,6 +230,9 @@ function Invoke-Perforce {
             }
             "status" {
                 p4 reconcile -n
+            }
+            "rec" {
+                p4 reconcile -c $env:P5CHANGE
             }
             "add" {
                 if (Test-Path env:P5CHANGE)  {

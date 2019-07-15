@@ -11,17 +11,18 @@ set ruler
 set cursorline
 set showmatch
 
-autocmd BufReadPost * tab ball
+" Open in tab
+" autocmd BufReadPost * tab ball
 
 au GUIEnter * simalt ~x
 
 let mapleader=" "
-set background=dark
 
 " Fonts for GVim
 set renderoptions=type:directx
 set encoding=utf-8
 if has("gui_running")
+    set background=dark
     colorscheme distinguished
 
     if has("gui_gtk2")
@@ -32,7 +33,9 @@ if has("gui_running")
         set guifont=Fira\ Code:h11:cANSI
     endif
 else
-    colorscheme darkblue
+" This wasn't working on PowerShell
+"    colorscheme blue
+"    set background=light
 endif
 
 " set nowrap

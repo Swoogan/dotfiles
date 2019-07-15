@@ -3,7 +3,13 @@
 # Basic shortcuts ----------------------------------------------------------------------------------
     
     p4 = !'C:\\Program Files\\Git\\bin\\git-p4.py'
+    check-remote = !'C:\\Program Files\\Git\\bin\\git-check-remote'
     rb = rebase
+    fp = push --force-with-lease
+    co = checkout
+    cm = commit
+    cmm = commit -m
+    oops = commit --amend --no-edit
 
 # Logging -----------------------------------------------------------------------------------------
     ls = log --pretty=format:'%C(bold yellow)%h%C(bold red)%d %Creset%s%C(bold blue) [%cn]' --decorate
@@ -36,21 +42,21 @@
     delete-local-branches="!git checkout master ; git branch --list | grep -v \\* | xargs git branch -D"
 
 # Rebasing ----------------------------------------------------------------------------------------
-# like selfbase but will interactive rebase the number that you pass in. Ex
-# 'git nbase 3' will interactive rebase the last 3 commit in the branch.
+    # like selfbase but will interactive rebase the number that you pass in. Ex
+    # 'git nbase 3' will interactive rebase the last 3 commit in the branch.
     nbase = "!f() { git rebase -i HEAD~${1:-2} ; } ; f"
 
-# interactive rebase the current branch from the start of the branch
+    # interactive rebase the current branch from the start of the branch
     selfbase = "! git nbase $(git branch-count)"
 
-# Rebasing on origin/master
+    # Rebasing on origin/master
     rbm = "!git fetch -nq 2>/dev/null ; git rebase origin/master"
 
-# Rebase operations
     rbc = rebase --continue
     rbs = rebase --skip
     rba = rebase --abort
 
+# Misc
     ec = "!gvim ~/.gitconfig"
     ecl = "!gvim ~/.local/.gitconfig"
 
