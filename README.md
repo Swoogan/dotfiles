@@ -6,5 +6,6 @@ My personal config files
 
     ln -s ~/source/_vimrc ~/.vimrc
     ln -s ~/source/_vimrc ~/.config/nvim/init.vim
+    ln -s dev/dotfiles/.gitconfig ~/.gitconfig	
 
 ## Windows Install
