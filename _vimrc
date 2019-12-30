@@ -32,6 +32,9 @@ if has("gui_running")
     elseif has("gui_win32")
         set guifont=Fira\ Code:h11:cANSI
     endif
+elseif &term=~'xterm'
+    set background=dark
+    colorscheme distinguished
 else
 " This wasn't working on PowerShell
 "    colorscheme blue
