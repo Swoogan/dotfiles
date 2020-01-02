@@ -158,6 +158,19 @@ function Get-Environment {
     Get-ChildItem env:\
 }
 
+function Set-Environment {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string] $Name, 
+        [Parameter(Mandatory=$true, Position=1)]
+        [string] $Value
+    )
+
+    Set-Item "`env:\$Name" $Value
+    [System.Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::Machine)
+}
+
 function Invoke-Perforce {
     [CmdletBinding()]
     param (
