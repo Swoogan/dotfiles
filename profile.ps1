@@ -154,6 +154,10 @@ function Find-Config {
     }
 }
 
+function Get-Environment {
+    Get-ChildItem env:\
+}
+
 function Invoke-Perforce {
     [CmdletBinding()]
     param (
@@ -341,7 +345,6 @@ function Invoke-BinaryProcess([string]$processName, [string]$arguments) {
     $process.StandardOutput.ReadToEnd()
 }
 
-
 #######################
 ### Aliases
 #######################
@@ -357,6 +360,8 @@ Set-Alias p5 Invoke-Perforce
 Set-Alias ep Edit-Profile
 Set-Alias ack Find-InFiles
 Set-Alias rc Reset-Colors
+Set-Alias env Get-Environment
+
 
 $local = "~/.local/profile.ps1"
 
