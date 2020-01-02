@@ -1,5 +1,4 @@
 Import-Module C:\ProgramData\Chocolatey\lib\psake\tools\psake\psake.psm1
-Import-Module posh-git
 
 Start-SshAgent -Quiet
 
