@@ -17,3 +17,27 @@ let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes)
 " Add: Press sa{motion/textobject}{addition}. For example, a key sequence saiw( makes foo to (foo).
 " Delete: Press sdb or sd{deletion}. For example, key sequences sdb or sd( makes (foo) to foo. sdb searches a set of surrounding automatically.
 " Replace: Press srb{addition} or sr{deletion}{addition}. For example, key sequences srb" or sr(" makes (foo) to "foo".
+let mapleader=","
+
+inoremap jk <Esc>
+
+"" Simplified window management
+map <C-h> <C-W>h
+map <C-j> <C-W>j
+map <C-k> <C-W>k
+map <C-l> <C-W>l
+
+augroup numbertoggle
+  autocmd!
+  autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
+  autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
+augroup END
+
+"" Macros
+map <Leader>r ylp
+map <Leader>nl :nohl<Cr>
+
+nmap <Leader>y "+y
+nmap <Leader>yy "+yy
+nmap <Leader>p "+p
+nmap <Leader>P "+P
