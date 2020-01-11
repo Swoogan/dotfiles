@@ -10,6 +10,7 @@
     cm = commit
     cmm = commit -m
     oops = commit --amend --no-edit
+    st = status
 
 # Logging -----------------------------------------------------------------------------------------
     ls = log --pretty=format:'%C(bold yellow)%h%C(bold red)%d %Creset%s%C(bold blue) [%cn]' --decorate
@@ -68,8 +69,6 @@
     path = C:\\Program Files\\Perforce\\p4merge.exe
 [mergetool "p4merge"]
     path = C:\\Program Files\\Perforce\\p4merge.exe
-[core]
-	editor = 'C:\\Program Files (x86)\\vim\\vim80\\vim.exe'
 
 [include]
     path = ~/.local/.gitconfig

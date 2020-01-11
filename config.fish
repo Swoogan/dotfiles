@@ -1,5 +1,3 @@
-set -gx PATH /snap/bin $PATH
-
 if test -z (pgrep ssh-agent)
   eval (ssh-agent -c)
   set -Ux SSH_AUTH_SOCK $SSH_AUTH_SOCK
@@ -8,3 +6,10 @@ if test -z (pgrep ssh-agent)
 end
 
 source ~/.local/config.fish
+
+set -gx WASMTIME_HOME "$HOME/.wasmtime"
+
+# Wasmer config
+set WASMER_DIR "$HOME/.wasmer"
+set -gx WASMER_CACHE_DIR "$WASMER_DIR/cache"
+
