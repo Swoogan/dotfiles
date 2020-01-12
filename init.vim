@@ -16,6 +16,8 @@ set relativenumber
 set splitbelow
 set splitright
 set smartindent
+set hidden
+set ts=8 sts=4 sw=4 expandtab
 
 colorscheme distinguished
 
@@ -41,6 +43,7 @@ map <C-k> <C-W>k
 map <C-l> <C-W>l
 map <Leader>a <C-W>_
 map <Leader>i <C-W>=
+" launch a terminal
 map <Leader>t :10split\|term<Cr>a
 
 "" Custom
@@ -51,6 +54,7 @@ nmap <Leader>y "+y
 nmap <Leader>yy "+yy
 nmap <Leader>p "+p
 nmap <Leader>P "+P
+nmap <C-/> m`I//<Esc>``
 
 if has('nvim')
   tnoremap <Esc> <C-\><C-n>
