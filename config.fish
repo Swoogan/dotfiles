@@ -13,3 +13,9 @@ set -gx WASMTIME_HOME "$HOME/.wasmtime"
 set WASMER_DIR "$HOME/.wasmer"
 set -gx WASMER_CACHE_DIR "$WASMER_DIR/cache"
 
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias ls='exa'
+alias ll='exa --long'
+alias lg='exa --long --git'
