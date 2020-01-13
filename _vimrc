@@ -1,22 +1,33 @@
-:inoremap jk <Esc>
-:inoremap <S-CR> <Esc>
+call plug#begin()
 
-execute pathogen#infect()
-"execute pathogen#helptags()
+Plug 'vim-airline/vim-airline'
+
+call plug#end()
+
 syntax on
 filetype plugin indent on
 
-set number
-set ruler
-set cursorline
+let mapleader = ","
+
+" show matching braces
 set showmatch
 
-" Open in tab
-" autocmd BufReadPost * tab ball
+" set nowrap
+set expandtab
+set tabstop=4
+set shiftwidth=4
+
+" Searching
+set hlsearch
+set ignorecase
+set smartcase
+
+" Relative line numbers
+set number relativenumber
+set ruler
+set cursorline
 
 au GUIEnter * simalt ~x
-
-let mapleader=" "
 
 " Fonts for GVim
 set renderoptions=type:directx
@@ -41,24 +52,20 @@ else
 "    set background=light
 endif
 
-" set nowrap
-set expandtab
-set tabstop=4
-set shiftwidth=4
-
 autocmd FileType html set tabstop=2|set shiftwidth=2
 autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
 
-"" Searching
-set hlsearch
-set ignorecase
-set smartcase
+augroup numbertoggle
+  autocmd!
+  autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
+  autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
+augroup END
 
 "" Simplified window management
-:map <C-h> <C-W>h
-:map <C-j> <C-W>j
-:map <C-k> <C-W>k
-:map <C-l> <C-W>l
+map <C-h> <C-W>h
+map <C-j> <C-W>j
+map <C-k> <C-W>k
+map <C-l> <C-W>l
 
 "" Disable the arrow keys
 noremap <Up> <NOP>
@@ -66,19 +73,15 @@ noremap <Down> <NOP>
 noremap <Left> <NOP>
 noremap <Right> <NOP>
 
-" Relative line numbers
-:set number relativenumber
-
-:augroup numbertoggle
-:  autocmd!
-:  autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
-:  autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
-:augroup END
-
 "" Macros
 map <Leader>r ylp
 map <Leader>nl :nohl<Cr>
-map <Leader>sa /Descript<Cr>no<Tab>-Programmer- -features- -build system-<Cr><Esc>
+
+"" Clipboard copy and paste
+nmap <Leader>p "*p
+nmap <Leader>P "*P
+nmap <Leader>y "*y
+nmap <Leader>yy "*yy
 
 "" Airline
 set noshowmode       " Don't need mode message with airline plugin
@@ -173,7 +176,4 @@ nnoremap <Leader>sp :OmniSharpStopServer<CR>
 
 " Enable snippet completion
 " let g:OmniSharp_want_snippet=1
-
-"" NERDTree
-map <C-n> :NERDTreeToggle<CR>
 
