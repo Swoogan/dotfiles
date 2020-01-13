@@ -171,6 +171,16 @@ function Set-Environment {
     [System.Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::Machine)
 }
 
+function Invoke-NvimQt {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$false, Position=0, ValueFromRemainingArguments=$true)]
+        ${__Remaining__}
+    )
+    
+    nvim-qt --maximized ${__Remaining__}
+}
+
 function Invoke-Perforce {
     [CmdletBinding()]
     param (
@@ -374,6 +384,7 @@ Set-Alias ep Edit-Profile
 Set-Alias ack Find-InFiles
 Set-Alias rc Reset-Colors
 Set-Alias env Get-Environment
+Set-Alias gvm 'Invoke-NvimQt'
 
 
 $local = "~/.local/profile.ps1"

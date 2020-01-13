@@ -6,6 +6,7 @@ Plug 'ziglang/zig.vim'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'machakann/vim-highlightedyank'
+Plug 'PProvost/vim-ps1'
 
 call plug#end()
 
