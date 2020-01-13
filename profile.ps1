@@ -351,6 +351,8 @@ function Invoke-Perforce {
 			}
         }
     }
+
+    # Change file type: `p4 reopen -c $cl -t text`
 }
 
 ##############

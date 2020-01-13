@@ -74,3 +74,13 @@ imap <c-x><c-f> <plug>(fzf-complete-path)
 imap <c-x><c-j> <plug>(fzf-complete-file-rg)
 
 " END FZF
+
+"" Functions
+
+" Setup cache directory so .swp files aren't in the cwd
+if !isdirectory(expand("$HOME/.cache/vim/swap"))
+  call mkdir(expand("$HOME/.cache/vim/swap"), "p")
+endif
+set directory=$HOME/.cache/vim/swap
+
+
