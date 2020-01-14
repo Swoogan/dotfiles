@@ -28,10 +28,21 @@ let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes)
 " Replace: Press srb{addition} or sr{deletion}{addition}. For example, key sequences srb" or sr(" makes (foo) to "foo".
 let mapleader=","
 
+" Auto commands
 augroup numbertoggle
   autocmd!
   autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
   autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
+augroup END
+
+augroup markdown
+  autocmd!
+  autocmd BufNewFile,BufRead *.md setlocal wrap spell
+augroup END
+
+augroup zig
+  autocmd!
+  autocmd FileType zig :iabbrev <buffer> oom return error.OutOfMemory; 
 augroup END
 
 "" Mappings
@@ -42,20 +53,20 @@ map <C-h> <C-W>h
 map <C-j> <C-W>j
 map <C-k> <C-W>k
 map <C-l> <C-W>l
-map <Leader>a <C-W>_
-map <Leader>i <C-W>=
 " launch a terminal
-map <Leader>t :10split\|term<Cr>a
+noremap <Leader>t :10split\|term<Cr>a
 
 "" Custom
-map <Leader>r ylp
-map <Leader>nl :nohl<Cr>
+noremap <Leader>r ylp
+noremap <Leader>nl :nohl<Cr>
 
-nmap <Leader>y "+y
-nmap <Leader>yy "+yy
-nmap <Leader>p "+p
-nmap <Leader>P "+P
-nmap <C-/> m`I//<Esc>``
+nnoremap <Leader>y "+y
+nnoremap <Leader>yy "+yy
+nnoremap <Leader>p "+p
+nnoremap <Leader>P "+P
+nnoremap <C-/> m`I//<Esc>``
+nnoremap <Leader>ec :vsplit $MYVIMRC<Cr>
+nnoremap <Leader>sc :source $MYVIMRC<Cr>
 
 if has('nvim')
   tnoremap <Esc> <C-\><C-n>
@@ -64,8 +75,8 @@ if has('nvim')
 endif
 
 " FZF
-nmap <Leader>rg :Rg<Cr>
-nmap <Leader>cp :Files<Cr>
+nnoremap <Leader>rg :Rg<Cr>
+nnoremap <Leader>cp :Files<Cr>
 
 " Insert mode completion
 imap <c-x><c-k> <plug>(fzf-complete-word)
