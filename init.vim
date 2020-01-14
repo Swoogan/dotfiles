@@ -19,8 +19,13 @@ set splitright
 set smartindent
 set hidden
 set smartcase
-set ts=8 sts=4 sw=4 expandtab
-
+set tabstop=8
+set sts=4
+set shiftwidth=4
+set expandtab
+set iskeyword+=-                                 " treat - seperated words as a word object
+set iskeyword+=_                                 " treat _ seperated words as a word object
+ 
 colorscheme distinguished
 
 let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes)
@@ -73,9 +78,9 @@ if has('nvim')
   tnoremap <Esc> <C-\><C-n>
   tnoremap <M-[> <Esc>
   tnoremap <C-v><Esc> <Esc>
-  if has('win32') || has('win64')
-      set shell=powershell
-  endif 
+"  if has('win32') || has('win64')
+"      set shell="powershell"
+"  endif 
 endif
 
 " FZF
