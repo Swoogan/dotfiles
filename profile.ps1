@@ -8,36 +8,36 @@ if ($host.Name -eq 'ConsoleHost') {
     Set-PSReadlineKeyHandler -Key Ctrl+K -Function ForwardDeleteLine
     Set-PSReadlineKeyHandler -Key Tab -Function Complete
 
-	Set-PSReadlineKeyHandler -Key Ctrl+d `
-							 -BriefDescription "Exit" `
-							 -LongDescription "Exit" `
-							 -ScriptBlock {
-		param($key, $arg)
+    Set-PSReadlineKeyHandler -Key Ctrl+d `
+    -BriefDescription "Exit" `
+    -LongDescription "Exit" `
+    -ScriptBlock {
+        param($key, $arg)
 
-		[Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
-		[Microsoft.PowerShell.PSConsoleReadLine]::Insert('exit')
-		[Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
-	}
+            [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert('exit')
+                [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+    }
 }
 
 function Set-LastWriteToNow { 
-	[CmdletBinding()]
-	param (
-		[Parameter(Mandatory = $true,
-		ValueFromPipeline=$true)]
-		[string[]]$Path
-	)
-	
-	process {
-		foreach ($p in $Path) {
-			if (-not (Test-Path $p)) {
-				New-Item $p | Out-Null
-			} else {
-				$file = Get-ChildItem $p
-				$file.LastWriteTime = [datetime]::Now 
-			}
-		}
-	}
+    [CmdletBinding()]
+    param (
+            [Parameter(Mandatory = $true,
+                ValueFromPipeline=$true)]
+            [string[]]$Path
+    )
+    
+    process {
+            foreach ($p in $Path) {
+                    if (-not (Test-Path $p)) {
+                            New-Item $p | Out-Null
+                    } else {
+                            $file = Get-ChildItem $p
+                            $file.LastWriteTime = [datetime]::Now 
+                    }
+            }
+    }
 }
 
 function New-Symlink {
@@ -60,19 +60,23 @@ function Find-InFiles([string]$Pattern, [string]$Filter) {
 }
 
 function Edit-Profile {
-    gvim ~/Documents/WindowsPowershell/profile.ps1
+    nvim-qt --maximized ${__Remaining__} ~/Documents/WindowsPowershell/profile.ps1
+}
+
+function Source-Profile {
+    . ~/Documents/WindowsPowershell/profile.ps1
 }
 
 function Get-AuthHeader {
-	[CmdletBinding()]
-	param (
-		[Parameter(Mandatory = $true)]
-		[string]$User,
-		[Parameter(Mandatory = $true)]
-		[string]$Password
-	)
-	
-	process {
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory = $true)]
+            [string]$User,
+            [Parameter(Mandatory = $true)]
+            [string]$Password
+        )
+        
+        process {
         $pair = "${user}:${pass}"
 
         $bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
@@ -82,7 +86,7 @@ function Get-AuthHeader {
 
         $header = @{ Authorization = $basicAuthValue }
         Write-Output $header
-	}
+        }
 }
 
 function Reset-Colors {
@@ -181,6 +185,88 @@ function Invoke-NvimQt {
     nvim-qt --maximized ${__Remaining__}
 }
 
+function Invoke-PeeFive {
+    [CmdletBinding()]
+    param (
+        # Command. I use three underscores so that variable shorten won't still switches I'm trying to pass to ${__Remaining__}
+        [Parameter(Mandatory=$true, Position=0)]
+        [string] ${__Command__}, 
+        [Parameter(Mandatory=$false, Position=1, ValueFromRemainingArguments=$true)]
+        ${__Remaining__}
+    )
+        
+    process {
+        if (-not (Test-Path ~/.p5)) {
+            New-Item -Type directory ~/.p5
+        }
+
+        $client = $(p4 -Ztag -F %clientName% info)
+
+        $config = "$(Find-Config)/config"
+        if (Test-Path $config) {
+            $info = Get-Content -Raw $config
+            Invoke-Expression $info
+        }
+
+        $noFiles = "*o file(s) to reconcile.*"
+
+        switch (${__Command__}) {
+            "new" {
+                $cl = New-Changelist ${__Remaining__}[0]  
+                $env:P6CHANGE = $cl
+                #[System.Environment]::SetEnvironmentVariable('P4CHANGE', $cl, [System.EnvironmentVariableTarget]::User)
+                Write-Output $cl
+                Reset-Colors
+            }
+            "ud" { # Update description
+                p4 --field Description=${__Remaining__}[1] change -o ${__Remaining__}[0] | p4 change -i
+            }
+            "status" {
+                if ($env:P6CHANGE) {
+                    p4 describe -c $env:P6CHANGE
+                }
+                p4 reconcile -n
+            }
+            "add" {
+                if ($env:P6CHANGE)  {
+                    p4 reconcile -c $env:P6CHANGE ${__Remaining__}
+                } else {
+                    Write-Verbose "No changelist present"
+                    $cl = New-Changelist "<auto add>"
+                    $env:P6CHANGE = $cl
+                    p4 reconcile -c $env:P6CHANGE ${__Remaining__}
+                }
+                Reset-Colors
+            }
+            "cmm" {
+                if (-not $env:P6CHANGE)  {
+                    Write-Warning "No changelist present"
+                } else {
+                    p4 --field Description=${__Remaining__}[1] change -o ${__Remaining__}[0] | p4 change -i
+                    p4 submit -c $env:P6CHANGE
+                }
+            }
+            "changes" {
+                $cls = p4 -z tag -F %change% changes -u $Env:Username -s pending -c $client 
+                foreach ($cl in $cls) {
+                    Write-Output "`n Changelist $cl`n"
+                    $files = p4 -z tag -F "%action%:`t%localFile%" status
+                    $files | % { Write-Output "`t$_" }
+                }
+                Write-Output ""
+            }
+            "which" {
+                Write-Output $client
+            }
+            default {
+                Write-Error "Unknown PeeFive command"
+            }
+        }
+    }
+
+    # Change file type: `p4 reopen -c $cl -t text`
+}
+
 function Invoke-Perforce {
     [CmdletBinding()]
     param (
@@ -190,9 +276,9 @@ function Invoke-Perforce {
         [Parameter(Mandatory=$false, Position=1, ValueFromRemainingArguments=$true)]
         ${__Remaining__}
     )
-	
+        
     process {
-		$client = $(p4 -Ztag -F %clientName% info)
+        $client = $(p4 -Ztag -F %clientName% info)
 
         $config = "$(Find-Config)/config"
         if (Test-Path $config) {
@@ -206,51 +292,51 @@ function Invoke-Perforce {
         TODO: just delete the client for a already deleted branch
         TODO: just create the client for a already created branch
         #>
-		
-		switch (${__Command__}) {
-			"stash" {
-				$cl = New-Changelist
-				p4 reopen -c $cl ./...
-				p4 shelve -f -c $cl ./...
-				p4 revert -w ./...
-			}
-			"stash-list" {
-				p4 changes -s shelved -u $Env:Username -c $client
-			}
-			"log" {
-				p4 changes -L -t -s submitted -u $Env:Username ${__Remaining__} $branchesRoot/$env:P5BRANCH/... | more
-			}        
-			"pending" {
-				p4 changes -u $Env:Username -s pending ${__Remaining__}
-			}
-			"local-pending" {
-				p4 changes -u $Env:Username -s pending -c $client ${__Remaining__}
-			}
-			"shelved" {
-				p4 changes -u $Env:Username -s shelved ${__Remaining__}
-			}
-			"local-shelved" {
-				p4 changes -u $Env:Username -s shelved -c $client ${__Remaining__}
-			}
-			"unshelve" {
-				# see if ${__Remaining__} has lenth >= 1
-				p4 unshelve -s ${__Remaining__}[0] -f -c ${__Remaining__}[0] ${__Remaining__}[1..${__Remaining__}.Length]
-				p4 shelve -d -c ${__Remaining__}[0]
-			}
-			"shelve" {
-				p4 shelve -f -c ${__Remaining__}[0]
-				p4 revert -w -c ${__Remaining__}[0] ./...
-			}
-			"new" {
-				$cl = New-Changelist ${__Remaining__}[0]  
+                
+        switch (${__Command__}) {
+            "stash" {
+                $cl = New-Changelist
+                p4 reopen -c $cl ./...
+                p4 shelve -f -c $cl ./...
+                p4 revert -w ./...
+            }
+            "stash-list" {
+                p4 changes -s shelved -u $Env:Username -c $client
+            }
+            "log" {
+                p4 changes -L -t -s submitted -u $Env:Username ${__Remaining__} $branchesRoot/$env:P5BRANCH/... | more
+            }        
+            "pending" {
+                p4 changes -u $Env:Username -s pending ${__Remaining__}
+            }
+            "local-pending" {
+                p4 changes -u $Env:Username -s pending -c $client ${__Remaining__}
+            }
+            "shelved" {
+                p4 changes -u $Env:Username -s shelved ${__Remaining__}
+            }
+            "local-shelved" {
+                p4 changes -u $Env:Username -s shelved -c $client ${__Remaining__}
+            }
+            "unshelve" {
+                # see if ${__Remaining__} has lenth >= 1
+                p4 unshelve -s ${__Remaining__}[0] -f -c ${__Remaining__}[0] ${__Remaining__}[1..${__Remaining__}.Length]
+                p4 shelve -d -c ${__Remaining__}[0]
+            }
+            "shelve" {
+                p4 shelve -f -c ${__Remaining__}[0]
+                p4 revert -w -c ${__Remaining__}[0] ./...
+            }
+            "new" {
+                $cl = New-Changelist ${__Remaining__}[0]  
                 $env:P5CHANGE = $cl
                 #[System.Environment]::SetEnvironmentVariable('P4CHANGE', $cl, [System.EnvironmentVariableTarget]::User)
-				Write-Output $cl
+                Write-Output $cl
                 Reset-Colors
-			}
-			"reopen" {
-				p4 -F %depotFile% opened -c default | p4 -x - reopen -c ${__Remaining__}[0]
-			}
+            }
+            "reopen" {
+                    p4 -F %depotFile% opened -c default | p4 -x - reopen -c ${__Remaining__}[0]
+            }
             "ud" { # Update description
                 p4 --field Description=${__Remaining__}[1] change -o ${__Remaining__}[0] | p4 change -i
             }
@@ -346,9 +432,9 @@ function Invoke-Perforce {
             "which" {
                 Write-Output $client
             }
-			default {
-				p4 ${__Command__} ${__Remaining__}
-			}
+            default {
+                p4 ${__Command__} ${__Remaining__}
+            }
         }
     }
 
@@ -382,15 +468,17 @@ Set-Alias p4mv Move-P4File
 Set-Alias p4ren Rename-P4File
 Set-Alias touch Set-LastWriteToNow
 Set-Alias p5 Invoke-Perforce
+Set-Alias p6 Invoke-PeeFive
 Set-Alias ep Edit-Profile
+Set-Alias spp Source-Profile
 Set-Alias ack Find-InFiles
 Set-Alias rc Reset-Colors
 Set-Alias env Get-Environment
-Set-Alias gvm 'Invoke-NvimQt'
+Set-Alias gvm Invoke-NvimQt
 
 
 $local = "~/.local/profile.ps1"
 
 if (Test-Path $local) {
-	. $local
+        . $local
 }

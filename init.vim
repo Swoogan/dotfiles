@@ -18,6 +18,7 @@ set splitbelow
 set splitright
 set smartindent
 set hidden
+set smartcase
 set ts=8 sts=4 sw=4 expandtab
 
 colorscheme distinguished
@@ -72,6 +73,9 @@ if has('nvim')
   tnoremap <Esc> <C-\><C-n>
   tnoremap <M-[> <Esc>
   tnoremap <C-v><Esc> <Esc>
+  if has('win32') || has('win64')
+      set shell=powershell
+  endif 
 endif
 
 " FZF
