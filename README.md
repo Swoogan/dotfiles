@@ -9,3 +9,8 @@ My personal config files
     ln -s dev/dotfiles/.gitconfig ~/.gitconfig	
 
 ## Windows Install
+
+    New-SymLink -Link ~/.gitconfig F:\dotfiles\.gitconfig
+    New-Symlink -Link ~/Documents\WindowsPowerShell\profile.ps1 F:\dotfiles\profile.ps1
+    New-Symlink .vsvimrc F:\dotfiles\_vsvimrc
+
