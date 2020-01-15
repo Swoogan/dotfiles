@@ -1,6 +1,6 @@
 Import-Module C:\ProgramData\Chocolatey\lib\psake\tools\psake\psake.psm1
 
-. .\perforce.ps1
+. "$HOME\p5\perforce.ps1"
 
 Start-SshAgent -Quiet
 

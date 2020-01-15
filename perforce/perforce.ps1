@@ -1,5 +1,5 @@
-. .\p5.ps1
-. .\p6.ps1
+. "$HOME\p5\p5.ps1"
+. "$HOME\p5\p6.ps1"
 
 function Move-P4File ([string]$Path, [string]$Destination) {
     p4 edit $Path
