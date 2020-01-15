@@ -60,27 +60,39 @@ map <C-j> <C-W>j
 map <C-k> <C-W>k
 map <C-l> <C-W>l
 " launch a terminal
-noremap <Leader>t :10split\|term<Cr>a
+if has('win32') || has('win64')
+    noremap <Leader>t :10split\|term://powershell<Cr>a
+else
+    noremap <Leader>t :10split\|term<Cr>a
+endif 
 
 "" Custom
+" Repeats the character under the cursor
 noremap <Leader>r ylp
+" Removes search highlighting
 noremap <Leader>nl :nohl<Cr>
 
+" Yanks selection to system clipboard
 nnoremap <Leader>y "+y
-nnoremap <Leader>yy "+yy
+" Yanks selection to system clipboard
+vnoremap <Leader>y "+y  
+" Yanks line to system clipboard
+nnoremap <Leader>yy "+yy 
+" Pastes from system clipboard
 nnoremap <Leader>p "+p
+" Pastes from system clipboard
 nnoremap <Leader>P "+P
+" Adds c-style comment to the beginning of a line
 nnoremap <C-/> m`I//<Esc>``
+" Edit vim config in split
 nnoremap <Leader>ec :vsplit $MYVIMRC<Cr>
+" Source vim config
 nnoremap <Leader>sc :source $MYVIMRC<Cr>
 
 if has('nvim')
   tnoremap <Esc> <C-\><C-n>
   tnoremap <M-[> <Esc>
   tnoremap <C-v><Esc> <Esc>
-"  if has('win32') || has('win64')
-"      set shell="powershell"
-"  endif 
 endif
 
 " FZF
