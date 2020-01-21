@@ -6,10 +6,14 @@ Start-SshAgent -Quiet
 
 if ($host.Name -eq 'ConsoleHost') {
     Import-Module PSReadLine
+    # Delete from the cursor to the beginning of the line
     Set-PSReadlineKeyHandler -Key Ctrl+U -Function BackwardDeleteLine
+    # Delete from the cursor to the end of the line
     Set-PSReadlineKeyHandler -Key Ctrl+K -Function ForwardDeleteLine
+    # Bash style tab completion
     Set-PSReadlineKeyHandler -Key Tab -Function Complete
 
+    # Ctrl-D will exit
     Set-PSReadlineKeyHandler -Key Ctrl+d `
     -BriefDescription "Exit" `
     -LongDescription "Exit" `
