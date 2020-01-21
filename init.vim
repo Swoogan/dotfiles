@@ -7,6 +7,9 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'machakann/vim-highlightedyank'
 Plug 'PProvost/vim-ps1'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-unimpaired'
+Plug 'tpope/vim-repeat'
 
 call plug#end()
 
@@ -19,12 +22,14 @@ set splitright
 set smartindent
 set hidden
 set smartcase
+set nowritebackup       " Prevent vim from writing to new files every time
 set tabstop=8
 set sts=4
 set shiftwidth=4
 set expandtab
-set iskeyword+=-                                 " treat - seperated words as a word object
-set iskeyword+=_                                 " treat _ seperated words as a word object
+set iskeyword+=-        " treat - seperated words as a word object
+set iskeyword+=_        " treat _ seperated words as a word object
+set cursorline          " highlights current line
  
 colorscheme distinguished
 
@@ -53,6 +58,11 @@ augroup END
 
 "" Mappings
 inoremap jk <Esc>
+
+" Stop being bad
+nmap $a :echoe "STOP. Use 'A'"<Cr>
+nmap d$ :echoe "STOP. Use 'D'"<Cr>
+nmap c$ :echoe "STOP. Use 'C'"<Cr>
 
 "" Simplified window management
 map <C-h> <C-W>h
@@ -115,4 +125,4 @@ if !isdirectory(expand("$HOME/.cache/vim/swap"))
 endif
 set directory=$HOME/.cache/vim/swap
 
-
+command! DiffOrig vertical new | set buftype=nofile | read # | 0d_ | diffthis | wincmd p | diffthis
