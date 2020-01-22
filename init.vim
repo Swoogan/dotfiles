@@ -2,34 +2,33 @@ call plug#begin()
 
 Plug 'vim-airline/vim-airline'
 Plug 'machakann/vim-sandwich'
-Plug 'ziglang/zig.vim'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'machakann/vim-highlightedyank'
-Plug 'PProvost/vim-ps1'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-repeat'
+Plug 'sheerun/vim-polyglot'
 
 call plug#end()
 
 set background = "dark"
 set termguicolors
-set number
-set relativenumber
-set splitbelow
-set splitright
+set number          " show the current line number (w/ relative on)
+set relativenumber  " show relative line numbers
+set splitbelow      " new horizontal windows appear on the bottom
+set splitright      " new vertical windows appear on the right
 set smartindent
+set cursorline      " highlights current line
 set hidden
-set smartcase
-set nowritebackup       " Prevent vim from writing to new files every time
+set smartcase       " searching case insensitive unless mixed case
+set nowritebackup   " Prevent vim from writing to new files every time
 set tabstop=8
 set sts=4
 set shiftwidth=4
-set expandtab
-set iskeyword+=-        " treat - seperated words as a word object
-set iskeyword+=_        " treat _ seperated words as a word object
-set cursorline          " highlights current line
+set expandtab       " converts tab presses to spaces
+set iskeyword+=-    " treat - seperated words as a word object
+set iskeyword+=_    " treat _ seperated words as a word object
  
 colorscheme distinguished
 
@@ -41,9 +40,9 @@ let mapleader=","
 
 " Auto commands
 augroup numbertoggle
-  autocmd!
-  autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
-  autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
+    autocmd!
+    autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
+    autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
 augroup END
 
 augroup markdown
@@ -98,6 +97,17 @@ nnoremap <C-/> m`I//<Esc>``
 nnoremap <Leader>ec :vsplit $MYVIMRC<Cr>
 " Source vim config
 nnoremap <Leader>sc :source $MYVIMRC<Cr>
+
+" Uncomment line
+nnoremap <C-k><C-u> :normal 02x<Cr>
+vnoremap <C-k><C-u> :normal 02x<Cr>
+nnoremap <C-k>u :normal ^2x<Cr>
+vnoremap <C-k>u :normal ^2x<Cr>
+" Comment line
+nnoremap <C-k>c :normal 0I// <Cr>
+vnoremap <C-k>c :normal 0I// <Cr>
+
+nnoremap <Leader>sc :source $MYVIMRC<Cr>   " Source config
 
 if has('nvim')
   tnoremap <Esc> <C-\><C-n>
