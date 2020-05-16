@@ -31,7 +31,7 @@ set iskeyword+=-    " treat - seperated words as a word object
 set iskeyword+=_    " treat _ seperated words as a word object
  
 colorscheme distinguished
-GuiPopupmenu 0
+" GuiPopupmenu 0
 
 let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes)
 " Add: Press sa{motion/textobject}{addition}. For example, a key sequence saiw( makes foo to (foo).
