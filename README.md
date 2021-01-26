@@ -4,9 +4,10 @@ My personal config files
 
 ## Linux Install
 
-    ln -s ~/source/_vimrc ~/.vimrc
-    ln -s ~/source/_vimrc ~/.config/nvim/init.vim
-    ln -s dev/dotfiles/.gitconfig ~/.gitconfig	
+    ln -s ~/dev/dotfiles/_vimrc ~/.vimrc
+    ln -s ~/dev/dotfiles/init.vim ~/.config/nvim/init.vim
+    ln -s ~/dev/dotfiles/.gitconfig ~/.gitconfig	
+    ln -s ~/dev/dotfiles/config.fish ~/.config/fish/config.fish
 
 ## Windows Install
 

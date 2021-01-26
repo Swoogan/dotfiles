@@ -30,7 +30,6 @@ set cursorline
 au GUIEnter * simalt ~x
 
 " Fonts for GVim
-set renderoptions=type:directx
 set encoding=utf-8
 if has("gui_running")
     set background=dark
@@ -54,10 +53,7 @@ endif
 
 autocmd FileType html set tabstop=2|set shiftwidth=2
 autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
-
-augroup numbertoggle
-  autocmd!
-  autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
+augroup numbertoggle autocmd!  autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
   autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
 augroup END
 
@@ -66,6 +62,8 @@ map <C-h> <C-W>h
 map <C-j> <C-W>j
 map <C-k> <C-W>k
 map <C-l> <C-W>l
+
+imap ii <Esc>
 
 "" Disable the arrow keys
 noremap <Up> <NOP>
@@ -78,10 +76,10 @@ map <Leader>r ylp
 map <Leader>nl :nohl<Cr>
 
 "" Clipboard copy and paste
-nmap <Leader>p "*p
-nmap <Leader>P "*P
-nmap <Leader>y "*y
-nmap <Leader>yy "*yy
+nmap <Leader>p "+p
+nmap <Leader>P "+P
+nmap <Leader>y "+y
+nmap <Leader>yy "+yy
 
 "" Airline
 set noshowmode       " Don't need mode message with airline plugin
