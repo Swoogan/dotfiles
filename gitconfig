@@ -56,8 +56,10 @@
     rba = rebase --abort
 
 # Misc
-    ec = "!gvim ~/.gitconfig"
-    ecl = "!gvim ~/.local/.gitconfig"
+    ec = "!nvim-qt ~/.gitconfig"
+    ecl = "!nvim-qt ~/.local/.gitconfig"
 
 [include]
     path = ~/.local/.gitconfig
+[core]
+	sshCommand = C:/WINDOWS/System32/OpenSSH/ssh.exe

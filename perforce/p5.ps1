@@ -78,7 +78,7 @@ function Invoke-Perforce {
                 p4 reconcile -c $env:P5CHANGE
             }
             "add" {
-                if (Test-Path env:P5CHANGE)  {
+                if (Test-Path env:\P5CHANGE)  {
                     p4 reconcile -c $env:P5CHANGE
                 } else {
                     Write-Warning "No changelist present"

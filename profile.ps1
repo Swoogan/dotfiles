@@ -1,3 +1,7 @@
+if ($HOST.Name -eq "Package Manager Host") {
+    exit 0
+}
+
 Import-Module C:\ProgramData\Chocolatey\lib\psake\tools\psake\psake.psm1
 
 . "$HOME\p5\perforce.ps1"
@@ -139,6 +143,10 @@ function Invoke-BinaryProcess([string]$processName, [string]$arguments) {
     $process.StandardOutput.ReadToEnd()
 }
 
+function Remove-ItemsRecursive {
+    Remove-Item -Recursive -Force 
+}
+
 #######################
 ### Aliases
 #######################
@@ -157,6 +165,7 @@ Set-Alias ack Find-InFiles
 Set-Alias rc Reset-Colors
 Set-Alias env Get-Environment
 Set-Alias gvm Invoke-NvimQt
+Set-Alias rmr Remove-ItemsRecursive
 
 
 $local = "~/.local/profile.ps1"
