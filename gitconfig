@@ -62,4 +62,5 @@
 [include]
     path = ~/.local/.gitconfig
 [core]
-	sshCommand = C:/WINDOWS/System32/OpenSSH/ssh.exe
+    # move this to local config
+    #sshCommand = C:/WINDOWS/System32/OpenSSH/ssh.exe
