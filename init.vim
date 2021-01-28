@@ -56,7 +56,10 @@ augroup zig
 augroup END
 
 "" Mappings
+" quicker escape
 inoremap jk <Esc>
+" quicker escape (colemak)
+inoremap ii <Esc>
 
 " Stop being bad
 nmap $a :echoe "STOP. Use 'A'"<Cr>
@@ -68,6 +71,7 @@ map <C-h> <C-W>h
 map <C-j> <C-W>j
 map <C-k> <C-W>k
 map <C-l> <C-W>l
+
 " launch a terminal
 if has('win32') || has('win64')
     noremap <Leader>t :10split\|term://powershell<Cr>a
@@ -91,8 +95,7 @@ nnoremap <Leader>yy "+yy
 nnoremap <Leader>p "+p
 " Pastes from system clipboard
 nnoremap <Leader>P "+P
-" Adds c-style comment to the beginning of a line
-nnoremap <C-/> m`I//<Esc>``
+
 " Edit vim config in split
 nnoremap <Leader>ec :vsplit $MYVIMRC<Cr>
 " Source vim config
@@ -106,9 +109,10 @@ vnoremap <C-k>u :normal ^2x<Cr>
 " Comment line
 nnoremap <C-k>c :normal 0I// <Cr>
 vnoremap <C-k>c :normal 0I// <Cr>
+" Adds c-style comment to the beginning of a line
+nnoremap <C-/> m`I//<Esc>``
 
-nnoremap <Leader>sc :source $MYVIMRC<Cr>   " Source config
-
+" Remap keys in terminal mode
 if has('nvim')
   tnoremap <Esc> <C-\><C-n>
   tnoremap <M-[> <Esc>
