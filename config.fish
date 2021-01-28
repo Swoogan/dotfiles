@@ -19,7 +19,7 @@ alias ....='cd ../../..'
 alias ls='exa'
 alias ll='exa --long'
 alias lg='exa --long --git'
+alias ec='nvim ~/.config/fish/config.fish'
 
 # Wasmer
-export WASMER_DIR="/home/swoogan/.wasmer"
 [ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"
