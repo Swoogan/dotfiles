@@ -84,6 +84,11 @@ endif
 noremap <Leader>r ylp
 " Removes search highlighting
 noremap <Leader>nl :nohl<Cr>
+" Save file
+nnoremap <leader>w <Esc>:w<cr>
+" Save and quit
+nnoremap <leader>x <Esc>:x<cr>
+
 
 " Yanks selection to system clipboard
 nnoremap <Leader>y "+y
