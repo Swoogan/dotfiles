@@ -1,3 +1,12 @@
+(deflayer template
+    _  _   _   _   _   _   _   _   _   _   _   _   _   _   _   _
+    _  _   _   _   _   _   _   _   _   _   _   _    _    _
+    _  _  _    _    _    _    _    _    _    _    _    _    _    _
+    _  _   _   _   _   _   _   _   _   _  _   _   _
+    _ _  _  _  _   _    _    _    _    _    _    _
+    _ _ _           _       _ _ _ _   _
+)
+
 (defcfg
   ;; For Linux
   input  (device-file "/dev/input/event3")
@@ -8,7 +17,7 @@
 )
 
 (defsrc
-    esc  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
+    esc  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12  home  end  del
     grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
     tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
     caps a    s    d    f    g    h    j    k    l    ;    '    ret    
@@ -17,7 +26,7 @@
 )
 
 (defalias
-    met_a (tap-hold-next-release 200 a lmet)
+    met_a (tap-hold-next-release 220 a lmet)
     alt_s (tap-hold-next-release 200 s lalt)
     ctl_d (tap-hold-next-release 200 d lctl)
     sft_f (tap-hold-next-release 200 f lsft)
@@ -25,15 +34,26 @@
     sft_j (tap-hold-next-release 200 j rsft)
     ctl_k (tap-hold-next-release 200 k rctl)
     alt_l (tap-hold-next-release 200 l lalt)
-    met_; (tap-hold-next-release 200 ; rmet)
+    met_; (tap-hold-next-release 220 ; rmet)
+
+    ext (tap-hold-next-release 220 esc (layer-toggle extend))
 )
 
 (deflayer homerowmods
-    esc  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
-    grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+    XX  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12  home  end  del
+    grv  1    2    3    4    5    6    7    8    9    0    -    =    XX
     tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
-    esc  @met_a   @alt_s   @ctl_d   @sft_f   g   h   @sft_j   @ctl_k   @alt_l   @met_;   '   ret
+    @ext  a   @alt_s   @ctl_d   @sft_f   g   h   @sft_j   @ctl_k   @alt_l   ;   '   ret
     lsft z    x    c    v    b    n    m    ,    .    /    rsft
-    lctl lmet lalt           spc       bspc left down up   rght
+    XX XX XX           spc       bspc left down up   rght
+)
+
+(deflayer extend
+    XX  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12  home  end  del
+    grv  1    2    3    4    5    6    7    8    9    0    -    =    XX
+    tab  esc  w    e    r    t    pgup    home    up    end    del    [    ]    \
+    esc  lalt   s   lsft   lctl   g   pgdn   left   down   right  bspc   '   ret
+    lsft C-z  C-x  C-c  C-v   b    n    m    ,    .    /    rsft
+    XX XX XX           spc       bspc left down up   rght
 )
 
