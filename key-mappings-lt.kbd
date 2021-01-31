@@ -1,11 +1,14 @@
+#| ------------------------------------------------------------------
 (deflayer template
-    _  _   _   _   _   _   _   _   _   _   _   _   _   _   _   _
-    _  _   _   _   _   _   _   _   _   _   _   _    _    _
-    _  _  _    _    _    _    _    _    _    _    _    _    _    _
-    _  _   _   _   _   _   _   _   _   _  _   _   _
-    _ _  _  _  _   _    _    _    _    _    _    _
-    _ _ _           _       _ _ _ _   _
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _           _            _    _    _    _    _ 
+                                       _    _    _ 
 )
+-------------------------------------------------------------------- |#
 
 (defcfg
   ;; For Linux
@@ -22,7 +25,8 @@
     tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
     caps a    s    d    f    g    h    j    k    l    ;    '    ret    
     lsft z    x    c    v    b    n    m    ,    .    /    rsft
-    lctl lmet lalt           spc       ralt left down up   rght
+    lctl lmet lalt           spc       ralt rctl pgup up   pgdn
+                                                 left down rght
 )
 
 (defalias
@@ -37,23 +41,36 @@
     met_; (tap-hold-next-release 220 ; rmet)
 
     ext (tap-hold-next-release 220 esc (layer-toggle extend))
+    prg (layer-toggle programming)
 )
 
-(deflayer homerowmods
-    XX  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12  home  end  del
-    grv  1    2    3    4    5    6    7    8    9    0    -    =    XX
-    tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
-    @ext  a   @alt_s   @ctl_d   @sft_f   g   h   @sft_j   @ctl_k   @alt_l   ;   '   ret
-    lsft z    x    c    v    b    n    m    ,    .    /    rsft
-    XX XX XX           spc       bspc left down up   rght
+(deflayer default
+    XX   _   _   _   _   _   _   _   _   _   _   _   _   _   _   _
+    _   _   _   _   _   _   _   _   _   _   _   _   _   XX
+    _   _   _   _   _   _   _   _   _   _   _   _   _   _
+    @ext  _   @alt_s   @ctl_d   @sft_f   _   _   @sft_j   @ctl_k   @alt_l   _   _   _
+    _   _   _   _   _   _   _   _   _   _   _   _
+    XX   XX  @prg           _       bspc _   _   _   _
+                                                _   _   _
 )
 
 (deflayer extend
-    XX  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12  home  end  del
-    grv  1    2    3    4    5    6    7    8    9    0    -    =    XX
-    tab  esc  w    e    r    t    pgup    home    up    end    del    [    ]    \
-    esc  lalt   s   lsft   lctl   g   pgdn   left   down   right  bspc   '   ret
-    lsft C-z  C-x  C-c  C-v   b    n    m    ,    .    /    rsft
-    XX XX XX           spc       bspc left down up   rght
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    tab  esc  _    _    _    _    pgup home up   end  del  _    _    _
+    _    lalt _    lctl lsft _    pgdn left down rght bspc _    _
+    lsft C-z  C-x  C-c  C-v  _    _    _    _    _    _    _
+    _    _    _              _         _    _    _    _    _   
+                                                 _    _    _
 )
 
+;; ={.={.={}()[]]ooooo
+(deflayer programming
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    1    2    3    4    5    6    7    8    9    0    _    _    _ 
+    _    _    .    =    S-[  S-]  S-9  S-0  [    ]    ;    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _              _         _    _    _    _    _ 
+                                       _    _    _ 
+)
