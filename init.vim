@@ -56,11 +56,6 @@ augroup zig
 augroup END
 
 "" Mappings
-" quicker escape
-inoremap jk <Esc>
-" quicker escape (colemak)
-inoremap ii <Esc>
-
 " Stop being bad
 nmap $a :echoe "STOP. Use 'A'"<Cr>
 nmap d$ :echoe "STOP. Use 'D'"<Cr>

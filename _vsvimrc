@@ -1,7 +1,5 @@
 set ignorecase
 
-inoremap ii <Esc>
-
 "set clipboard=unnamed
 "
 "map gd :vsc ReSharper.ReSharper_GotoDeclaration<CR>
