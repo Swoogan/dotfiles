@@ -28,6 +28,31 @@
 )
 
 (defalias
+    ;; mea (tap-hold-next-release 220 a lmet)
+    alr (tap-hold-next-release 200 r lalt)
+    cts (tap-hold-next-release 200 s lctl)
+    sft (tap-hold-next-release 200 t lsft)
+
+    sfn (tap-hold-next-release 200 n rsft)
+    cte (tap-hold-next-release 200 e rctl)
+    ali (tap-hold-next-release 200 i lalt)
+    ;; me; (tap-hold-next-release 220 ; rmet)
+
+    ext (tap-hold-next-release 220 esc (layer-toggle extend))
+    prg (layer-toggle programming)
+    qrt (tap-hold-next-release 220 F1 (layer-switch qwerty))
+)
+
+(deflayer colemak
+    XX   @qrt _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _    XX 
+    _    q    w    e    r    t    y    u    i    o    p    _    _    _
+    @ext a    @alr @cts @sft g    h    @sfn @cte @ali _    _    _       
+    _    z    x    c    v    b    n    m    _    _    _    _    _   
+    XX   XX   @prg           _                   bspc _    _    _    _   
+)
+
+(defalias
     mea (tap-hold-next-release 220 a lmet)
     als (tap-hold-next-release 200 s lalt)
     ctd (tap-hold-next-release 200 d lctl)
@@ -38,17 +63,16 @@
     all (tap-hold-next-release 200 l lalt)
     me; (tap-hold-next-release 220 ; rmet)
 
-    ext (tap-hold-next-release 220 esc (layer-toggle extend))
-    prg (layer-toggle programming)
+    col (tap-hold-next-release 220 F1 (layer-switch colemak))
 )
 
-(deflayer homerowmods
-    XX   _    _    _    _    _    _    _    _    _    _    _    _ 
+(deflayer qwerty
+    XX   @col _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    XX 
-    _    _    _    _    _    _    _    _    _    _    _    _    _    _
-    @ext _    @als @ctd @sff _    _    @sfj @ctk @all _    _    _
-    _    _    _    _    _    _    _    _    _    _    _    _    _
-    XX   XX   @prg           _                   bspc _    _    _    _
+    _    q    w    e    r    t    y    u    i    o    p    _    _    _
+    @ext a    @als @ctd @sff g    h    @sfj @ctk @all _    _    _       
+    _    z    x    c    v    b    n    m    _    _    _    _    _   
+    XX   XX   @prg           _                   bspc _    _    _    _   
 )
 
 (defalias
