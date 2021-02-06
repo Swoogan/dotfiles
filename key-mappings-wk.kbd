@@ -28,7 +28,6 @@
 )
 
 (defalias
-    ;; mea (tap-hold-next-release 220 a lmet)
     alr (tap-hold-next-release 200 r lalt)
     cts (tap-hold-next-release 200 s lctl)
     sft (tap-hold-next-release 200 t lsft)
@@ -36,7 +35,6 @@
     sfn (tap-hold-next-release 200 n rsft)
     cte (tap-hold-next-release 200 e rctl)
     ali (tap-hold-next-release 200 i lalt)
-    ;; me; (tap-hold-next-release 220 ; rmet)
 
     ext (tap-hold-next-release 220 esc (layer-toggle extend))
     qrt (tap-hold-next-release 500 F1 (layer-switch qwerty))
