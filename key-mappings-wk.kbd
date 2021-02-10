@@ -48,10 +48,10 @@
 (deflayer colemak
     XX   @qrt _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    XX 
-    _    q    w    f    p    g    j    l    u    y    ;    _    _    _
+    _    q    w    f    p    g    j    l    u    y    ;    XX   XX   XX
     @ext @lpg @alr @cts @sft d    h    @sfn @cte @ali @rpg _    _       
-    _    z    x    c    v    b    k    m    _    _    _    _    _   
-    XX   XX   del            _                   bspc _    _    _    _   
+    XX   z    x    c    v    b    k    m    _    _    _    XX   XX   
+    XX   _    del            _                   bspc XX   XX   XX   XX   
 )
 
 (defalias
@@ -71,10 +71,10 @@
 (deflayer qwerty
     XX   @col _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    XX 
-    _    q    w    e    r    t    y    u    i    o    p    _    _    _
+    _    q    w    e    r    t    y    u    i    o    p    XX   XX   XX
     @ext a    @als @ctd @sff g    h    @sfj @ctk @all _    _    _       
-    _    z    x    c    v    b    n    m    _    _    _    _    _   
-    XX   XX   del            _                   bspc _    _    _    _   
+    XX   z    x    c    v    b    n    m    _    _    _    XX   XX
+    XX   _    del            _                   bspc XX   XX   XX   XX   
 )
 
 (defalias
