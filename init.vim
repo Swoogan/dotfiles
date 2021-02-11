@@ -29,7 +29,7 @@ set shiftwidth=4
 set expandtab       " converts tab presses to spaces
 set iskeyword+=-    " treat - seperated words as a word object
 set iskeyword+=_    " treat _ seperated words as a word object
- 
+set inccommand=nosplit    " shows effects of substitutions 
 colorscheme distinguished
 
 let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes)
