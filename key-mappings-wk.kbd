@@ -53,7 +53,6 @@
 )
 
 (defalias
-    mea (tap-hold-next-release 220 a lmet)
     als (tap-hold-next-release 200 s lalt)
     ctd (tap-hold-next-release 200 d lctl)
     sff (tap-hold-next-release 200 f lsft)
@@ -61,7 +60,6 @@
     sfj (tap-hold-next-release 200 j rsft)
     ctk (tap-hold-next-release 200 k rctl)
     all (tap-hold-next-release 200 l lalt)
-    me; (tap-hold-next-release 220 ; rmet)
 
     col (tap-hold-next-release 500 F1 (layer-switch colemak))
 )

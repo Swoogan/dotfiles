@@ -39,14 +39,14 @@
     ali (tap-hold-next-release 200 i lalt)
 
     ext (tap-hold-next-release 220 esc (layer-toggle extend))
-;;    qrt (tap-hold-next-release 500 F1 (layer-switch qwerty))
+    qrt (tap-hold-next-release 500 F1 (layer-switch qwerty))
 
     lpg (tap-hold-next-release 220 a (layer-toggle programming))
     rpg (tap-hold-next-release 220 o (layer-toggle programming))
 )
 
 (deflayer colemak
-    XX   _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    XX   @qrt _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    XX 
     _    q    w    f    p    g    j    l    u    y    ;    _    _    _ 
     @ext @lpg @alr @cts @sft d    h    @sfn @cte @ali @rpg _    _
@@ -65,23 +65,17 @@
     all (tap-hold-next-release 200 l lalt)
 
     col (tap-hold-next-release 500 F1 (layer-switch colemak))
+
+    rqp (tap-hold-next-release 220 ; (layer-toggle programming))
 )
 
-;; (deflayer qwerty
-;;     XX   @col _    _    _    _    _    _    _    _    _    _    _ 
-;;     _    _    _    _    _    _    _    _    _    _    _    _    _    XX 
-;;     _    q    w    e    r    t    y    u    i    o    p    _    _    _
-;;     @ext a    @als @ctd @sff g    h    @sfj @ctk @all _    _    _       
-;;     _    z    x    c    v    b    n    m    _    _    _    _    _   
-;;     XX   XX   del            _                   bspc _    _    _    _   
-;; )
 
 (deflayer qwerty
     XX   @col _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    XX 
-    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
-    _    _    @als @ctd @sff _    _    @sfj @ctk @all _    _    _ 
-    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    q    w    e    r    t    y    u    i    o    p    _    _    _ 
+    @ext @lpg @als @ctd @sff g    h    @sfj @ctk @all @rqp _    _ 
+    _    z    x    c    v    b    n    m    _    _    _    _ 
     XX   XX   del            _         bspc _    _    _    _ 
                                        _    _    _ 
 )
@@ -110,7 +104,7 @@
      _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
      _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
      _    1    2    3    4    5    6    7    8    9    0    _    _    _ 
-     _    _    .    S-[  S-]  =    S-9  S-0  [    ]    ;    _    _ 
+     _    grv  -    =    @sh[ ]    \\   @sh' ,    .    ;    _    _ 
      _    _    _    _    _    _    _    _    _    _    _    _ 
      _    _    _              _         _    _    _    _    _ 
                                         _    _    _ 
