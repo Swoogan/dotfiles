@@ -1,5 +1,6 @@
 set ignorecase
 
+let mapleader=","
 "set clipboard=unnamed
 "
 "map <Space>qk :vsc Tools.CustomizeKeyboard<CR>
@@ -8,3 +9,11 @@ set ignorecase
 
 nmap ]m :vsc Edit.NextMethod<CR>
 nmap [m :vsc Edit.PreviousMethod<CR>
+
+map <Leader>nl :nohl<CR>
+map <Leader>w :w<CR>
+map <Leader>x :x<CR>
+map <Leader>b :vsc Build.BuildSolution<CR>
+map <Leader>r :vsc Debug.Start<CR>
+
+abbrev lg private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
