@@ -5,12 +5,13 @@ Plug 'machakann/vim-sandwich'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'machakann/vim-highlightedyank'
-Plug 'tpope/vim-commentary'
-Plug 'tpope/vim-unimpaired'
-Plug 'tpope/vim-repeat'
+" Plug 'tpope/vim-commentary'
+" Plug 'tpope/vim-unimpaired'
+" Plug 'tpope/vim-repeat'
 Plug 'sheerun/vim-polyglot'
 
 call plug#end()
+
 
 set background = "dark"
 set termguicolors
@@ -36,6 +37,7 @@ let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes)
 " Add: Press sa{motion/textobject}{addition}. For example, a key sequence saiw( makes foo to (foo).
 " Delete: Press sdb or sd{deletion}. For example, key sequences sdb or sd( makes (foo) to foo. sdb searches a set of surrounding automatically.
 " Replace: Press srb{addition} or sr{deletion}{addition}. For example, key sequences srb" or sr(" makes (foo) to "foo".
+
 let mapleader=","
 
 " Auto commands
@@ -56,10 +58,6 @@ augroup zig
 augroup END
 
 "" Mappings
-" Stop being bad
-nmap $a :echoe "STOP. Use 'A'"<Cr>
-nmap d$ :echoe "STOP. Use 'D'"<Cr>
-nmap c$ :echoe "STOP. Use 'C'"<Cr>
 
 "" Simplified window management
 map <C-h> <C-W>h
@@ -113,11 +111,9 @@ vnoremap <C-k>c :normal 0I// <Cr>
 nnoremap <C-/> m`I//<Esc>``
 
 " Remap keys in terminal mode
-if has('nvim')
-  tnoremap <Esc> <C-\><C-n>
-  tnoremap <M-[> <Esc>
-  tnoremap <C-v><Esc> <Esc>
-endif
+tnoremap <Esc> <C-\><C-n>
+tnoremap <M-[> <Esc>
+tnoremap <C-v><Esc> <Esc>
 
 " FZF
 nnoremap <Leader>rg :Rg<Cr>
