@@ -1,5 +1,6 @@
 call plug#begin()
 
+Plug 'lokaltog/vim-distinguished'
 Plug 'vim-airline/vim-airline'
 Plug 'machakann/vim-sandwich'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
