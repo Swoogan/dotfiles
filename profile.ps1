@@ -2,11 +2,10 @@ if ($HOST.Name -eq "Package Manager Host") {
     exit 0
 }
 
-Import-Module C:\ProgramData\Chocolatey\lib\psake\tools\psake\psake.psm1
+# Import-Module C:\ProgramData\Chocolatey\lib\psake\tools\psake\psake.psm1
+Import-Module Posh-Git
 
-. "$HOME\p5\perforce.ps1"
-
-Start-SshAgent -Quiet
+# . "$HOME\p5\perforce.ps1"
 
 if ($host.Name -eq 'ConsoleHost') {
     Import-Module PSReadLine
