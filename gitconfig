@@ -3,12 +3,14 @@
 # Basic shortcuts ----------------------------------------------------------------------------------
     
     rb = rebase
+    rbo = rebase origin/master
     fp = push --force-with-lease
     co = checkout
     cm = commit
     cmm = commit -m
     oops = commit --amend --no-edit
     st = status
+    fet = fetch -p
 
 # Logging -----------------------------------------------------------------------------------------
     ls = log --pretty=format:'%C(bold yellow)%h%C(bold red)%d %Creset%s%C(bold blue) [%cn]' --decorate
