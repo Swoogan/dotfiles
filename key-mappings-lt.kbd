@@ -30,13 +30,13 @@
 )
 
 (defalias
-    alr (tap-hold-next-release 200 r lalt)
-    cts (tap-hold-next-release 200 s lctl)
-    sft (tap-hold-next-release 200 t lsft)
+    alr (tap-hold-next-release 220 r lalt)
+    cts (tap-hold-next-release 180 s lctl)
+    sft (tap-hold-next-release 160 t lsft)
 
-    sfn (tap-hold-next-release 200 n rsft)
-    cte (tap-hold-next-release 200 e rctl)
-    ali (tap-hold-next-release 200 i lalt)
+    sfn (tap-hold-next-release 160 n rsft)
+    cte (tap-hold-next-release 180 e rctl)
+    ali (tap-hold-next-release 220 i lalt)
 
     ext (tap-hold-next-release 220 esc (layer-toggle extend))
     qrt (tap-hold-next-release 500 F1 (layer-switch qwerty))
