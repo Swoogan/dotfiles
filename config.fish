@@ -20,6 +20,7 @@ alias ls='exa'
 alias ll='exa --long'
 alias lg='exa --long --git'
 alias ec='nvim ~/.config/fish/config.fish'
+alias up='sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y'
 
 # Wasmer
 [ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"
