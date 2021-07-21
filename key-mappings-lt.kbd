@@ -41,15 +41,15 @@
     ext (tap-hold-next-release 220 esc (layer-toggle extend))
     qrt (tap-hold-next-release 500 F1 (layer-switch qwerty))
 
-    lpg (tap-hold-next-release 220 a (layer-toggle programming))
-    rpg (tap-hold-next-release 220 o (layer-toggle programming))
+    lpg (tap-hold-next-release 200 f (layer-toggle programming))
+    rpg (tap-hold-next-release 200 u (layer-toggle programming))
 )
 
 (deflayer colemak
     XX   @qrt _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    XX 
-    _    q    w    f    p    g    j    l    u    y    ;    _    _    _ 
-    @ext @lpg @alr @cts @sft d    h    @sfn @cte @ali @rpg _    _
+    _    q    w    @lpg p    g    j    l    @rpg y    ;    _    _    _ 
+    @ext a    @alr @cts @sft d    h    @sfn @cte @ali o    _    _
     _    z    x    c    v    b    k    m    _    _    _    _ 
     XX   XX  del        _              bspc _    _    _    _
                                                  _    _    _
@@ -66,15 +66,16 @@
 
     col (tap-hold-next-release 500 F1 (layer-switch colemak))
 
-    rqp (tap-hold-next-release 220 ; (layer-toggle programming))
+    lqp (tap-hold-next-release 200 e (layer-toggle programming))
+    rqp (tap-hold-next-release 200 ; (layer-toggle programming))
 )
 
 
 (deflayer qwerty
     XX   @col _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    XX 
-    _    q    w    e    r    t    y    u    i    o    p    _    _    _ 
-    @ext @lpg @als @ctd @sff g    h    @sfj @ctk @all @rqp _    _ 
+    _    q    w    @lqp r    t    y    u    @rqp o    p    _    _    _ 
+    @ext a    @als @ctd @sff g    h    @sfj @ctk @all ;    _    _ 
     _    z    x    c    v    b    n    m    _    _    _    _ 
     XX   XX   del            _         bspc _    _    _    _ 
                                        _    _    _ 
