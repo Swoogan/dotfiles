@@ -1,13 +1,14 @@
-if test -z (pgrep ssh-agent)
-  eval (ssh-agent -c)
-  set -gx SSH_AUTH_SOCK $SSH_AUTH_SOCK
-  set -gx SSH_AGENT_PID $SSH_AGENT_PID
-  set -gx SSH_AUTH_SOCK $SSH_AUTH_SOCK
-end
+#if test -z (pgrep ssh-agent)
+#  eval (ssh-agent -c)
+#  set -gx SSH_AUTH_SOCK $SSH_AUTH_SOCK
+#  set -gx SSH_AGENT_PID $SSH_AGENT_PID
+#  set -gx SSH_AUTH_SOCK $SSH_AUTH_SOCK
+#end
 
 source ~/.local/config.fish
 
 set -gx DEV_HOME "$HOME/dev"
+set -gx EDITOR "/usr/bin/nvim"
 
 set -gx WASMTIME_HOME "$HOME/.wasmtime"
 
