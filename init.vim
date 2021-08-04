@@ -10,6 +10,8 @@ Plug 'machakann/vim-highlightedyank'
 " Plug 'tpope/vim-unimpaired'
 " Plug 'tpope/vim-repeat'
 Plug 'sheerun/vim-polyglot'
+Plug 'neovim/nvim-lspconfig'
+Plug 'editorconfig/editorconfig-vim'
 
 call plug#end()
 
