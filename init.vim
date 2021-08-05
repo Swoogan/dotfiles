@@ -10,11 +10,16 @@ Plug 'machakann/vim-highlightedyank'
 " Plug 'tpope/vim-unimpaired'
 " Plug 'tpope/vim-repeat'
 Plug 'sheerun/vim-polyglot'
-Plug 'neovim/nvim-lspconfig'
 Plug 'editorconfig/editorconfig-vim'
 
-call plug#end()
+Plug 'neovim/nvim-lspconfig'
+Plug 'nvim-lua/popup.nvim'
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
+Plug 'hrsh7th/nvim-compe'
 
+
+call plug#end()
 
 set background = "dark"
 set termguicolors
