@@ -6,18 +6,20 @@ Plug 'machakann/vim-sandwich'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'machakann/vim-highlightedyank'
-" Plug 'tpope/vim-commentary'
+
+Plug 'tpope/vim-commentary'
+" Plug 'b3nj5m1n/kommentary'
+" Comment stuff out. Use gcc to comment out a line (takes a count), gc to comment out the target of a motion (for example, gcap to comment out a paragraph), gc in visual mode to comment out the selection, and gc in operator pending mode to target a comment. You can also use it as a command, either with a range like :7,17Commentary, or as part of a :global invocation like with :g/TODO/Commentary.
+
 " Plug 'tpope/vim-unimpaired'
-" Plug 'tpope/vim-repeat'
 Plug 'sheerun/vim-polyglot'
 Plug 'editorconfig/editorconfig-vim'
 
 Plug 'neovim/nvim-lspconfig'
-Plug 'nvim-lua/popup.nvim'
-Plug 'nvim-lua/plenary.nvim'
+" Plug 'nvim-lua/popup.nvim'
+" Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'hrsh7th/nvim-compe'
-
 
 call plug#end()
 
@@ -77,6 +79,42 @@ for _, lsp in ipairs(servers) do
     }
   }
 end
+
+vim.o.completeopt = "menuone,noselect"
+
+require'compe'.setup {
+  enabled = true;
+  autocomplete = true;
+  debug = false;
+  min_length = 1;
+  preselect = 'enable';
+  throttle_time = 80;
+  source_timeout = 200;
+  resolve_timeout = 800;
+  incomplete_delay = 400;
+  max_abbr_width = 100;
+  max_kind_width = 100;
+  max_menu_width = 100;
+  documentation = {
+    border = { '', '' ,'', ' ', '', '', '', ' ' }, -- the border option is the same as `|help nvim_open_win|`
+    winhighlight = "NormalFloat:CompeDocumentation,FloatBorder:CompeDocumentationBorder",
+    max_width = 120,
+    min_width = 60,
+    max_height = math.floor(vim.o.lines * 0.3),
+    min_height = 1,
+  };
+
+  source = {
+    path = true;
+    buffer = true;
+    calc = true;
+    nvim_lsp = true;
+    nvim_lua = true;
+    vsnip = true;
+    ultisnips = true;
+    luasnip = true;
+  };
+}
 
 EOF
 
@@ -165,17 +203,6 @@ nnoremap <Leader>P "+P
 nnoremap <Leader>ec :vsplit $MYVIMRC<Cr>
 " Source vim config
 nnoremap <Leader>sc :source $MYVIMRC<Cr>
-
-" Uncomment line
-nnoremap <C-k><C-u> :normal 02x<Cr>
-vnoremap <C-k><C-u> :normal 02x<Cr>
-nnoremap <C-k>u :normal ^2x<Cr>
-vnoremap <C-k>u :normal ^2x<Cr>
-" Comment line
-nnoremap <C-k>c :normal 0I// <Cr>
-vnoremap <C-k>c :normal 0I// <Cr>
-" Adds c-style comment to the beginning of a line
-nnoremap <C-/> m`I//<Esc>``
 
 " Remap keys in terminal mode
 tnoremap <Esc> <C-\><C-n>
