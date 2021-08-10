@@ -80,6 +80,19 @@ for _, lsp in ipairs(servers) do
   }
 end
 
+-- 
+
+local pid = vim.fn.getpid()
+local omnisharp_bin = "/home/swoogan/Downloads/omnisharp/omnisharp-linux-x64/run"
+
+nvim_lsp['omnisharp'].setup {
+  on_attach = on_attach,
+  flags = {
+    debounce_text_changes = 150,
+  },
+  cmd = { omnisharp_bin, "--languageserver" , "--hostPID", tostring(pid) }
+}
+
 vim.o.completeopt = "menuone,noselect"
 
 require'compe'.setup {
