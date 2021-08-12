@@ -16,10 +16,14 @@ Plug 'sheerun/vim-polyglot'
 Plug 'editorconfig/editorconfig-vim'
 
 Plug 'neovim/nvim-lspconfig'
+Plug 'hrsh7th/nvim-compe'
+
 " Plug 'nvim-lua/popup.nvim'
 " Plug 'nvim-lua/plenary.nvim'
-Plug 'nvim-telescope/telescope.nvim'
-Plug 'hrsh7th/nvim-compe'
+" Plug 'nvim-telescope/telescope.nvim'
+
+Plug 'kyazdani42/nvim-web-devicons' " for file icons
+Plug 'kyazdani42/nvim-tree.lua'
 
 call plug#end()
 
@@ -200,7 +204,6 @@ nnoremap <leader>w <Esc>:w<cr>
 " Save and quit
 nnoremap <leader>x <Esc>:x<cr>
 
-
 " Yanks selection to system clipboard
 nnoremap <Leader>y "+y
 " Yanks selection to system clipboard
@@ -217,6 +220,9 @@ nnoremap <Leader>ec :vsplit $MYVIMRC<Cr>
 " Source vim config
 nnoremap <Leader>sc :source $MYVIMRC<Cr>
 
+" Switch buffers
+nnoremap <Leader>bb :ls<CR>:b<Space>
+
 " Remap keys in terminal mode
 tnoremap <Esc> <C-\><C-n>
 tnoremap <M-[> <Esc>
@@ -225,6 +231,7 @@ tnoremap <C-v><Esc> <Esc>
 " FZF
 nnoremap <Leader>rg :Rg<Cr>
 nnoremap <Leader>cp :Files<Cr>
+nnoremap <Leader>bu :Buffer<Cr>
 
 " Insert mode completion
 imap <c-x><c-k> <plug>(fzf-complete-word)
@@ -233,6 +240,10 @@ imap <c-x><c-f> <plug>(fzf-complete-path)
 imap <c-x><c-j> <plug>(fzf-complete-file-rg)
 
 " END FZF
+
+nnoremap <C-n> :NvimTreeToggle<CR>
+nnoremap <leader>r :NvimTreeRefresh<CR>
+nnoremap <leader>n :NvimTreeFindFile<CR>
 
 "" Functions
 
