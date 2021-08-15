@@ -62,13 +62,15 @@
     all (tap-hold-next-release 200 l lalt)
 
     col (tap-hold-next-release 500 F1 (layer-switch colemak))
+
+    rqp (tap-hold-next-release 220 ; (layer-toggle programming))
 )
 
 (deflayer qwerty
     XX   @col _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    XX 
     _    q    w    e    r    t    y    u    i    o    p    XX   XX   XX
-    @ext a    @als @ctd @sff g    h    @sfj @ctk @all _    _    _       
+    @ext @lpg @als @ctd @sff g    h    @sfj @ctk @all @rqp _    _       
     XX   z    x    c    v    b    n    m    _    _    _    XX   XX
     XX   _    del            _                   bspc XX   XX   XX   XX   
 )
