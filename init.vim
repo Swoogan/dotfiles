@@ -87,14 +87,14 @@ end
 -- 
 
 local pid = vim.fn.getpid()
-local omnisharp_bin = "/home/swoogan/Downloads/omnisharp/omnisharp-linux-x64/run"
+local omnisharp_bin = "C:/dev/omnisharp-win-x64/OmniSharp.exe"
 
 nvim_lsp['omnisharp'].setup {
   on_attach = on_attach,
   flags = {
     debounce_text_changes = 150,
   },
-  cmd = { omnisharp_bin, "--languageserver" , "--hostPID", tostring(pid) }
+  cmd = { omnisharp_bin, "--languageserver" , "--hostPID", tostring(pid), "formattingOptions:EnableEditorConfigSupport=true" }
 }
 
 vim.o.completeopt = "menuone,noselect"
@@ -104,7 +104,7 @@ require'compe'.setup {
   autocomplete = true;
   debug = false;
   min_length = 1;
-  preselect = 'enable';
+  preselect = 'always';
   throttle_time = 80;
   source_timeout = 200;
   resolve_timeout = 800;
@@ -145,6 +145,7 @@ set smartindent
 set cursorline      " highlights current line
 set hidden
 set smartcase       " searching case insensitive unless mixed case
+set ignorecase
 set nowritebackup   " Prevent vim from writing to new files every time
 set tabstop=8
 set sts=4
@@ -222,6 +223,11 @@ nnoremap <Leader>sc :source $MYVIMRC<Cr>
 
 " Switch buffers
 nnoremap <Leader>bb :ls<CR>:b<Space>
+" Close current buffer
+nnoremap <Leader>bd :bd<CR>
+" Swap Buffer
+nnoremap <Leader>bs :b#<CR>
+nnoremap <Leader>bq :b#\|bd#<CR>
 
 " Remap keys in terminal mode
 tnoremap <Esc> <C-\><C-n>
