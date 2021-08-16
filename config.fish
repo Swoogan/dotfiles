@@ -7,6 +7,8 @@ end
 
 source ~/.local/config.fish
 
+set -gx DEV_HOME "$HOME/dev"
+
 set -gx WASMTIME_HOME "$HOME/.wasmtime"
 
 # Wasmer config

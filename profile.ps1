@@ -2,7 +2,6 @@ if ($HOST.Name -eq "Package Manager Host") {
     exit 0
 }
 
-# Import-Module C:\ProgramData\Chocolatey\lib\psake\tools\psake\psake.psm1
 Import-Module Posh-Git
 
 # . "$HOME\p5\perforce.ps1"
@@ -166,6 +165,10 @@ Set-Alias env Get-Environment
 Set-Alias gvm Invoke-NvimQt
 Set-Alias rmr Remove-ItemsRecursive
 
+#######################
+### Variables
+#######################
+Set-Item -Path Env:DEV_HOME -Value "C:\dev"
 
 $local = "~/.local/profile.ps1"
 

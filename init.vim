@@ -86,8 +86,8 @@ end
 
 -- 
 
-local pid = vim.fn.getpid()
-local omnisharp_bin = "C:/dev/omnisharp-win-x64/OmniSharp.exe"
+local pid =local omnisharp_bin = vim.env.DEV_HOME .. "/omnisharp-win-x64/OmniSharp.exe" vim.fn.getpid()
+local omnisharp_bin = vim.env.DEV_HOME .. "/omnisharp-win-x64/OmniSharp.exe"
 
 nvim_lsp['omnisharp'].setup {
   on_attach = on_attach,
