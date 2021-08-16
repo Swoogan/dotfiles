@@ -9,6 +9,7 @@ source ~/.local/config.fish
 
 set -gx DEV_HOME "$HOME/dev"
 set -gx EDITOR "/usr/bin/nvim"
+set -gx SUDO_EDITOR (which nvim)
 
 set -gx WASMTIME_HOME "$HOME/.wasmtime"
 
