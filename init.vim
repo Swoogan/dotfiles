@@ -1,11 +1,11 @@
 call plug#begin()
 
-Plug 'lokaltog/vim-distinguished'
+" Plug 'lokaltog/vim-distinguished'
+Plug 'EdenEast/nightfox.nvim'
 Plug 'vim-airline/vim-airline'
 Plug 'machakann/vim-sandwich'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
-Plug 'machakann/vim-highlightedyank'
 
 Plug 'tpope/vim-commentary'
 " Plug 'b3nj5m1n/kommentary'
@@ -145,32 +145,54 @@ vim.opt.hidden = true
 vim.opt.smartcase = true            -- searching case insensitive unless mixed case
 vim.opt.ignorecase = true
 
--- vim.opt.tabstop = 8
--- vim.opt.sts = true = 4
--- vim.opt.shiftwidth = 4
--- vim.opt.expandtab = true       -- converts tab presses to spaces
--- vim.opt.inccommand = "nosplit"    -- shows effects of substitutions 
+vim.opt.tabstop = 8
+vim.opt.sts = 4
+vim.opt.shiftwidth = 4
+vim.opt.expandtab = true       -- converts tab presses to spaces
+vim.opt.inccommand = 'nosplit'    -- shows effects of substitutions 
+vim.opt.mouse = 'a'
 
-EOF
+--Save undo history
+vim.cmd [[set undofile]]
 
-set nowritebackup   " Prevent vim from writing to new files every time
-set tabstop=8
-set sts=4
-set shiftwidth=4
-set expandtab       " converts tab presses to spaces
+--Decrease update time
+vim.opt.updatetime = 250
+vim.opt.signcolumn = 'yes'
+
+vim.api.nvim_set_keymap('', '<Space>', '<Nop>', { noremap = true, silent = true })
+vim.g.mapleader = ','
+vim.g.maplocalleader = ','
+
+-- vim.g.nightfox_style = "nordfox"
+vim.g.nightfox_color_delimiter = "red"
+vim.g.nightfox_italic_comments = 1
+
+-- Load the colorscheme
+require('nightfox').set()
+
+-- Highlight on yank
+vim.api.nvim_exec(
+  [[
+  augroup YankHighlight
+    autocmd!
+    autocmd TextYankPost * silent! lua vim.highlight.on_yank()
+  augroup end
+]],
+  false
+)
+
+
+vim.api.nvim_exec(
+  [[
+" set nowritebackup   " Prevent vim from writing to new files every time
 set iskeyword+=-    " treat - seperated words as a word object
 set iskeyword+=_    " treat _ seperated words as a word object
-set inccommand=nosplit    " shows effects of substitutions 
 
-
-colorscheme distinguished
 
 let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes)
 " Add: Press sa{motion/textobject}{addition}. For example, a key sequence saiw( makes foo to (foo).
 " Delete: Press sdb or sd{deletion}. For example, key sequences sdb or sd( makes (foo) to foo. sdb searches a set of surrounding automatically.
 " Replace: Press srb{addition} or sr{deletion}{addition}. For example, key sequences srb" or sr(" makes (foo) to "foo".
-
-let mapleader=","
 
 " Auto commands
 augroup numbertoggle
@@ -270,3 +292,8 @@ set directory=$HOME/.cache/vim/swap
 
 command! DiffOrig vertical new | set buftype=nofile | read # | 0d_ | diffthis | wincmd p | diffthis
 
+]],
+  false
+)
+
+EOF
