@@ -1,38 +1,55 @@
-vim.api.nvim_exec(
-  [[
-call plug#begin()
+-- Install packer
+local install_path = vim.fn.stdpath 'data' .. '/site/pack/packer/start/packer.nvim'
 
-" Plug 'lokaltog/vim-distinguished'
-Plug 'EdenEast/nightfox.nvim'
-Plug 'vim-airline/vim-airline'
-Plug 'machakann/vim-sandwich'
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-Plug 'junegunn/fzf.vim'
+if vim.fn.empty(vim.fn.glob(install_path)) > 0 then
+  vim.fn.execute('!git clone https://github.com/wbthomason/packer.nvim ' .. install_path)
+end
 
-Plug 'tpope/vim-commentary'
-" Plug 'b3nj5m1n/kommentary'
-" Comment stuff out. Use gcc to comment out a line (takes a count), gc to comment out the target of a motion (for example, gcap to comment out a paragraph), gc in visual mode to comment out the selection, and gc in operator pending mode to target a comment. You can also use it as a command, either with a range like :7,17Commentary, or as part of a :global invocation like with :g/TODO/Commentary.
+vim.api.nvim_exec([[
+  augroup Packer
+    autocmd!
+    autocmd BufWritePost init.lua PackerCompile
+  augroup end
+]], false)
 
-" Plug 'tpope/vim-unimpaired'
-Plug 'sheerun/vim-polyglot'
-Plug 'editorconfig/editorconfig-vim'
+local use = require('packer').use
+require('packer').startup(function()
+  use 'wbthomason/packer.nvim' -- Package manager
 
-Plug 'neovim/nvim-lspconfig'
-Plug 'hrsh7th/nvim-compe'
+  use 'EdenEast/nightfox.nvim' -- theme
+  -- use 'lokaltog/vim-distinguished'
 
-" Plug 'nvim-lua/popup.nvim'
-" Plug 'nvim-lua/plenary.nvim'
-" Plug 'nvim-telescope/telescope.nvim'
+  use 'tpope/vim-commentary' -- toggle comments
+  -- use 'b3nj5m1n/kommentary'
+  -- Comment stuff out. Use gcc to comment out a line (takes a count), gc to comment out the target of a motion (for example, gcap to comment out a paragraph), gc in visual mode to comment out the selection, and gc in operator pending mode to target a comment. You can also use it as a command, either with a range like :7,17Commentary, or as part of a :global invocation like with :g/TODO/Commentary.
+  
+  use 'machakann/vim-sandwich' -- add, delete, replace pairs (like {}, (), "")
 
-Plug 'kyazdani42/nvim-web-devicons' " for file icons
-Plug 'kyazdani42/nvim-tree.lua'
+  -- use { 'junegunn/fzf', 'dir'= '~/.fzf', 'do'= './install --all' }  -- fuzzy finder
+  use 'junegunn/fzf.vim'
+  
+  -- use { 'nvim-telescope/telescope.nvim', requires = { { 'nvim-lua/popup.nvim' }, { 'nvim-lua/plenary.nvim' } } }
+  use 'itchyny/lightline.vim' -- Fancier statusline
 
-call plug#end()
+  use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate', branch = '0.5-compat' } -- incremental language parser
+  use { 'nvim-treesitter/nvim-treesitter-textobjects', branch = '0.5-compat' } -- Additional textobjects for treesitter
 
-]],
-  false
-)
+  -- use 'L3MON4D3/LuaSnip' -- Snippets plugin
+  use 'editorconfig/editorconfig-vim'
 
+  use 'neovim/nvim-lspconfig'
+  use 'hrsh7th/nvim-compe'
+
+  -- use 'tpope/vim-unimpaired' 
+  -- use 'sheerun/vim-polyglot' -- replaced by treesitter
+  
+  -- currently using fzf, need to learn telescope before switching
+  -- use 'nvim-lua/popup.nvim'
+  -- use 'nvim-lua/plenary.nvim'
+  -- use 'nvim-telescope/telescope.nvim'
+
+  use { 'kyazdani42/nvim-tree.lua', requires = {'kyazdani42/nvim-web-devicons'} }
+end)
 
 local cmd = vim.cmd
 local indent = 4
@@ -136,6 +153,13 @@ require'compe'.setup {
     ultisnips = true;
     luasnip = true;
   };
+}
+
+--Set statusbar
+vim.g.lightline = {
+  colorscheme = 'onedark',
+  active = { left = { { 'mode', 'paste' }, { 'gitbranch', 'readonly', 'filename', 'modified' } } },
+  component_function = { gitbranch = 'fugitive#head' },
 }
 
 vim.opt.background = "dark"
