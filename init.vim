@@ -86,7 +86,7 @@ end
 
 -- 
 
-local pid =local omnisharp_bin = vim.env.DEV_HOME .. "/omnisharp-win-x64/OmniSharp.exe" vim.fn.getpid()
+local pid = vim.fn.getpid()
 local omnisharp_bin = vim.env.DEV_HOME .. "/omnisharp-win-x64/OmniSharp.exe"
 
 nvim_lsp['omnisharp'].setup {
@@ -133,12 +133,13 @@ require'compe'.setup {
   };
 }
 
+vim.opt.background = "dark"
+vim.opt.termguicolors = true
+vim.opt.number = true               -- show the current line number (w/ relative on)
+vim.opt.relativenumber = true       -- show relative line numbers
+
 EOF
 
-set background = "dark"
-set termguicolors
-set number          " show the current line number (w/ relative on)
-set relativenumber  " show relative line numbers
 set splitbelow      " new horizontal windows appear on the bottom
 set splitright      " new vertical windows appear on the right
 set smartindent
@@ -260,3 +261,4 @@ endif
 set directory=$HOME/.cache/vim/swap
 
 command! DiffOrig vertical new | set buftype=nofile | read # | 0d_ | diffthis | wincmd p | diffthis
+
