@@ -149,12 +149,12 @@ require'compe'.setup {
 }
 
 --Set statusbar
--- vim.g.lightline = {
---   colorscheme = 'nightfox',
---   active = { left = { { 'mode', 'paste' }, { 'readonly', 'filename', 'modified' } } },
--- --  active = { left = { { 'mode', 'paste' }, { 'gitbranch', 'readonly', 'filename', 'modified' } } },
--- --  component_function = { gitbranch = 'fugitive#head' },
--- }
+vim.g.lightline = {
+  colorscheme = 'nightfox',
+  active = { left = { { 'mode', 'paste' }, { 'readonly', 'filename', 'modified' } } },
+--  active = { left = { { 'mode', 'paste' }, { 'gitbranch', 'readonly', 'filename', 'modified' } } },
+--  component_function = { gitbranch = 'fugitive#head' },
+}
 
 -- Treesitter configuration
 -- Parsers must be installed manually via :TSInstall
@@ -243,11 +243,6 @@ vim.g.maplocalleader = ','
 -- vim.g.nightfox_style = "nordfox"
 vim.g.nightfox_color_delimiter = "red"
 vim.g.nightfox_italic_comments = 1
-
-
-vim.api.nvim_exec( [[
-      let g:lightline = {'colorscheme': 'nightfox'}
-    ]], false)
 
 -- Load the colorscheme
 require('nightfox').set()
