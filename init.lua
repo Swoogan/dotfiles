@@ -25,10 +25,6 @@ require('packer').startup(function()
   
   use 'machakann/vim-sandwich' -- add, delete, replace pairs (like {}, (), "")
 
-  -- use { 'junegunn/fzf', 'dir'= '~/.fzf', 'do'= './install --all' }  -- fuzzy finder
-  use 'junegunn/fzf.vim'
-  
-  -- use { 'nvim-telescope/telescope.nvim', requires = { { 'nvim-lua/popup.nvim' }, { 'nvim-lua/plenary.nvim' } } }
   use 'itchyny/lightline.vim' -- Fancier statusline
 
   use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate', branch = '0.5-compat' } -- incremental language parser
@@ -43,10 +39,7 @@ require('packer').startup(function()
   -- use 'tpope/vim-unimpaired' 
   -- use 'sheerun/vim-polyglot' -- replaced by treesitter
   
-  -- currently using fzf, need to learn telescope before switching
-  -- use 'nvim-lua/popup.nvim'
-  -- use 'nvim-lua/plenary.nvim'
-  -- use 'nvim-telescope/telescope.nvim'
+  use { 'nvim-telescope/telescope.nvim', requires = { 'nvim-lua/plenary.nvim' } }
 
   use { 'kyazdani42/nvim-tree.lua', requires = {'kyazdani42/nvim-web-devicons'} }
 end)
@@ -156,11 +149,12 @@ require'compe'.setup {
 }
 
 --Set statusbar
-vim.g.lightline = {
-  colorscheme = 'onedark',
-  active = { left = { { 'mode', 'paste' }, { 'gitbranch', 'readonly', 'filename', 'modified' } } },
-  component_function = { gitbranch = 'fugitive#head' },
-}
+-- vim.g.lightline = {
+--   colorscheme = 'nightfox',
+--   active = { left = { { 'mode', 'paste' }, { 'readonly', 'filename', 'modified' } } },
+-- --  active = { left = { { 'mode', 'paste' }, { 'gitbranch', 'readonly', 'filename', 'modified' } } },
+-- --  component_function = { gitbranch = 'fugitive#head' },
+-- }
 
 -- Treesitter configuration
 -- Parsers must be installed manually via :TSInstall
@@ -250,6 +244,11 @@ vim.g.maplocalleader = ','
 vim.g.nightfox_color_delimiter = "red"
 vim.g.nightfox_italic_comments = 1
 
+
+vim.api.nvim_exec( [[
+      let g:lightline = {'colorscheme': 'nightfox'}
+    ]], false)
+
 -- Load the colorscheme
 require('nightfox').set()
 
@@ -267,8 +266,31 @@ vim.api.nvim_exec(
 -- Y yank until the end of line
 vim.api.nvim_set_keymap('n', 'Y', 'y$', { noremap = true })
 
+vim.api.nvim_set_keymap('n', '<leader>cp', [[<cmd>lua require('telescope.builtin').find_files({previewer = false})<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>rg', [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader><space>', [[<cmd>lua require('telescope.builtin').buffers()<CR>]], { noremap = true, silent = true })
+
+--Add telescope shortcuts
+-- vim.api.nvim_set_keymap('n', '<leader><space>', [[<cmd>lua require('telescope.builtin').buffers()<CR>]], { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap('n', '<leader>sf', [[<cmd>lua require('telescope.builtin').find_files({previewer = false})<CR>]], { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap('n', '<leader>sb', [[<cmd>lua require('telescope.builtin').current_buffer_fuzzy_find()<CR>]], { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap('n', '<leader>sh', [[<cmd>lua require('telescope.builtin').help_tags()<CR>]], { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap('n', '<leader>st', [[<cmd>lua require('telescope.builtin').tags()<CR>]], { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap('n', '<leader>sd', [[<cmd>lua require('telescope.builtin').grep_string()<CR>]], { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap('n', '<leader>sp', [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap('n', '<leader>so', [[<cmd>lua require('telescope.builtin').tags{ only_current_buffer = true }<CR>]], { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap('n', '<leader>?', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]], { noremap = true, silent = true })
+
+-- " Using Lua functions
+-- nnoremap <leader>ff <cmd>lua require('telescope.builtin').find_files()<cr>
+-- nnoremap <leader>fg <cmd>lua require('telescope.builtin').live_grep()<cr>
+-- nnoremap <leader>fb <cmd>lua require('telescope.builtin').buffers()<cr>
+-- nnoremap <leader>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
+
 vim.api.nvim_exec(
   [[
+      let g:lightline = {'colorscheme': 'nightfox'}
+
 " set nowritebackup   " Prevent vim from writing to new files every time
 set iskeyword+=-    " treat - seperated words as a word object
 set iskeyword+=_    " treat _ seperated words as a word object
@@ -349,19 +371,6 @@ nnoremap <Leader>bq :b#\|bd#<CR>
 tnoremap <Esc> <C-\><C-n>
 tnoremap <M-[> <Esc>
 tnoremap <C-v><Esc> <Esc>
-
-" FZF
-nnoremap <Leader>rg :Rg<Cr>
-nnoremap <Leader>cp :Files<Cr>
-nnoremap <Leader>bu :Buffer<Cr>
-
-" Insert mode completion
-imap <c-x><c-k> <plug>(fzf-complete-word)
-imap <c-x><c-l> <plug>(fzf-complete-line)
-imap <c-x><c-f> <plug>(fzf-complete-path)
-imap <c-x><c-j> <plug>(fzf-complete-file-rg)
-
-" END FZF
 
 nnoremap <C-n> :NvimTreeToggle<CR>
 nnoremap <leader>r :NvimTreeRefresh<CR>
