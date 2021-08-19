@@ -6,8 +6,7 @@ Install
 
 ## Linux Install
 
-    ln -s ~/dev/dotfiles/_vimrc ~/.vimrc
-    ln -s ~/dev/dotfiles/init.vim ~/.config/nvim/init.vim
+    ln -s ~/dev/dotfiles/init.lua ~/.config/nvim/init.lua
     ln -s ~/dev/dotfiles/.gitconfig ~/.gitconfig	
     ln -s ~/dev/dotfiles/config.fish ~/.config/fish/config.fish
 
@@ -34,5 +33,5 @@ Install
     New-SymLink -Link ~/.gitconfig C:\dev\dotfiles\gitconfig
     New-Symlink -Link ~/Documents\WindowsPowerShell\profile.ps1 C:\dev\dotfiles\profile.ps1
     New-Symlink -Link ~/.vsvimrc C:\dev\dotfiles\_vsvimrc
-    New-Symlink -Link ~\AppData\Local\nvim\init.vim C:\dev\dotfiles\init.vim
+    New-Symlink -Link ~\AppData\Local\nvim\init.lua C:\dev\dotfiles\init.lua
 
