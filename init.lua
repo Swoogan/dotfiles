@@ -1,3 +1,5 @@
+vim.api.nvim_exec(
+  [[
 call plug#begin()
 
 " Plug 'lokaltog/vim-distinguished'
@@ -27,7 +29,10 @@ Plug 'kyazdani42/nvim-tree.lua'
 
 call plug#end()
 
-lua << EOF
+]],
+  false
+)
+
 
 local cmd = vim.cmd
 local indent = 4
@@ -296,4 +301,3 @@ command! DiffOrig vertical new | set buftype=nofile | read # | 0d_ | diffthis | 
   false
 )
 
-EOF
