@@ -137,16 +137,22 @@ vim.opt.background = "dark"
 vim.opt.termguicolors = true
 vim.opt.number = true               -- show the current line number (w/ relative on)
 vim.opt.relativenumber = true       -- show relative line numbers
+vim.opt.splitbelow = true           -- new horizontal windows appear on the bottom
+vim.opt.splitright = true           -- new vertical windows appear on the right
+vim.opt.smartindent = true
+vim.opt.cursorline = true           -- highlights current line
+vim.opt.hidden = true
+vim.opt.smartcase = true            -- searching case insensitive unless mixed case
+vim.opt.ignorecase = true
+
+-- vim.opt.tabstop = 8
+-- vim.opt.sts = true = 4
+-- vim.opt.shiftwidth = 4
+-- vim.opt.expandtab = true       -- converts tab presses to spaces
+-- vim.opt.inccommand = "nosplit"    -- shows effects of substitutions 
 
 EOF
 
-set splitbelow      " new horizontal windows appear on the bottom
-set splitright      " new vertical windows appear on the right
-set smartindent
-set cursorline      " highlights current line
-set hidden
-set smartcase       " searching case insensitive unless mixed case
-set ignorecase
 set nowritebackup   " Prevent vim from writing to new files every time
 set tabstop=8
 set sts=4
@@ -155,6 +161,8 @@ set expandtab       " converts tab presses to spaces
 set iskeyword+=-    " treat - seperated words as a word object
 set iskeyword+=_    " treat _ seperated words as a word object
 set inccommand=nosplit    " shows effects of substitutions 
+
+
 colorscheme distinguished
 
 let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes)
