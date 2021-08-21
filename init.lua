@@ -19,6 +19,8 @@ require('packer').startup(function()
   use 'EdenEast/nightfox.nvim' -- theme
   -- use 'lokaltog/vim-distinguished'
 
+  use 'nvim-treesitter/playground'
+
   use 'tpope/vim-commentary' -- toggle comments
   -- use 'b3nj5m1n/kommentary'
   -- Comment stuff out. Use gcc to comment out a line (takes a count), gc to comment out the target of a motion (for example, gcap to comment out a paragraph), gc in visual mode to comment out the selection, and gc in operator pending mode to target a comment. You can also use it as a command, either with a range like :7,17Commentary, or as part of a :global invocation like with :g/TODO/Commentary.
@@ -37,7 +39,6 @@ require('packer').startup(function()
   use 'hrsh7th/nvim-compe'
 
   -- use 'tpope/vim-unimpaired' 
-  -- use 'sheerun/vim-polyglot' -- replaced by treesitter
   
   use { 'nvim-telescope/telescope.nvim', requires = { 'nvim-lua/plenary.nvim' } }
 
@@ -180,10 +181,12 @@ require('nvim-treesitter.configs').setup {
       lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
       keymaps = {
         -- You can use the capture groups defined in textobjects.scm
-        ['af'] = '@function.outer',
-        ['if'] = '@function.inner',
         ['ac'] = '@class.outer',
         ['ic'] = '@class.inner',
+        ['af'] = '@function.outer',
+        ['if'] = '@function.inner',
+        ["ia"] = "@parameter.inner",
+        ["aa"] = "@parameter.outer",
       },
     },
     move = {
@@ -207,8 +210,25 @@ require('nvim-treesitter.configs').setup {
       },
     },
   },
+  playground = {
+    enable = true,
+    disable = {},
+    updatetime = 25, -- Debounced time for highlighting nodes in the playground from source code
+    persist_queries = false, -- Whether the query persists across vim sessions
+    keybindings = {
+      toggle_query_editor = 'o',
+      toggle_hl_groups = 'i',
+      toggle_injected_languages = 't',
+      toggle_anonymous_nodes = 'a',
+      toggle_language_display = 'I',
+      focus_language = 'f',
+      unfocus_language = 'F',
+      update = 'R',
+      goto_node = '<cr>',
+      show_help = '?',
+    },
+  },
 }
-
 
 vim.opt.background = "dark"
 vim.opt.termguicolors = true
