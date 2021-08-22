@@ -30,6 +30,13 @@ alias lg='exa --long --git'
 alias ec='nvim ~/.config/fish/config.fish'
 alias up='sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y'
 
+# Keychain
+/usr/bin/keychain -q --nogui $HOME/.ssh/id_rsa
+
+if test -f ~/.keychain/(hostname)-fish
+    source ~/.keychain/(hostname)-fish
+end
+
 # Wasmer
 [ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"
 
