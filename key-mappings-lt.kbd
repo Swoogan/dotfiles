@@ -46,7 +46,7 @@
 )
 
 (deflayer colemak
-    XX   @qrt _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    caps @qrt _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    XX 
     _    q    w    @lpg p    g    j    l    @rpg y    ;    _    _    _ 
     @ext a    @alr @cts @sft d    h    @sfn @cte @ali o    _    _
@@ -72,7 +72,7 @@
 
 
 (deflayer qwerty
-    XX   @col _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    caps @col _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    XX 
     _    q    w    @lqp r    t    y    u    @rqp o    p    _    _    _ 
     @ext a    @als @ctd @sff g    h    @sfj @ctk @all ;    _    _ 
