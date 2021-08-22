@@ -1,15 +1,19 @@
-#if test -z (pgrep ssh-agent)
-#  eval (ssh-agent -c)
-#  set -gx SSH_AUTH_SOCK $SSH_AUTH_SOCK
-#  set -gx SSH_AGENT_PID $SSH_AGENT_PID
-#  set -gx SSH_AUTH_SOCK $SSH_AUTH_SOCK
-#end
+function source_local
+    if test -e $argv[1]
+        source $argv[1]
+    end
+end
 
-source ~/.local/config.fish
+### PRE ###
+source_local ~/.local/pre.fish
+
+### BODY ###
+
+set NVIM (which nvim)
 
 set -gx DEV_HOME "$HOME/dev"
-set -gx EDITOR "/usr/bin/nvim"
-set -gx SUDO_EDITOR (which nvim)
+set -gx EDITOR $NVIM
+set -gx SUDO_EDITOR $NVIM
 
 set -gx WASMTIME_HOME "$HOME/.wasmtime"
 
@@ -28,3 +32,6 @@ alias up='sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y'
 
 # Wasmer
 [ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"
+
+### POST ###
+source_local ~/.local/post.fish
