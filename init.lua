@@ -29,8 +29,10 @@ require('packer').startup(function()
 
   use 'itchyny/lightline.vim' -- Fancier statusline
 
-  use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate', branch = '0.5-compat' } -- incremental language parser
-  use { 'nvim-treesitter/nvim-treesitter-textobjects', branch = '0.5-compat' } -- Additional textobjects for treesitter
+  use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' } -- incremental language parser
+  use { 'Swoogan/nvim-treesitter-textobjects', branch = 'zig' } -- Additional textobjects for treesitter
+  -- use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate', branch = '0.5-compat' } -- incremental language parser
+  -- use { 'nvim-treesitter/nvim-treesitter-textobjects', branch = '0.5-compat' } -- Additional textobjects for treesitter
 
   -- use 'L3MON4D3/LuaSnip' -- Snippets plugin
   use 'editorconfig/editorconfig-vim'
@@ -103,14 +105,13 @@ end
 -- 
 
 local pid = vim.fn.getpid()
-local omnisharp_bin = vim.env.DEV_HOME .. "/omnisharp-win-x64/OmniSharp.exe"
 
 nvim_lsp['omnisharp'].setup {
   on_attach = on_attach,
   flags = {
     debounce_text_changes = 150,
   },
-  cmd = { omnisharp_bin, "--languageserver" , "--hostPID", tostring(pid), "formattingOptions:EnableEditorConfigSupport=true" }
+  cmd = { vim.env.OMNISHARP, "--languageserver" , "--hostPID", tostring(pid), "formattingOptions:EnableEditorConfigSupport=true" }
 }
 
 vim.o.completeopt = "menuone,noselect"
@@ -187,26 +188,36 @@ require('nvim-treesitter.configs').setup {
         ['if'] = '@function.inner',
         ["ia"] = "@parameter.inner",
         ["aa"] = "@parameter.outer",
+        ["iN"] = {
+          c_sharp = "(namespace_declaration body: (_) @namespace.inner)",
+        },
+        ["aN"] = {
+          c_sharp = "(namespace_declaration) @namespace.outer",
+        },
       },
     },
     move = {
       enable = true,
       set_jumps = true, -- whether to set jumps in the jumplist
       goto_next_start = {
-        [']m'] = '@function.outer',
         [']]'] = '@class.outer',
-      },
-      goto_next_end = {
-        [']M'] = '@function.outer',
-        [']['] = '@class.outer',
+        [']m'] = '@function.outer',
+        [']a'] = '@parameter.inner',
       },
       goto_previous_start = {
-        ['[m'] = '@function.outer',
         ['[['] = '@class.outer',
+        ['[m'] = '@function.outer',
+        ['[a'] = '@parameter.inner',
+      },
+      goto_next_end = {
+        [']['] = '@class.outer',
+        [']M'] = '@function.outer',
+        [']A'] = '@parameter.outer',
       },
       goto_previous_end = {
-        ['[M'] = '@function.outer',
         ['[]'] = '@class.outer',
+        ['[M'] = '@function.outer',
+        ['[A'] = '@parameter.outer',
       },
     },
   },
@@ -327,6 +338,8 @@ augroup markdown
   autocmd!
   autocmd BufNewFile,BufRead *.md setlocal wrap spell
 augroup END
+
+au BufReadPost *.zig set ft=zig
 
 augroup zig
   autocmd!
