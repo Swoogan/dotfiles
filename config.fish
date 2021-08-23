@@ -1,11 +1,11 @@
-function source_local
-    if test -e $argv[1]
+function source_exists
+    if test -f $argv[1]
         source $argv[1]
     end
 end
 
 ### PRE ###
-source_local ~/.local/pre.fish
+source_exists ~/.local/pre.fish
 
 ### BODY ###
 
@@ -31,14 +31,16 @@ alias ec='nvim ~/.config/fish/config.fish'
 alias up='sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y'
 
 # Keychain
-/usr/bin/keychain -q --nogui $HOME/.ssh/id_rsa
-
-if test -f ~/.keychain/(hostname)-fish
-    source ~/.keychain/(hostname)-fish
+if status --is-interactive
+    /usr/bin/keychain -q --nogui $HOME/.ssh/id_rsa
 end
+source_exists ~/.keychain/(hostname)-fish
+
+# Colours
+source_exists ~/.local/share/nvim/site/pack/packer/start/nightfox.nvim/extra/nightfox/nightfox_fish.fish
 
 # Wasmer
 [ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"
 
 ### POST ###
-source_local ~/.local/post.fish
+source_exists ~/.local/post.fish
