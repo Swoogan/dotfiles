@@ -30,7 +30,7 @@ require('packer').startup(function()
   use 'itchyny/lightline.vim' -- Fancier statusline
 
   use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' } -- incremental language parser
-  use { 'Swoogan/nvim-treesitter-textobjects', branch = 'zig' } -- Additional textobjects for treesitter
+  use { 'nvim-treesitter/nvim-treesitter-textobjects' } -- Additional textobjects for treesitter
   -- use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate', branch = '0.5-compat' } -- incremental language parser
   -- use { 'nvim-treesitter/nvim-treesitter-textobjects', branch = '0.5-compat' } -- Additional textobjects for treesitter
 
@@ -271,12 +271,16 @@ vim.api.nvim_set_keymap('', '<Space>', '<Nop>', { noremap = true, silent = true 
 vim.g.mapleader = ','
 vim.g.maplocalleader = ','
 
--- vim.g.nightfox_style = "nordfox"
-vim.g.nightfox_color_delimiter = "red"
-vim.g.nightfox_italic_comments = 1
+local foxxy = require('nightfox')
 
 -- Load the colorscheme
-require('nightfox').set()
+foxxy.setup({
+    styles = {
+        comments = "italic"
+    }
+})
+
+foxxy.load()
 
 -- Highlight on yank
 vim.api.nvim_exec(
