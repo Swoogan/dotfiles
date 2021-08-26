@@ -30,7 +30,7 @@ require('packer').startup(function()
   use 'itchyny/lightline.vim' -- Fancier statusline
 
   use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' } -- incremental language parser
-  use { 'nvim-treesitter/nvim-treesitter-textobjects' } -- Additional textobjects for treesitter
+  use { 'Swoogan/nvim-treesitter-textobjects', branch = 'fish' } -- Additional textobjects for treesitter
   -- use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate', branch = '0.5-compat' } -- incremental language parser
   -- use { 'nvim-treesitter/nvim-treesitter-textobjects', branch = '0.5-compat' } -- Additional textobjects for treesitter
 
@@ -239,6 +239,12 @@ require('nvim-treesitter.configs').setup {
       show_help = '?',
     },
   },
+}
+
+require'nvim-web-devicons'.setup {
+ -- globally enable default icons (default to false)
+ -- will get overriden by `get_icons` option
+ default = true;
 }
 
 vim.opt.background = "dark"
