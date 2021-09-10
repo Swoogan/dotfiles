@@ -31,7 +31,7 @@ Install
         ni "$(@($env:XDG_DATA_HOME, $env:LOCALAPPDATA)[$null -eq $env:XDG_DATA_HOME])/nvim-data/site/autoload/plug.vim" -Force
 
     New-SymLink -Link ~/.gitconfig C:\dev\dotfiles\gitconfig
-    New-Symlink -Link ~/Documents\WindowsPowerShell\profile.ps1 C:\dev\dotfiles\profile.ps1
+    New-Symlink -Link ~/Documents\PowerShell\profile.ps1 C:\dev\dotfiles\profile.ps1
     New-Symlink -Link ~/.vsvimrc C:\dev\dotfiles\_vsvimrc
     New-Symlink -Link ~\AppData\Local\nvim\init.lua C:\dev\dotfiles\init.lua
 

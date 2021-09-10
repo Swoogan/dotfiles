@@ -93,11 +93,11 @@ function Invoke-NvimQt {
 }
 
 function Edit-Profile {
-    nvim-qt --maximized $HOME/Documents/WindowsPowershell/profile.ps1
+    nvim-qt --maximized $HOME/Documents/Powershell/profile.ps1
 }
 
 function Source-Profile {
-    . ~/Documents/WindowsPowershell/profile.ps1
+    . ~/Documents/Powershell/profile.ps1
 }
 
 function Get-AuthHeader {
@@ -126,8 +126,6 @@ function Reset-Colors {
     [System.Console]::ResetColor()
 }
     
-
-
 function Invoke-BinaryProcess([string]$processName, [string]$arguments) {
     $processStartInfo = New-Object System.Diagnostics.ProcessStartInfo 
     $processStartInfo.FileName = $processName
@@ -144,6 +142,14 @@ function Invoke-BinaryProcess([string]$processName, [string]$arguments) {
 function Remove-ItemsRecursive {
     Remove-Item -Recursive -Force 
 }
+
+function Set-Development ([string]$location) {
+    Set-Location $Env:DEV_HOME
+    if ($location) {
+        Set-Location $location
+    }
+}
+
 
 #######################
 ### Aliases
@@ -164,12 +170,13 @@ Set-Alias rc Reset-Colors
 Set-Alias env Get-Environment
 Set-Alias gvm Invoke-NvimQt
 Set-Alias rmr Remove-ItemsRecursive
+Set-Alias dev Set-Development
 
 #######################
 ### Variables
 #######################
 Set-Item -Path Env:DEV_HOME -Value "C:\dev"
-Set-Item -Path Env:OMNISHARP -Value "(Env:DEV_HOME)/omnisharp-win-x64/OmniSharp.exe"
+Set-Item -Path Env:OMNISHARP -Value "$($Env:DEV_HOME)/omnisharp-win-x64/OmniSharp.exe"
 
 $local = "~/.local/profile.ps1"
 
