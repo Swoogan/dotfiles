@@ -54,7 +54,7 @@
     _    q    w    @lpg p    g    j    l    @rpg y    ;    XX   XX   XX
     @ext a    @alr @cts @sft d    h    @sfn @cte @ali o    ent  XX
     del  z    x    c    v    b    k    m    _    _    _    _  
-    _    _    @low      _              @ras _    _    _    _
+    _    _    @low      _              bspc _    _    _    _
                                                  _    _    _
 )
 
@@ -69,8 +69,8 @@
 
     col (tap-hold-next-release 500 F1 (layer-switch colemak))
 
-    lqp (tap-hold-next-release 200 e (layer-toggle programming))
-    rqp (tap-hold-next-release 200 ; (layer-toggle programming))
+    lqp (tap-hold-next-release 200 e (layer-toggle symbols))
+    rqp (tap-hold-next-release 200 i (layer-toggle symbols))
 )
 
 
@@ -92,16 +92,11 @@
 (deflayer extend
     _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
-    _    esc  _    @alf @arg _    pgup home up   end  del  _    _    _
-    _    C-a  lalt lctl lsft _    pgdn left down rght bspc _    _
-    lsft C-z  C-x  C-c  C-v  _    _    _    _    _    _    _
+    _    _    _    @alf @arg _    pgup home up   end  _    _    _    _
+    _    C-a  lalt lctl lsft _    pgdn left down rght _    _    _
+    _    C-z  C-x  C-c  C-v  _    _    _    _    _    _    _
     _    _    _              _         _    _    _    _    _   
                                                  _    _    _
-)
-
-(defalias
-    sh[ (tap-hold-next-release 200 [ lsft)
-    sh' (tap-hold-next-release 200 ' rsft)
 )
 
 (deflayer number
@@ -117,19 +112,10 @@
 (deflayer symbols
     _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
-    _    _    @    ^    $    %    &    #    *    !    _    _    _    _ 
-    _    \\   /    \(   \)   |    '    {    }    "    :    _    _ 
-    _    _    `    -    S--  _    _    [    ]    ~    _    _ 
-    _    _    _              _         _    _    _    _    _ 
+    _    _    @    ^    $    _    _    #    *    !    _    _    _    _ 
+    _    +    =    \(   \)   |    \\   {    }    "    :    _    _ 
+    _    _    ~    S--  %    _    _    `    [    ]    _    _ 
+    _    _    '              _         -    _    _    _    _ 
                                                  _    _    _
 )
 
-(deflayer programming
-     _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
-     _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
-     _    1    2    3    4    5    6    7    8    9    0    _    _    _ 
-     _    grv  -    =    @sh[ ]    \\   @sh' ,    .    ;    _    _ 
-     _    _    _    _    _    _    _    _    _    _    _    _ 
-     _    _    _              _         _    _    _    _    _ 
-                                        _    _    _ 
-)
