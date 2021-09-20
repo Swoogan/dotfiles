@@ -27,7 +27,7 @@ require('packer').startup(function()
   
   use 'machakann/vim-sandwich' -- add, delete, replace pairs (like {}, (), "")
 
-  use 'itchyny/lightline.vim' -- Fancier statusline
+  use 'hoob3rt/lualine.nvim' -- Fancier statusline
 
   use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' } -- incremental language parser
   use { 'nvim-treesitter/nvim-treesitter-textobjects' } -- Additional textobjects for treesitter
@@ -50,10 +50,9 @@ end)
 local cmd = vim.cmd
 local indent = 4
 
+-- Setup Language sever protocol
 local nvim_lsp = require('lspconfig')
 
--- Use an on_attach function to only map the following keys
--- after the language server attaches to the current buffer
 local on_attach = function(client, bufnr)
   local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
   local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
@@ -105,8 +104,7 @@ for _, lsp in ipairs(servers) do
   }
 end
 
--- 
-
+-- Setup OmniSharp
 local pid = vim.fn.getpid()
 
 nvim_lsp['omnisharp'].setup {
@@ -117,6 +115,7 @@ nvim_lsp['omnisharp'].setup {
   cmd = { vim.env.OMNISHARP, "--languageserver" , "--hostPID", tostring(pid), "formattingOptions:EnableEditorConfigSupport=true" }
 }
 
+-- Setup auto compeletion
 vim.o.completeopt = "menuone,noselect"
 
 require'compe'.setup {
@@ -154,11 +153,11 @@ require'compe'.setup {
 }
 
 --Set statusbar
-vim.g.lightline = {
-  colorscheme = 'nightfox',
-  active = { left = { { 'mode', 'paste' }, { 'readonly', 'filename', 'modified' } } },
---  active = { left = { { 'mode', 'paste' }, { 'gitbranch', 'readonly', 'filename', 'modified' } } },
---  component_function = { gitbranch = 'fugitive#head' },
+require('lualine').setup {
+  options = {
+    -- ... your lualine config
+    theme = "nightfox"
+  }
 }
 
 -- Treesitter configuration
@@ -244,12 +243,26 @@ require('nvim-treesitter.configs').setup {
   },
 }
 
+-- Setup Theme
+local foxxy = require('nightfox')
+
+-- Load the colorscheme
+foxxy.setup({
+    styles = {
+        comments = "italic"
+    }
+})
+
+foxxy.load()
+
+-- Pretty Icons
 require'nvim-web-devicons'.setup {
  -- globally enable default icons (default to false)
  -- will get overriden by `get_icons` option
  default = true;
 }
 
+-- Vim options
 vim.opt.background = "dark"
 vim.opt.termguicolors = true
 vim.opt.number = true               -- show the current line number (w/ relative on)
@@ -280,16 +293,6 @@ vim.api.nvim_set_keymap('', '<Space>', '<Nop>', { noremap = true, silent = true 
 vim.g.mapleader = ','
 vim.g.maplocalleader = ','
 
-local foxxy = require('nightfox')
-
--- Load the colorscheme
-foxxy.setup({
-    styles = {
-        comments = "italic"
-    }
-})
-
-foxxy.load()
 
 -- Highlight on yank
 vim.api.nvim_exec(
@@ -322,17 +325,17 @@ vim.api.nvim_set_keymap('n', '<leader>?', [[<cmd>lua require('telescope.builtin'
 vim.api.nvim_set_keymap('n', '<leader>bd', [[<cmd>bd<CR>]], { noremap = true, silent = true })
 -- Swap buffer
 vim.api.nvim_set_keymap('n', '<leader>bs', [[<cmd>b#<CR>]], { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap('n', '<leader><leader>', [[<cmd>b#<CR>]], { noremap = true, silent = true })
 -- Close current buffer and switch to last used
 vim.api.nvim_set_keymap('n', '<leader>bq', [[<cmd>b#|bd#<CR>]], { noremap = true, silent = true })
 
+-- treat - seperated words as a word object
+vim.api.nvim_exec([[ set iskeyword+=- ]], false)
+-- treat _ seperated words as a word object  
+vim.api.nvim_exec([[ set iskeyword+=_ ]], false)
+
 vim.api.nvim_exec(
   [[
-      let g:lightline = {'colorscheme': 'nightfox'}
-
-" set nowritebackup   " Prevent vim from writing to new files every time
-set iskeyword+=-    " treat - seperated words as a word object
-set iskeyword+=_    " treat _ seperated words as a word object
-
 
 let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes)
 " Add: Press sa{motion/textobject}{addition}. For example, a key sequence saiw( makes foo to (foo).
@@ -399,7 +402,6 @@ nnoremap <Leader>ec :vsplit $MYVIMRC<Cr>
 " Source vim config
 nnoremap <Leader>sc :source $MYVIMRC<Cr>
 
-
 " Remap keys in terminal mode
 tnoremap <Esc> <C-\><C-n>
 tnoremap <M-[> <Esc>
@@ -412,10 +414,10 @@ nnoremap <leader>n :NvimTreeFindFile<CR>
 "" Functions
 
 " Setup cache directory so .swp files aren't in the cwd
-if !isdirectory(expand("$HOME/.cache/vim/swap"))
-  call mkdir(expand("$HOME/.cache/vim/swap"), "p")
+if !isdirectory(expand("$HOME/.cache/nvim/swap"))
+  call mkdir(expand("$HOME/.cache/nvim/swap"), "p")
 endif
-set directory=$HOME/.cache/vim/swap
+set directory=$HOME/.cache/nvim/swap
 
 command! DiffOrig vertical new | set buftype=nofile | read # | 0d_ | diffthis | wincmd p | diffthis
 

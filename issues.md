@@ -19,3 +19,7 @@
 * textsitter incremental selection key mappings don't seem to work with <leader>
 * namespace custom mapping in TS textobjects doesn't work
 * switch leader to <space>?
+* Prettier
+* snippets
+* Dispatch
+* Term on Windows (powershell)
