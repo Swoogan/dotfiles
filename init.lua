@@ -27,6 +27,7 @@ require('packer').startup(function()
 
   use 'hrsh7th/nvim-compe'  -- Autocomplete
   use { 'nvim-telescope/telescope.nvim', requires = { 'nvim-lua/plenary.nvim' } }  -- Fuzzy finder
+  use 'prettier/vim-prettier'  -- Run prettier formatting for javascript/typescript
   use { 'kyazdani42/nvim-tree.lua', requires = {'kyazdani42/nvim-web-devicons'} }  -- Filesystem viewer
   use 'editorconfig/editorconfig-vim'
 

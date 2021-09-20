@@ -22,3 +22,5 @@
 * Prettier
 * snippets
 * Dispatch
+    * dotnet run output
+    * dotnet test output
