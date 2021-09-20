@@ -17,34 +17,28 @@ require('packer').startup(function()
   use 'wbthomason/packer.nvim' -- Package manager
 
   use { 'Swoogan/nightfox.nvim', branch = "konsole" } -- theme
-  -- use 'lokaltog/vim-distinguished'
 
+  use 'neovim/nvim-lspconfig'  -- Easy configuration of LSP
+  use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' } -- incremental language parser
+  use { 'nvim-treesitter/nvim-treesitter-textobjects' } -- Additional textobjects for treesitter
+  -- use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate', branch = '0.5-compat' } -- incremental language parser
+  -- use { 'nvim-treesitter/nvim-treesitter-textobjects', branch = '0.5-compat' } -- Additional textobjects for treesitter
   use 'nvim-treesitter/playground'
+
+  use 'hrsh7th/nvim-compe'  -- Autocomplete
+  use { 'nvim-telescope/telescope.nvim', requires = { 'nvim-lua/plenary.nvim' } }  -- Fuzzy finder
+  use { 'kyazdani42/nvim-tree.lua', requires = {'kyazdani42/nvim-web-devicons'} }  -- Filesystem viewer
+  use 'editorconfig/editorconfig-vim'
 
   use 'tpope/vim-commentary' -- toggle comments
   -- use 'b3nj5m1n/kommentary'
   -- Comment stuff out. Use gcc to comment out a line (takes a count), gc to comment out the target of a motion (for example, gcap to comment out a paragraph), gc in visual mode to comment out the selection, and gc in operator pending mode to target a comment. You can also use it as a command, either with a range like :7,17Commentary, or as part of a :global invocation like with :g/TODO/Commentary.
   
   use 'machakann/vim-sandwich' -- add, delete, replace pairs (like {}, (), "")
-
   use 'hoob3rt/lualine.nvim' -- Fancier statusline
-
-  use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' } -- incremental language parser
-  use { 'nvim-treesitter/nvim-treesitter-textobjects' } -- Additional textobjects for treesitter
-  -- use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate', branch = '0.5-compat' } -- incremental language parser
-  -- use { 'nvim-treesitter/nvim-treesitter-textobjects', branch = '0.5-compat' } -- Additional textobjects for treesitter
-
-  -- use 'L3MON4D3/LuaSnip' -- Snippets plugin
-  use 'editorconfig/editorconfig-vim'
-
-  use 'neovim/nvim-lspconfig'
-  use 'hrsh7th/nvim-compe'
-
+ 
   -- use 'tpope/vim-unimpaired' 
-  
-  use { 'nvim-telescope/telescope.nvim', requires = { 'nvim-lua/plenary.nvim' } }
-
-  use { 'kyazdani42/nvim-tree.lua', requires = {'kyazdani42/nvim-web-devicons'} }
+  -- use 'L3MON4D3/LuaSnip' -- Snippets plugin
 end)
 
 local cmd = vim.cmd
@@ -261,6 +255,12 @@ require'nvim-web-devicons'.setup {
  -- will get overriden by `get_icons` option
  default = true;
 }
+
+local os_uname = vim.loop.os_uname()
+local is_windows = os_uname.sysname == "Windows_NT"
+if is_windows then
+  vim.opt.shell = "pwsh"
+end
 
 -- Vim options
 vim.opt.background = "dark"
