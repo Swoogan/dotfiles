@@ -16,7 +16,7 @@ local use = require('packer').use
 require('packer').startup(function()
   use 'wbthomason/packer.nvim' -- Package manager
 
-  use 'EdenEast/nightfox.nvim' -- theme
+  use { 'Swoogan/nightfox.nvim', branch = "konsole" } -- theme
   -- use 'lokaltog/vim-distinguished'
 
   use 'nvim-treesitter/playground'
@@ -30,7 +30,7 @@ require('packer').startup(function()
   use 'itchyny/lightline.vim' -- Fancier statusline
 
   use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' } -- incremental language parser
-  use { 'Swoogan/nvim-treesitter-textobjects', branch = 'fish' } -- Additional textobjects for treesitter
+  use { 'nvim-treesitter/nvim-treesitter-textobjects' } -- Additional textobjects for treesitter
   -- use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate', branch = '0.5-compat' } -- incremental language parser
   -- use { 'nvim-treesitter/nvim-treesitter-textobjects', branch = '0.5-compat' } -- Additional textobjects for treesitter
 
@@ -305,25 +305,25 @@ vim.api.nvim_exec(
 -- Y yank until the end of line
 vim.api.nvim_set_keymap('n', 'Y', 'y$', { noremap = true })
 
-vim.api.nvim_set_keymap('n', '<leader>cp', [[<cmd>lua require('telescope.builtin').find_files({previewer = false})<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>ff', [[<cmd>lua require('telescope.builtin').find_files({previewer = false})<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>rg', [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>fg', [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>cp', [[<cmd>Use <leader>sf (search files)" | lua require('telescope.builtin').find_files({previewer = false})<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>rg', [[<cmd>Use <leader>sg (search - grep)" | lua require('telescope.builtin').live_grep()<CR>]], { noremap = true, silent = true })
+
+-- Add telescope shortcuts
 vim.api.nvim_set_keymap('n', '<leader><space>', [[<cmd>lua require('telescope.builtin').buffers()<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>fb', [[<cmd>lua require('telescope.builtin').buffers()<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>fh', [[<cmd>lua require('telescope.builtin').buffers()<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>sf', [[<cmd>lua require('telescope.builtin').find_files({previewer = false})<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>sb', [[<cmd>lua require('telescope.builtin').current_buffer_fuzzy_find()<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>sh', [[<cmd>lua require('telescope.builtin').help_tags()<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>sg', [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>sd', [[<cmd>lua require('telescope.builtin').grep_string()<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>?', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]], { noremap = true, silent = true })
 
---Add telescope shortcuts
--- vim.api.nvim_set_keymap('n', '<leader><space>', [[<cmd>lua require('telescope.builtin').buffers()<CR>]], { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>sf', [[<cmd>lua require('telescope.builtin').find_files({previewer = false})<CR>]], { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>sb', [[<cmd>lua require('telescope.builtin').current_buffer_fuzzy_find()<CR>]], { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>sh', [[<cmd>lua require('telescope.builtin').help_tags()<CR>]], { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>st', [[<cmd>lua require('telescope.builtin').tags()<CR>]], { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>sd', [[<cmd>lua require('telescope.builtin').grep_string()<CR>]], { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>sp', [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>so', [[<cmd>lua require('telescope.builtin').tags{ only_current_buffer = true }<CR>]], { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader>?', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]], { noremap = true, silent = true })
-
+-- Buffer Mappings
+-- Close current buffer
+vim.api.nvim_set_keymap('n', '<leader>bd', [[<cmd>bd<CR>]], { noremap = true, silent = true })
+-- Swap buffer
+vim.api.nvim_set_keymap('n', '<leader>bs', [[<cmd>b#<CR>]], { noremap = true, silent = true })
+-- Close current buffer and switch to last used
+vim.api.nvim_set_keymap('n', '<leader>bq', [[<cmd>b#|bd#<CR>]], { noremap = true, silent = true })
 
 vim.api.nvim_exec(
   [[
@@ -399,13 +399,6 @@ nnoremap <Leader>ec :vsplit $MYVIMRC<Cr>
 " Source vim config
 nnoremap <Leader>sc :source $MYVIMRC<Cr>
 
-" Switch buffers
-nnoremap <Leader>bb :ls<CR>:b<Space>
-" Close current buffer
-nnoremap <Leader>bd :bd<CR>
-" Swap Buffer
-nnoremap <Leader>bs :b#<CR>
-nnoremap <Leader>bq :b#\|bd#<CR>
 
 " Remap keys in terminal mode
 tnoremap <Esc> <C-\><C-n>
