@@ -5,7 +5,8 @@
     rb = rebase
     rbo = rebase origin/master
     fp = push --force-with-lease
-    co = checkout
+    co = switch
+    sw = switch
     cm = commit
     cmm = commit -m
     oops = commit --amend --no-edit
