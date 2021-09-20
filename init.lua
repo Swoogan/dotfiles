@@ -260,7 +260,7 @@ require'nvim-web-devicons'.setup {
 local os_uname = vim.loop.os_uname()
 local is_windows = os_uname.sysname == "Windows_NT"
 if is_windows then
-  vim.opt.shell = "pwsh"
+  -- vim.opt.shell = "pwsh"
 end
 
 -- Vim options
@@ -340,6 +340,13 @@ vim.api.nvim_exec([[ set iskeyword+=_ ]], false)
 
 vim.api.nvim_exec(
   [[
+
+" launch a terminal
+if has('win32') || has('win64')
+    noremap <Leader>t :10split\|term pwsh<Cr>a
+else
+    noremap <Leader>t :10split\|term<Cr>a
+endif
 
 let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes)
 " Add: Press sa{motion/textobject}{addition}. For example, a key sequence saiw( makes foo to (foo).
