@@ -309,8 +309,8 @@ vim.api.nvim_exec(
 -- Y yank until the end of line
 vim.api.nvim_set_keymap('n', 'Y', 'y$', { noremap = true })
 
-vim.api.nvim_set_keymap('n', '<leader>cp', [[<cmd>Use <leader>sf (search files)" | lua require('telescope.builtin').find_files({previewer = false})<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>rg', [[<cmd>Use <leader>sg (search - grep)" | lua require('telescope.builtin').live_grep()<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>cp', [[<cmd>echohl WarningMsg | echo "Use <leader>sf (search files)" | lua require('telescope.builtin').find_files({previewer = false})<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>rg', [[<cmd>echohl WarningMsg | echo "Use <leader>sg (search - grep)" | lua require('telescope.builtin').live_grep()<CR>]], opts)
 
 -- Add telescope shortcuts
 vim.api.nvim_set_keymap('n', '<leader><space>', [[<cmd>lua require('telescope.builtin').buffers()<CR>]], opts)
