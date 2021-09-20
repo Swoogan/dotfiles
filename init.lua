@@ -43,6 +43,7 @@ end)
 
 local cmd = vim.cmd
 local indent = 4
+local opts = { noremap=true, silent=true }
 
 -- Setup Language sever protocol
 local nvim_lsp = require('lspconfig')
@@ -55,7 +56,6 @@ local on_attach = function(client, bufnr)
   buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
 
   -- Mappings.
-  local opts = { noremap=true, silent=true }
 
   -- See `:help vim.lsp.*` for documentation on any of the below functions
   buf_set_keymap('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
@@ -289,7 +289,7 @@ vim.cmd [[set undofile]]
 vim.opt.updatetime = 250
 vim.opt.signcolumn = 'yes'
 
-vim.api.nvim_set_keymap('', '<Space>', '<Nop>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('', '<Space>', '<Nop>', opts)
 vim.g.mapleader = ','
 vim.g.maplocalleader = ','
 
@@ -308,26 +308,29 @@ vim.api.nvim_exec(
 -- Y yank until the end of line
 vim.api.nvim_set_keymap('n', 'Y', 'y$', { noremap = true })
 
-vim.api.nvim_set_keymap('n', '<leader>cp', [[<cmd>Use <leader>sf (search files)" | lua require('telescope.builtin').find_files({previewer = false})<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>rg', [[<cmd>Use <leader>sg (search - grep)" | lua require('telescope.builtin').live_grep()<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>cp', [[<cmd>Use <leader>sf (search files)" | lua require('telescope.builtin').find_files({previewer = false})<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>rg', [[<cmd>Use <leader>sg (search - grep)" | lua require('telescope.builtin').live_grep()<CR>]], opts)
 
 -- Add telescope shortcuts
-vim.api.nvim_set_keymap('n', '<leader><space>', [[<cmd>lua require('telescope.builtin').buffers()<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>sf', [[<cmd>lua require('telescope.builtin').find_files({previewer = false})<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>sb', [[<cmd>lua require('telescope.builtin').current_buffer_fuzzy_find()<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>sh', [[<cmd>lua require('telescope.builtin').help_tags()<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>sg', [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>sd', [[<cmd>lua require('telescope.builtin').grep_string()<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>?', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader><space>', [[<cmd>lua require('telescope.builtin').buffers()<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>sf', [[<cmd>lua require('telescope.builtin').find_files({previewer = false})<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>sb', [[<cmd>lua require('telescope.builtin').current_buffer_fuzzy_find()<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>sh', [[<cmd>lua require('telescope.builtin').help_tags()<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>sg', [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>sd', [[<cmd>lua require('telescope.builtin').grep_string()<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>?', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]], opts)
 
 -- Buffer Mappings
 -- Close current buffer
-vim.api.nvim_set_keymap('n', '<leader>bd', [[<cmd>bd<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>bd', [[<cmd>bd<CR>]], opts)
 -- Swap buffer
-vim.api.nvim_set_keymap('n', '<leader>bs', [[<cmd>b#<CR>]], { noremap = true, silent = true })
--- vim.api.nvim_set_keymap('n', '<leader><leader>', [[<cmd>b#<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>bs', [[<cmd>b#<CR>]], opts)
+-- vim.api.nvim_set_keymap('n', '<leader><leader>', [[<cmd>b#<CR>]], opts)
 -- Close current buffer and switch to last used
-vim.api.nvim_set_keymap('n', '<leader>bq', [[<cmd>b#|bd#<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>bq', [[<cmd>b#|bd#<CR>]], opts)
+
+-- launch a terminal
+vim.api.nvim_set_keymap('n', '<leader>t', [[<cmd>10split | term<CR>a]], opts)
 
 -- treat - seperated words as a word object
 vim.api.nvim_exec([[ set iskeyword+=- ]], false)
@@ -368,13 +371,6 @@ map <C-h> <C-W>h
 map <C-j> <C-W>j
 map <C-k> <C-W>k
 map <C-l> <C-W>l
-
-" launch a terminal
-if has('win32') || has('win64')
-    noremap <Leader>t :10split\|term://powershell<Cr>a
-else
-    noremap <Leader>t :10split\|term<Cr>a
-endif 
 
 "" Custom
 " Repeats the character under the cursor

@@ -22,4 +22,3 @@
 * Prettier
 * snippets
 * Dispatch
-* Term on Windows (powershell)
