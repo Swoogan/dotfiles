@@ -1,0 +1,121 @@
+#| ------------------------------------------------------------------
+(deflayer template
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _           _            _    _    _    _    _ 
+                                       _    _    _ 
+)
+-------------------------------------------------------------------- |#
+
+(defcfg
+  ;; For Linux
+  input  (device-file "/dev/input/event3")
+  output (uinput-sink "My KMonad output")
+
+  ;; This option tells KMonad to let non-configured keys act normal
+  fallthrough true
+)
+
+(defsrc
+    esc  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12  home  end  del
+    grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+    tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+    caps a    s    d    f    g    h    j    k    l    ;    '    ret    
+    lsft z    x    c    v    b    n    m    ,    .    /    rsft
+    lctl lmet lalt           spc       ralt rctl pgup up   pgdn
+                                                 left down rght
+)
+
+(defalias
+    alr (tap-hold-next-release 220 r lalt)
+    cts (tap-hold-next-release 180 s lctl)
+    sft (tap-hold-next-release 170 t lsft)
+
+    sfn (tap-hold-next-release 170 n rsft)
+    cte (tap-hold-next-release 180 e rctl)
+    ali (tap-hold-next-release 220 i lalt)
+
+    ext (tap-hold-next-release 220 esc (layer-toggle extend))
+    qrt (tap-hold-next-release 500 F1 (layer-switch qwerty))
+
+    lpg (tap-hold-next-release 200 f (layer-toggle symbols))
+    rpg (tap-hold-next-release 200 u (layer-toggle symbols))
+
+    low (tap-hold-next-release 200 esc (layer-toggle number))
+    ras (tap-hold-next-release 200 bspc (layer-toggle extend))
+)
+
+(deflayer colemak
+    _    @qrt _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    caps _    _    _    _    _    _    _    _    _    _    _    _    XX 
+    _    q    w    @lpg p    g    j    l    @rpg y    ;    XX   XX   XX
+    @ext a    @alr @cts @sft d    h    @sfn @cte @ali o    ent  XX
+    del  z    x    c    v    b    k    m    _    _    _    _  
+    _    _    @low      _              bspc _    _    _    _
+                                                 _    _    _
+)
+
+(defalias
+    als (tap-hold-next-release 200 s lalt)
+    ctd (tap-hold-next-release 200 d lctl)
+    sff (tap-hold-next-release 200 f lsft)
+
+    sfj (tap-hold-next-release 200 j rsft)
+    ctk (tap-hold-next-release 200 k rctl)
+    all (tap-hold-next-release 200 l lalt)
+
+    col (tap-hold-next-release 500 F1 (layer-switch colemak))
+
+    lqp (tap-hold-next-release 200 e (layer-toggle symbols))
+    rqp (tap-hold-next-release 200 i (layer-toggle symbols))
+)
+
+
+(deflayer qwerty
+    _    @col _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    caps _    _    _    _    _    _    _    _    _    _    _    _    XX 
+    _    q    w    @lqp r    t    y    u    @rqp o    p    XX   XX   XX
+    @ext a    @als @ctd @sff g    h    @sfj @ctk @all ;    ent  XX
+    del  z    x    c    v    b    n    m    _    _    _    _ 
+    _    _    @low           _         @ras _    _    _    _ 
+                                       _    _    _ 
+)
+
+(defalias
+    alf A-left
+    arg A-rght
+)
+
+(deflayer extend
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    @alf @arg _    pgup home up   end  _    _    _    _
+    _    C-a  lalt lctl lsft _    pgdn left down rght _    _    _
+    _    C-z  C-x  C-c  C-v  _    _    _    _    _    _    _
+    _    _    _              _         _    _    _    _    _   
+                                                 _    _    _
+)
+
+(deflayer number
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    7    8    9    _    _    _    _ 
+    _    _    _    _    _    _    _    1    0    2    3    _    _ 
+    _    _    _    _    _    _    _    4    5    6    _    _ 
+    _    _    _              _         _    _    _    _    _ 
+                                                 _    _    _
+)
+
+(deflayer symbols
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    @    ^    $    _    _    #    *    !    _    _    _    _ 
+    _    +    =    \(   \)   |    \\   {    }    "    :    _    _ 
+    _    _    ~    S--  %    _    _    `    [    ]    _    _ 
+    _    _    '              _         -    _    _    _    _ 
+                                                 _    _    _
+)
+

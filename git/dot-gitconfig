@@ -1,0 +1,66 @@
+
+[alias]
+# Basic shortcuts ----------------------------------------------------------------------------------
+    
+    rb = rebase
+    rbo = rebase origin/master
+    fp = push --force-with-lease
+    co = switch
+    sw = switch
+    cm = commit
+    cmm = commit -m
+    oops = commit --amend --no-edit
+    st = status
+    fet = fetch -p
+
+# Logging -----------------------------------------------------------------------------------------
+    ls = log --pretty=format:'%C(bold yellow)%h%C(bold red)%d %Creset%s%C(bold blue) [%cn]' --decorate
+    ll = log --pretty=format:'%C(bold yellow)%h%C(bold red)%d %Creset%s%C(bold blue) [%cn]' --decorate --numstat
+    sl = log --graph --pretty=format:'%C(auto)%h%Creset%C(auto)%d%Creset %s %C(magenta bold)(%cr)%Creset %C(cyan)<%aN>%Creset' --all --simplify-by-decoration
+    lb = "!git for-each-ref --sort='-authordate' --format='%(authordate)%09%(objectname:short)%09%(refname)' refs/heads | sed -e 's-refs/heads/--'"
+    lg = log --graph --pretty=format:'%C(bold red)%h%Creset -%C(bold yellow)%d%Creset %s %C(bold green)(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative --all
+    lf = log --format=format:'%C(bold cyan)%ar %C(reset) %C(green)%f' --name-status
+    last = "!f() { git log -${1:-1} --stat ; } ; f"
+
+# branches
+    branch-name = "!$(git fetch) ; git rev-parse --abbrev-ref HEAD"
+
+    # Clean up all local branches that do not have a remote reference.
+    cleanup = "!f() { git check-remote -pq && git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D ; } ; f"
+
+    # Push the current branch to the remote "origin", and set it to track the upstream branch
+    publish = "!git push -u origin $(git branch-name)"
+
+    # Delete the remote version of the current branch
+    unpublish = "!git push origin :$(git branch-name)"
+
+    # Start a new local repository and perform initial commit
+    this = !git init && git add . && git commit -m \"Initial commit.\"
+
+    # Create a new branch from origin master and publish it to origin
+    create = "!f() { git check-remote -nq 2>/dev/null ; git checkout -b $1 origin/master && git push -u origin $(git branch-name); } ; f"
+
+    # Delete all local branches and will leave the branch on master
+    delete-local-branches="!git checkout master ; git branch --list | grep -v \\* | xargs git branch -D"
+
+# Rebasing ----------------------------------------------------------------------------------------
+    # like selfbase but will interactive rebase the number that you pass in. Ex
+    # 'git nbase 3' will interactive rebase the last 3 commit in the branch.
+    nbase = "!f() { git rebase -i HEAD~${1:-2} ; } ; f"
+
+    # interactive rebase the current branch from the start of the branch
+    selfbase = "! git nbase $(git branch-count)"
+
+    # Rebasing on origin/master
+    rbm = "!git fetch -nq 2>/dev/null ; git rebase origin/master"
+
+    rbc = rebase --continue
+    rbs = rebase --skip
+    rba = rebase --abort
+
+# Misc
+    ec = "!nvim-qt ~/.gitconfig"
+    ecl = "!nvim-qt ~/.local/.gitconfig"
+
+[include]
+    path = ~/.local/.gitconfig
