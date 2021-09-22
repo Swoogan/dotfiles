@@ -1,1 +1,1 @@
-dot-config/fish/config.fish
+fish/dot-config/fish/config.fish

@@ -9,10 +9,8 @@ Install
     set -x STOW_DIR "$DEV_HOME/dotfiles"
     stow --dotfiles -v -t ~ dot-stowrc
 
-    stow --dotfiles -S git
-    stow --dotfiles -S config
-    ln -s ~/dev/dotfiles/init.lua ~/.config/nvim/init.lua
-    ln -s ~/dev/dotfiles/config.fish ~/.config/fish/config.fish
+    stow --ignore="dot-.*" fish
+    stow --ignore="dot-.*" nvim
 
 ## Windows Install
  
