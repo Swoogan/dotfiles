@@ -39,7 +39,8 @@ require('packer').startup(function()
   use 'hoob3rt/lualine.nvim' -- Fancier statusline
  
   -- use 'tpope/vim-unimpaired' 
-  -- use 'L3MON4D3/LuaSnip' -- Snippets plugin
+  use 'L3MON4D3/LuaSnip' -- Snippets plugin
+  use 'rafamadriz/friendly-snippets'  -- Premade snippets
 end)
 
 local cmd = vim.cmd
@@ -85,6 +86,16 @@ local on_attach = function(client, bufnr)
 
 end
 
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities.textDocument.completion.completionItem.snippetSupport = true
+capabilities.textDocument.completion.completionItem.resolveSupport = {
+  properties = {
+    'documentation',
+    'detail',
+    'additionalTextEdits',
+  }
+}
+
 -- Use a loop to conveniently call 'setup' on multiple servers and
 -- map buffer local keybindings when the language server attaches
 -- local servers = { "pyright", "rust_analyzer", "tsserver" }
@@ -92,6 +103,7 @@ end
 local servers = { "tsserver" }
 for _, lsp in ipairs(servers) do
   nvim_lsp[lsp].setup {
+    capabilities = capabilities,
     on_attach = on_attach,
     flags = {
       debounce_text_changes = 150,
@@ -103,6 +115,7 @@ end
 local pid = vim.fn.getpid()
 
 nvim_lsp['omnisharp'].setup {
+  capabilities = capabilities,
   on_attach = on_attach,
   flags = {
     debounce_text_changes = 150,
@@ -113,12 +126,12 @@ nvim_lsp['omnisharp'].setup {
 -- Setup auto compeletion
 vim.o.completeopt = "menuone,noselect"
 
-require'compe'.setup {
+require('compe').setup {
   enabled = true;
   autocomplete = true;
   debug = false;
   min_length = 1;
-  preselect = 'always';
+  preselect = 'enable';
   throttle_time = 80;
   source_timeout = 200;
   resolve_timeout = 800;
@@ -139,11 +152,11 @@ require'compe'.setup {
     path = true;
     buffer = true;
     calc = true;
+    spell = true;
     nvim_lsp = true;
     nvim_lua = true;
-    vsnip = true;
-    ultisnips = true;
     luasnip = true;
+    treesitter = false;
   };
 }
 
@@ -251,11 +264,67 @@ foxxy.setup({
 foxxy.load()
 
 -- Pretty Icons
-require'nvim-web-devicons'.setup {
+require('nvim-web-devicons').setup {
  -- globally enable default icons (default to false)
  -- will get overriden by `get_icons` option
  default = true;
 }
+
+-- *** Start luasnips
+local function prequire(...)
+local status, lib = pcall(require, ...)
+if (status) then return lib end
+    return nil
+end
+
+local luasnip = prequire('luasnip')
+
+local t = function(str)
+    return vim.api.nvim_replace_termcodes(str, true, true, true)
+end
+
+local check_back_space = function()
+    local col = vim.fn.col('.') - 1
+    if col == 0 or vim.fn.getline('.'):sub(col, col):match('%s') then
+        return true
+    else
+        return false
+    end
+end
+
+_G.tab_complete = function()
+    if vim.fn.pumvisible() == 1 then
+        return t "<C-n>"
+    elseif luasnip and luasnip.expand_or_jumpable() then
+        return t("<Plug>luasnip-expand-or-jump")
+    elseif check_back_space() then
+        return t "<Tab>"
+    else
+        return vim.fn['compe#complete']()
+    end
+    return ""
+end
+_G.s_tab_complete = function()
+    if vim.fn.pumvisible() == 1 then
+        return t "<C-p>"
+    elseif luasnip and luasnip.jumpable(-1) then
+        return t("<Plug>luasnip-jump-prev")
+    else
+        return t "<S-Tab>"
+    end
+    return ""
+end
+
+require("luasnip/loaders/from_vscode").lazy_load()
+
+vim.api.nvim_set_keymap("i", "<Tab>", "v:lua.tab_complete()", {expr = true})
+vim.api.nvim_set_keymap("s", "<Tab>", "v:lua.tab_complete()", {expr = true})
+vim.api.nvim_set_keymap("i", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
+vim.api.nvim_set_keymap("s", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
+vim.api.nvim_set_keymap("i", "<C-E>", "<Plug>luasnip-next-choice", {})
+vim.api.nvim_set_keymap("s", "<C-E>", "<Plug>luasnip-next-choice", {})
+
+-- *** End luasnips
 
 local os_uname = vim.loop.os_uname()
 local is_windows = os_uname.sysname == "Windows_NT"
@@ -414,6 +483,13 @@ tnoremap <C-v><Esc> <Esc>
 nnoremap <C-n> :NvimTreeToggle<CR>
 nnoremap <leader>r :NvimTreeRefresh<CR>
 nnoremap <leader>n :NvimTreeFindFile<CR>
+
+" Compe keybindings
+inoremap <silent><expr> <C-Space> compe#complete()
+inoremap <silent><expr> <CR>      compe#confirm('<CR>')
+inoremap <silent><expr> <C-e>     compe#close('<C-e>')
+inoremap <silent><expr> <C-f>     compe#scroll({ 'delta': +4 })
+inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
 
 "" Functions
 
