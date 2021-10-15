@@ -43,6 +43,7 @@ require('packer').startup(function()
   -- use 'tpope/vim-unimpaired' 
   use 'L3MON4D3/LuaSnip' -- Snippets plugin
   use 'rafamadriz/friendly-snippets'  -- Premade snippets
+  use 'AndrewRadev/tagalong.vim' -- HTML tag manipulation (eg: edit in tag, <|div></div> ciwspan -> <span></span>
 end)
 
 local cmd = vim.cmd
