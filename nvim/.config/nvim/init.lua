@@ -25,6 +25,8 @@ require('packer').startup(function()
   -- use { 'nvim-treesitter/nvim-treesitter-textobjects', branch = '0.5-compat' } -- Additional textobjects for treesitter
   use 'nvim-treesitter/playground'
 
+  use 'mfussenegger/nvim-dap'
+
   use 'hrsh7th/nvim-compe'  -- Autocomplete
   use { 'nvim-telescope/telescope.nvim', requires = { 'nvim-lua/plenary.nvim' } }  -- Fuzzy finder
   use 'prettier/vim-prettier'  -- Run prettier formatting for javascript/typescript
@@ -251,6 +253,24 @@ require('nvim-treesitter.configs').setup {
   },
 }
 
+local dap = require("dap")
+dap.adapters.netcoredbg = {
+  type = 'executable',
+  command = vim.env.DEV_HOME .. 'netcoredbg/netcoredbg',
+  args = {'--interpreter=vscode'}
+}
+
+dap.configurations.cs = {
+  {
+    type = "netcoredbg",
+    name = "launch - netcoredbg",
+    request = "launch",
+    program = function()
+        return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/net5.0', 'file')
+    end,
+  },
+}
+
 -- Setup Theme
 local foxxy = require('nightfox')
 
@@ -344,6 +364,7 @@ vim.opt.cursorline = true           -- highlights current line
 vim.opt.hidden = true
 vim.opt.smartcase = true            -- searching case insensitive unless mixed case
 vim.opt.ignorecase = true
+vim.opt.wrap = false
 
 vim.opt.tabstop = 8
 vim.opt.sts = 4
