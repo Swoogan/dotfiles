@@ -314,9 +314,7 @@ local check_back_space = function()
 end
 
 _G.tab_complete = function()
-    if vim.fn.pumvisible() == 1 then
-        return t "<C-n>"
-    elseif luasnip and luasnip.expand_or_jumpable() then
+    if luasnip and luasnip.expand_or_jumpable() then
         return t("<Plug>luasnip-expand-or-jump")
     elseif check_back_space() then
         return t "<Tab>"
@@ -512,6 +510,7 @@ inoremap <silent><expr> <CR>      compe#confirm('<CR>')
 inoremap <silent><expr> <C-e>     compe#close('<C-e>')
 inoremap <silent><expr> <C-f>     compe#scroll({ 'delta': +4 })
 inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
+inoremap </ </<C-N>
 
 "" Functions
 
