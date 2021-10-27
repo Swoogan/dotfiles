@@ -30,7 +30,11 @@ require('packer').startup(function()
   use 'hrsh7th/nvim-compe'  -- Autocomplete
   use { 'nvim-telescope/telescope.nvim', requires = { 'nvim-lua/plenary.nvim' } }  -- Fuzzy finder
   use 'prettier/vim-prettier'  -- Run prettier formatting for javascript/typescript
-  use { 'kyazdani42/nvim-tree.lua', requires = {'kyazdani42/nvim-web-devicons'} }  -- Filesystem viewer
+  use { 
+      'kyazdani42/nvim-tree.lua',
+      requires = {'kyazdani42/nvim-web-devicons'},
+      config = function() require('nvim-tree').setup {} end
+  }  -- Filesystem viewer
   use 'editorconfig/editorconfig-vim'
 
   use 'tpope/vim-commentary' -- toggle comments
@@ -341,8 +345,6 @@ vim.api.nvim_set_keymap("s", "<Tab>", "v:lua.tab_complete()", {expr = true})
 vim.api.nvim_set_keymap("i", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
 vim.api.nvim_set_keymap("s", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
 
-require("luasnip/loaders/from_vscode").lazy_load()
-
 local s = luasnip.snippet
 local sn = luasnip.snippet_node
 local t = luasnip.text_node
@@ -378,7 +380,11 @@ luasnip.snippets = {
     }
 }
 
+require("luasnip/loaders/from_vscode").lazy_load()
+
 -- *** End luasnips
+
+require('nvim-tree').setup({})
 
 local os_uname = vim.loop.os_uname()
 local is_windows = os_uname.sysname == "Windows_NT"
