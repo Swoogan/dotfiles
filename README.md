@@ -7,7 +7,7 @@ Install
 ## Linux Install
 
     set -x STOW_DIR "$DEV_HOME/dotfiles"
-    stow --dotfiles -v -t ~ dot-stowrc
+    stow --dotfiles -v -t ~ stow
 
     stow --ignore="dot-.*" fish
     stow --ignore="dot-.*" nvim
