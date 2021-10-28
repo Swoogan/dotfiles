@@ -20,7 +20,7 @@ CompilerSet errorformat+=%f(%l\\,%v):\ %t%*[^:]:\ %m,
             \%trror%*[^:]:\ %m,
             \%tarning%*[^:]:\ %m
 
-CompilerSet makeprg=dotnet\ build
+CompilerSet makeprg=dotnet\ build\ --nologo
 
 let &cpo = s:keepcpo
 unlet s:keepcpo

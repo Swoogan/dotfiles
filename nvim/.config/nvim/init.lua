@@ -41,6 +41,7 @@ require('packer').startup(function()
   use 'hoob3rt/lualine.nvim' -- Fancier statusline
  
   -- use 'tpope/vim-unimpaired' 
+  use 'tpope/vim-dispatch' -- Async task runner
   use 'L3MON4D3/LuaSnip' -- Snippets plugin
   use 'rafamadriz/friendly-snippets'  -- Premade snippets
   use 'AndrewRadev/tagalong.vim' -- HTML tag manipulation (eg: edit in tag, <|div></div> ciwspan -> <span></span>
@@ -68,22 +69,23 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
   buf_set_keymap('n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
 
-  buf_set_keymap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
-  buf_set_keymap('n', '<leader>sh', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
 
   -- buf_set_keymap('n', '<leader>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)
   -- buf_set_keymap('n', '<leader>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', opts)
   -- buf_set_keymap('n', '<leader>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', opts)
 
+  -- buf_set_keymap(bufnr, 'v', '<leader>ca', '<cmd>lua vim.lsp.buf.range_code_action()<CR>', opts)
+ 
+  -- TODO: unify these keypresses
+  buf_set_keymap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
+  buf_set_keymap('n', '<leader>sh', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
   buf_set_keymap('n', '<leader>D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
-  buf_set_keymap('n', '<space>rn', '<cmd>echohl WarningMsg | echo "Use leader not space" | lua vim.lsp.buf.rename()<CR>', opts)
   buf_set_keymap('n', '<leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
-  buf_set_keymap('n', '<space>ca', '<cmd>echohl WarningMsg | echo "Use leader not space" | lua vim.lsp.buf.code_action()<CR>', opts)
   buf_set_keymap('n', '<leader>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
-  buf_set_keymap("n", "<space>f", '<cmd>echohl WarningMsg | echo "Use <leader>fo not <space>f" | lua vim.lsp.buf.formatting()<CR>', opts)
   buf_set_keymap("n", "<leader>f", '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
   buf_set_keymap('n', '<leader>e', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>', opts)
   buf_set_keymap('n', '<leader>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
+  buf_set_keymap('n', '<leader>so', [[<cmd>lua require('telescope.builtin').lsp_document_symbols()<CR>]], opts)
   buf_set_keymap('n', '[d', '<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>', opts)
   buf_set_keymap('n', ']d', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', opts)
 
@@ -485,6 +487,11 @@ augroup END
 augroup markdown
   autocmd!
   autocmd BufNewFile,BufRead *.md setlocal wrap spell
+augroup END
+
+augroup cs
+  autocmd!
+  autocmd BufNewFile,BufRead *.cs compiler dotnet
 augroup END
 
 au BufReadPost *.zig set ft=zig
