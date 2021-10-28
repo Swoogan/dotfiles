@@ -306,6 +306,8 @@ end
 
 local luasnip = prequire('luasnip')
 
+luasnip.config.set_config({history = false})
+
 local t = function(str)
     return vim.api.nvim_replace_termcodes(str, true, true, true)
 end
