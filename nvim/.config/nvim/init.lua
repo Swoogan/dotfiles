@@ -42,7 +42,7 @@ require('packer').startup(function()
   -- Comment stuff out. Use gcc to comment out a line (takes a count), gc to comment out the target of a motion (for example, gcap to comment out a paragraph), gc in visual mode to comment out the selection, and gc in operator pending mode to target a comment. You can also use it as a command, either with a range like :7,17Commentary, or as part of a :global invocation like with :g/TODO/Commentary.
   
   use 'machakann/vim-sandwich' -- add, delete, replace pairs (like {}, (), "")
-  use 'hoob3rt/lualine.nvim' -- Fancier statusline
+  use 'nvim-lualine/lualine.nvim' -- Fancier statusline
  
   -- use 'tpope/vim-unimpaired' 
   use 'tpope/vim-dispatch' -- Async task runner
@@ -463,7 +463,7 @@ vim.api.nvim_set_keymap('n', '<leader>bs', [[<cmd>b#<CR>]], opts)
 vim.api.nvim_set_keymap('n', '<leader>bq', [[<cmd>b#|bd#<CR>]], opts)
 
 -- launch a terminal
-vim.api.nvim_set_keymap('n', '<leader>t', [[<cmd>10split | term<CR>a]], opts)
+-- vim.api.nvim_set_keymap('n', '<leader>t', [[<cmd>10split | term<CR>a]], opts)
 
 -- treat - seperated words as a word object
 vim.api.nvim_exec([[ set iskeyword+=- ]], false)
