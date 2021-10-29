@@ -394,6 +394,36 @@ if is_windows then
   -- vim.opt.shell = "pwsh"
 end
 
+_G.some_func_to_call = function()
+    local input = vim.fn.input("Message: ")
+    local output = {}
+    for i in string.gmatch(input, "%S+") do
+        local first = string.sub(i, 1, 1)
+        local rest = string.sub(i, 2, string.len(i))
+        local up = string.upper(first)
+        table.insert(output, up .. rest)
+    end
+
+    local result = ''
+
+    for k,v in pairs(output) do
+       result = result .. v .. '_'
+    end
+    
+    result = string.sub(result, 1, -2)
+
+    local win = vim.api.nvim_get_current_win()
+    local bufnr = vim.api.nvim_get_current_buf()
+    local cur = vim.api.nvim_win_get_cursor(win)
+    public function 
+    vim.api.nvim_buf_set_text(bufnr, cur[1], cur[2], cur[1], cur[2]+1, {result})
+end
+
+-- global keymap
+vim.api.nvim_set_keymap("n", "<leader>tt", [[<cmd>lua some_func_to_call()<cr>]], opts)
+
+-- *** CONFIG *** --
+
 -- Vim options
 vim.opt.background = "dark"
 vim.opt.termguicolors = true
