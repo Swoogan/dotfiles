@@ -394,7 +394,9 @@ if is_windows then
   -- vim.opt.shell = "pwsh"
 end
 
-_G.some_func_to_call = function()
+-- Takes user input and replaces space with underscore, capitalizes each word
+-- Ex. "this is a test method" => "This_Is_A_Test_Method"
+_G.transform_test_name = function()
     local input = vim.fn.input("Message: ")
     local output = {}
     for i in string.gmatch(input, "%S+") do
@@ -415,12 +417,16 @@ _G.some_func_to_call = function()
     local win = vim.api.nvim_get_current_win()
     local bufnr = vim.api.nvim_get_current_buf()
     local cur = vim.api.nvim_win_get_cursor(win)
-    public function 
-    vim.api.nvim_buf_set_text(bufnr, cur[1], cur[2], cur[1], cur[2]+1, {result})
+    local start_row = cur[1] - 1
+    local start_col = cur[2] + 1
+    vim.api.nvim_buf_set_text(bufnr, start_row, start_col, start_row, start_col, {result})
+
+    local new_col = start_col + string.len(result)
+    vim.api.nvim_win_set_cursor(win, {start_row + 1, new_col})
 end
 
 -- global keymap
-vim.api.nvim_set_keymap("n", "<leader>tt", [[<cmd>lua some_func_to_call()<cr>]], opts)
+vim.api.nvim_set_keymap("n", "<leader>tt", [[<cmd>lua transform_test_name()<cr>]], opts)
 
 -- *** CONFIG *** --
 
