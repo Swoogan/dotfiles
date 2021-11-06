@@ -40,6 +40,9 @@ if status --is-interactive
 end
 source_exists ~/.keychain/(hostname)-fish
 
+# Nix
+# source_exists ~/.nix-profile/etc/profile.d/nix.sh
+
 # Colours
 source_exists ~/.local/share/nvim/site/pack/packer/start/nightfox.nvim/extra/nightfox/nightfox_fish.fish
 
