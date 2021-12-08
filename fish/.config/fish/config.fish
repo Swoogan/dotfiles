@@ -11,7 +11,6 @@ source_exists ~/.local/pre.fish
 
 set NVIM (which nvim)
 
-set -gx DEV_HOME "$HOME/dev"
 set -gx STOW_DIR "$DEV_HOME/dotfiles"
 set -gx EDITOR $NVIM
 set -gx SUDO_EDITOR $NVIM
