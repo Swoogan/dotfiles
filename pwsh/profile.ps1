@@ -140,7 +140,7 @@ function Invoke-BinaryProcess([string]$processName, [string]$arguments) {
 }
 
 function Remove-ItemsRecursive {
-    Remove-Item -Recursive -Force 
+    Remove-Item -Recurse -Force 
 }
 
 function Set-Development ([string]$location) {
