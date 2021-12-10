@@ -11,6 +11,7 @@ Install
 
     stow --ignore="dot-.*" fish
     stow --ignore="dot-.*" nvim
+    stow --dotfiles -S git
 
 ## Windows Install
  
