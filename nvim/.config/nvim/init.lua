@@ -610,6 +610,12 @@ set directory=$HOME/.cache/nvim/swap
 
 command! DiffOrig vertical new | set buftype=nofile | read # | 0d_ | diffthis | wincmd p | diffthis
 
+"" Prettier
+" Format on save (even without header)
+let g:prettier#autoformat = 1
+let g:prettier#autoformat_require_pragma = 0
+nmap <Leader>pf <Plug>(PrettierAsync)
+
 ]],
   false
 )
