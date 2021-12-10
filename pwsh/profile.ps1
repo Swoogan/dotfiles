@@ -171,6 +171,7 @@ Set-Alias env Get-Environment
 Set-Alias gvm Invoke-NvimQt
 Set-Alias rmr Remove-ItemsRecursive
 Set-Alias dev Set-Development
+Set-Alias ll Get-ChildItem
 
 #######################
 ### Variables

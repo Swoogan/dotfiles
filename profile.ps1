@@ -1,1 +1,0 @@
-pwsh/profile.ps1

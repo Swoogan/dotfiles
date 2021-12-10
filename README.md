@@ -28,8 +28,8 @@ Install
 
     mkdir ~/AppData/Local/nvim
 
-    New-SymLink -Link ~/.gitconfig C:\dev\dotfiles\gitconfig
-    New-Symlink -Link ~/Documents\PowerShell\profile.ps1 C:\dev\dotfiles\profile.ps1
-    New-Symlink -Link ~/.vsvimrc C:\dev\dotfiles\_vsvimrc
-    New-Symlink -Link ~\AppData\Local\nvim\init.lua C:\dev\dotfiles\init.lua
+    New-SymLink -Link ~/.gitconfig C:\dev\dotfiles\git\dot-gitconfig
+    New-Symlink -Link ~/Documents\PowerShell\profile.ps1 C:\dev\dotfiles\pwsh\profile.ps1
+    New-Symlink -Link ~/.vsvimrc C:\dev\dotfiles\windows\_vsvimrc
+    New-Symlink -Link ~\AppData\Local\nvim\init.lua C:\dev\dotfiles\nvim\.config\nvim\init.lua
 
