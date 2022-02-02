@@ -34,3 +34,7 @@ Install
     New-Symlink -Link ~/.vsvimrc C:\dev\dotfiles\windows\_vsvimrc
     New-Symlink -Link ~\AppData\Local\nvim\init.lua C:\dev\dotfiles\nvim\.config\nvim\init.lua
 
+    $compiler = "~\AppData\Local\nvim\compiler"
+    if (-not (test-path $compiler)) { mkdir $compiler }
+    New-Symlink -Link $compiler\dotnet.vim C:\dev\dotfiles\nvim\.config\nvim\compiler\dotnet.vim
+
