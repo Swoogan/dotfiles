@@ -211,12 +211,6 @@ require('nvim-treesitter.configs').setup {
         ['if'] = '@function.inner',
         ["ia"] = "@parameter.inner",
         ["aa"] = "@parameter.outer",
-        ["in"] = {
-          c_sharp = "(namespace_declaration body: (_) @namespace.inner)",
-        },
-        ["an"] = {
-          c_sharp = "(namespace_declaration) @namespace.outer",
-        },
       },
     },
     move = {
