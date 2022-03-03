@@ -528,7 +528,7 @@ augroup END
 
 augroup markdown
   autocmd!
-  autocmd BufNewFile,BufRead *.md setlocal wrap spell
+  autocmd BufNewFile,BufRead *.md setlocal wrap spell linebreak
 augroup END
 
 augroup cs
