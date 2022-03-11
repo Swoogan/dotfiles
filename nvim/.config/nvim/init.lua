@@ -25,6 +25,8 @@ require('packer').startup(function()
   -- use { 'nvim-treesitter/nvim-treesitter-textobjects', branch = '0.5-compat' } -- Additional textobjects for treesitter
   use 'nvim-treesitter/playground'
 
+  use 'Hoffs/omnisharp-extended-lsp.nvim'
+  use 'theHamsta/nvim-dap-virtual-text'
   use 'mfussenegger/nvim-dap'
 
   use 'hrsh7th/nvim-compe'  -- Autocomplete
@@ -76,6 +78,7 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
   buf_set_keymap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
   buf_set_keymap('n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
+  -- buf_set_keymap('n', 'gr', '<cmd>lua require(\'omnisharp_extended\').telescope_lsp_definitions()<CR>', opts)
 
 
   -- buf_set_keymap('n', '<leader>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)
@@ -128,6 +131,9 @@ end
 local pid = vim.fn.getpid()
 
 nvim_lsp['omnisharp'].setup {
+  handlers = {
+    ["textDocument/definition"] = require('omnisharp_extended').handler,
+  },
   capabilities = capabilities,
   on_attach = on_attach,
   flags = {
@@ -258,16 +264,31 @@ require('nvim-treesitter.configs').setup {
   },
 }
 
-local dap = require("dap")
-dap.adapters.netcoredbg = {
+-- dap virtual text
+require('nvim-dap-virtual-text').setup {
+    enabled = true,                     -- enable this plugin (the default)
+    enabled_commands = true,            -- create commands DapVirtualTextEnable, DapVirtualTextDisable, DapVirtualTextToggle, (DapVirtualTextForceRefresh for refreshing when debug adapter did not notify its termination)
+    highlight_changed_variables = true, -- highlight changed values with NvimDapVirtualTextChanged, else always NvimDapVirtualText
+    highlight_new_as_changed = false,   -- highlight new variables in the same way as changed variables (if highlight_changed_variables)
+    show_stop_reason = true,            -- show stop reason when stopped for exceptions
+    commented = false,                  -- prefix virtual text with comment string
+}
+
+-- DAP
+local dap = require('dap')
+
+vim.fn.sign_define('DapBreakpoint', {text='🛑', texthl='', linehl='', numhl=''})
+vim.fn.sign_define('DapBreakpointRejected', {text='⛔', texthl='', linehl='', numhl=''})
+
+dap.adapters.coreclr = {
   type = 'executable',
-  command = vim.env.DEV_HOME .. 'netcoredbg/netcoredbg',
+  command = vim.env.DEV_HOME .. '/.tools/netcoredbg/netcoredbg',
   args = {'--interpreter=vscode'}
 }
 
 dap.configurations.cs = {
   {
-    type = "netcoredbg",
+    type = "coreclr",
     name = "launch - netcoredbg",
     request = "launch",
     program = function()
@@ -275,6 +296,9 @@ dap.configurations.cs = {
     end,
   },
 }
+
+-- adds loading of .vscode/launch.json files
+require('dap.ext.vscode').load_launchjs()
 
 -- Setup Theme
 local foxxy = require('nightfox')
@@ -496,8 +520,19 @@ vim.api.nvim_set_keymap('n', '<leader>bs', [[<cmd>b#<CR>]], opts)
 -- Close current buffer and switch to last used
 vim.api.nvim_set_keymap('n', '<leader>bq', [[<cmd>b#|bd#<CR>]], opts)
 
--- launch a terminal
--- vim.api.nvim_set_keymap('n', '<leader>t', [[<cmd>10split | term<CR>a]], opts)
+-- dap hotkeys
+vim.api.nvim_set_keymap('n', '<leader>db', [[<cmd>lua require('dap').toggle_breakpoint()<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>dc', [[<cmd>lua require('dap').continue()<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>do', [[<cmd>lua require('dap').step_over()<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>di', [[<cmd>lua require('dap').step_into()<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>ds', [[<cmd>lua require('dap').close()<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>dro', [[<cmd>lua require('dap').repl.open()<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>drc', [[<cmd>lua require('dap').repl.close()<CR>]], opts)
+
+-- quickfix hotkeys
+vim.api.nvim_set_keymap('n', '<leader>qc', [[<cmd>cclose<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>qn', [[<cmd>cnext<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>qp', [[<cmd>cprev<CR>]], opts)
 
 -- treat - seperated words as a word object
 vim.api.nvim_exec([[ set iskeyword+=- ]], false)
