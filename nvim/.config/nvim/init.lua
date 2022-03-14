@@ -109,6 +109,7 @@ local on_attach = function(client, bufnr)
 end
 
 local capabilities = vim.lsp.protocol.make_client_capabilities()
+-- local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
 capabilities.textDocument.completion.completionItem.snippetSupport = true
 capabilities.textDocument.completion.completionItem.resolveSupport = {
   properties = {
@@ -172,11 +173,12 @@ cmp.setup({
       ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
     },
     sources = cmp.config.sources({
-      { name = 'nvim_lsp' },
-      { name = 'luasnip' },
+	    { name = 'nvim_lsp' },
+	    { name = 'luasnip' },
     }, {
-      { name = 'buffer' },
-    })
+	    { name = 'buffer' },
+    }),
+    completion = { keyword_length = 3 }
 })
 
 -- Set configuration for specific filetype.
@@ -204,15 +206,15 @@ sources = cmp.config.sources({
 })
 })
 
--- Setup lspconfig.
-local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
--- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
-require('lspconfig')['omnisharp'].setup {
-    capabilities = capabilities
-}
-require('lspconfig')['tsserver'].setup {
-    capabilities = capabilities
-}
+-- -- Setup lspconfig.
+-- local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+-- -- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
+-- require('lspconfig')['omnisharp'].setup {
+--     capabilities = capabilities
+-- }
+-- require('lspconfig')['tsserver'].setup {
+--     capabilities = capabilities
+-- }
 
 --Set statusbar
 require('lualine').setup {
@@ -362,8 +364,7 @@ if (status) then return lib end
 end
 
 local luasnip = prequire('luasnip')
-
-luasnip.config.set_config({history = false})
+local cmp = prequire("cmp")
 
 local t = function(str)
     return vim.api.nvim_replace_termcodes(str, true, true, true)
@@ -384,14 +385,12 @@ _G.tab_complete = function()
     elseif check_back_space() then
         return t "<Tab>"
     else
-        return vim.fn['compe#complete']()
+        cmp.complete()
     end
     return ""
 end
 _G.s_tab_complete = function()
-    if vim.fn.pumvisible() == 1 then
-        return t "<C-p>"
-    elseif luasnip and luasnip.jumpable(-1) then
+    if luasnip and luasnip.jumpable(-1) then
         return t("<Plug>luasnip-jump-prev")
     else
         return t "<S-Tab>"
@@ -656,12 +655,7 @@ nnoremap <C-n> :NvimTreeToggle<CR>
 nnoremap <leader>r :NvimTreeRefresh<CR>
 nnoremap <leader>n :NvimTreeFindFile<CR>
 
-" Compe keybindings
-inoremap <silent><expr> <C-Space> compe#complete()
-inoremap <silent><expr> <CR>      compe#confirm('<CR>')
-inoremap <silent><expr> <C-e>     compe#close('<C-e>')
-inoremap <silent><expr> <C-f>     compe#scroll({ 'delta': +4 })
-inoremap <silent><expr> <C-d>     compe#scroll({ 'delta': -4 })
+" auto complete html closing tags
 inoremap </ </<C-N>
 
 "" Functions
