@@ -108,8 +108,8 @@ local on_attach = function(client, bufnr)
 
 end
 
-local capabilities = vim.lsp.protocol.make_client_capabilities()
--- local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+-- local capabilities = vim.lsp.protocol.make_client_capabilities()
+local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
 capabilities.textDocument.completion.completionItem.snippetSupport = true
 capabilities.textDocument.completion.completionItem.resolveSupport = {
   properties = {
@@ -519,7 +519,7 @@ vim.g.mapleader = ','
 vim.g.maplocalleader = ','
 
 
--- Highlight on yank
+-- -- Highlight on yank
 vim.api.nvim_exec(
   [[
   augroup YankHighlight
@@ -529,12 +529,6 @@ vim.api.nvim_exec(
 ]],
   false
 )
-
--- Y yank until the end of line
-vim.api.nvim_set_keymap('n', 'Y', 'y$', { noremap = true })
-
-vim.api.nvim_set_keymap('n', '<leader>cp', [[<cmd>echohl WarningMsg | echo "Use <leader>sf (search files)" | lua require('telescope.builtin').find_files({previewer = false})<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>rg', [[<cmd>echohl WarningMsg | echo "Use <leader>sg (search - grep)" | lua require('telescope.builtin').live_grep()<CR>]], opts)
 
 -- Add telescope shortcuts
 vim.api.nvim_set_keymap('n', '<leader><space>', [[<cmd>lua require('telescope.builtin').buffers()<CR>]], opts)
