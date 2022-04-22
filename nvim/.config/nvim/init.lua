@@ -49,7 +49,8 @@ require('packer').startup(function()
     'numToStr/Comment.nvim',
     config = function()
         require('Comment').setup()
-    end
+    end,
+    tag = "v0.6"
   }
   
   use 'machakann/vim-sandwich' -- add, delete, replace pairs (like {}, (), "")
