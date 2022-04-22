@@ -177,7 +177,7 @@ Set-Alias ll Get-ChildItem
 ### Variables
 #######################
 Set-Item -Path Env:DEV_HOME -Value "C:\dev"
-Set-Item -Path Env:OMNISHARP -Value "$($Env:DEV_HOME)/omnisharp-win-x64/OmniSharp.exe"
+Set-Item -Path Env:OMNISHARP -Value "$($Env:DEV_HOME)/.ls/omnisharp/OmniSharp.exe"
 
 $local = "~/.local/profile.ps1"
 
