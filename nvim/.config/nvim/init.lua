@@ -150,6 +150,8 @@ nvim_lsp['omnisharp'].setup {
   cmd = { vim.env.OMNISHARP, "--languageserver" , "--hostPID", tostring(pid), "formattingOptions:EnableEditorConfigSupport=true" }
 }
 
+
+
 -- Setup auto compeletion
 vim.o.completeopt = "menu,menuone,noselect"
 
@@ -539,6 +541,9 @@ vim.api.nvim_set_keymap('n', '<leader>sh', [[<cmd>lua require('telescope.builtin
 vim.api.nvim_set_keymap('n', '<leader>sg', [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], opts)
 vim.api.nvim_set_keymap('n', '<leader>sd', [[<cmd>lua require('telescope.builtin').grep_string()<CR>]], opts)
 vim.api.nvim_set_keymap('n', '<leader>?', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>sv', [[<cmd>lua require('telescope').setup { defaults = { layout_strategy = 'vertical', }, }<CR>]], opts)
+vim.api.nvim_set_keymap('n', '<leader>sz', [[<cmd>lua require('telescope').setup { defaults = { layout_strategy = 'horizontal', }, }<CR>]], opts)
+
 
 -- Buffer Mappings
 -- Close current buffer
