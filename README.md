@@ -15,19 +15,20 @@ Install
 
 ## Windows Install
  
-### Install choco
+### Install scoop
 
-    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+    Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; irm get.scoop.sh | iex
 
 ### Install software
 
-    choco install -y git neovim
+    scoop install git neovim zig fd ripgrep bat
     PowerShellGet\Install-Module posh-git -Scope CurrentUser -Force
     PowerShellGet\Install-Module posh-sshell -Scope CurrentUser
 
 ### Configure software
 
     mkdir ~/AppData/Local/nvim
+    mkdir ~/Documents/PowerShell
 
     New-SymLink -Link ~/.gitconfig C:\dev\dotfiles\git\dot-gitconfig
     New-Symlink -Link ~/Documents\PowerShell\profile.ps1 C:\dev\dotfiles\pwsh\profile.ps1
