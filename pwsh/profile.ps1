@@ -3,6 +3,29 @@ if ($HOST.Name -eq "Package Manager Host") {
 }
 
 Import-Module Posh-Git
+Import-Module posh-p4
+
+#
+# another prompt sample
+# posh-p4 enabled, posh-git enabled and current folder in window's top bar
+#
+#function global:prompt {
+#
+#    $realLASTEXITCODE = $LASTEXITCODE
+#
+#    #perforce status
+#    Write-P4Prompt
+#
+#    #git status
+#    Write-VcsStatus
+#
+#    $global:LASTEXITCODE = $realLASTEXITCODE
+#
+#    #override window title with current folder
+#    $Host.UI.RawUI.WindowTitle = "$pwd - Windows Powershell"
+#
+#    return "$ "
+#}
 
 # . "$HOME\p5\perforce.ps1"
 
@@ -155,20 +178,12 @@ function Set-Development ([string]$location) {
 ### Aliases
 #######################
 
-Set-Alias gacutil 'C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\gacutil.exe'
-Set-Alias msbuild "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\MSBuild.exe"
-Set-Alias ildasm 'C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\ildasm.exe'
-Set-Alias p4mv Move-P4File
-Set-Alias p4ren Rename-P4File
 Set-Alias touch Set-LastWriteToNow
-Set-Alias p5 Invoke-Perforce
-Set-Alias p6 Invoke-PeeFive
+Set-Alias pit Invoke-Perforce
 Set-Alias ep Edit-Profile
 Set-Alias spp Source-Profile
-Set-Alias ack Find-InFiles
 Set-Alias rc Reset-Colors
 Set-Alias env Get-Environment
-Set-Alias gvm Invoke-NvimQt
 Set-Alias rmr Remove-ItemsRecursive
 Set-Alias dev Set-Development
 Set-Alias ll Get-ChildItem
