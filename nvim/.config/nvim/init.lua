@@ -122,9 +122,8 @@ capabilities.textDocument.completion.completionItem.resolveSupport = {
 
 -- Use a loop to conveniently call 'setup' on multiple servers and
 -- map buffer local keybindings when the language server attaches
--- local servers = { "pyright", "rust_analyzer", "tsserver" }
 
-local servers = { "tsserver" }
+local servers = { "pyright", "rust_analyzer", "tsserver", "clangd" }
 for _, lsp in ipairs(servers) do
   nvim_lsp[lsp].setup {
     capabilities = capabilities,
@@ -149,7 +148,6 @@ nvim_lsp['omnisharp'].setup {
   },
   cmd = { vim.env.OMNISHARP, "--languageserver" , "--hostPID", tostring(pid), "formattingOptions:EnableEditorConfigSupport=true" }
 }
-
 
 
 -- Setup auto compeletion
@@ -503,7 +501,7 @@ vim.opt.smartcase = true            -- searching case insensitive unless mixed c
 vim.opt.ignorecase = true
 vim.opt.wrap = false
 
-vim.opt.tabstop = 8
+vim.opt.tabstop = 4
 vim.opt.sts = 4
 vim.opt.shiftwidth = 4
 vim.opt.expandtab = true       -- converts tab presses to spaces
