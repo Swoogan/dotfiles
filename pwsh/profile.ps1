@@ -173,13 +173,62 @@ function Set-Development ([string]$location) {
     }
 }
 
+function Invoke-Perforce {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0, ValueFromRemainingArguments=$true)]
+        ${__Remaining__}
+    )
+
+    process {
+        p4 -Ztag -Mj ${__Remaining__} | ConvertFrom-Json
+    }
+}
+
+function ConvertFrom-UnixTime {
+    param ([string]$time)
+
+    Write-Output ([System.DateTimeOffset]::FromUnixTimeSeconds($time).LocalDateTime)
+}
+
+function Invoke-Pit {
+    [CmdletBinding()]
+    param (
+        # Command. I use two underscores so that variable shortener won't steal switches I'm trying to pass to ${__Remaining__}
+        [Parameter(Mandatory=$true, Position=0)]
+        [string] ${__Command__}, 
+        [Parameter(Mandatory=$false, Position=1, ValueFromRemainingArguments=$true)]
+        ${__Remaining__}
+    )
+
+    process {
+        $info = Invoke-Perforce info
+        # todo: cache this info somehow
+        $client = $info.clientName
+        $user = $info.userName
+
+        switch (${__Command__}) {
+            "log" {
+                Invoke-Perforce changes -L -t -s submitted -m 100 -u $user ${__Remaining__} `
+                    | select change, @{name='date';expression={ConvertFrom-UnixTime $_.time}}, desc
+                    | more
+            }   
+            # todo
+            # shelve, unshelve, stash, stash list, stash pop
+            default {
+                Invoke-Perforce ${__Command__} ${__Remaining__}
+            }
+        }
+    }
+}
+
 
 #######################
 ### Aliases
 #######################
 
 Set-Alias touch Set-LastWriteToNow
-Set-Alias pit Invoke-Perforce
+Set-Alias pit Invoke-Pit
 Set-Alias ep Edit-Profile
 Set-Alias spp Source-Profile
 Set-Alias rc Reset-Colors
