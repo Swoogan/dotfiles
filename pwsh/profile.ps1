@@ -27,7 +27,6 @@ Import-Module posh-p4
 #    return "$ "
 #}
 
-# . "$HOME\p5\perforce.ps1"
 
 if ($host.Name -eq 'ConsoleHost') {
     Import-Module PSReadLine
@@ -163,62 +162,18 @@ function Invoke-BinaryProcess([string]$processName, [string]$arguments) {
 }
 
 function Remove-ItemsRecursive {
-    Remove-Item -Recurse -Force 
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+    Remove-Item -Recurse -Force -Path $Path
 }
 
 function Set-Development ([string]$location) {
     Set-Location $Env:DEV_HOME
     if ($location) {
         Set-Location $location
-    }
-}
-
-function Invoke-Perforce {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory=$true, Position=0, ValueFromRemainingArguments=$true)]
-        ${__Remaining__}
-    )
-
-    process {
-        p4 -Ztag -Mj ${__Remaining__} | ConvertFrom-Json
-    }
-}
-
-function ConvertFrom-UnixTime {
-    param ([string]$time)
-
-    Write-Output ([System.DateTimeOffset]::FromUnixTimeSeconds($time).LocalDateTime)
-}
-
-function Invoke-Pit {
-    [CmdletBinding()]
-    param (
-        # Command. I use two underscores so that variable shortener won't steal switches I'm trying to pass to ${__Remaining__}
-        [Parameter(Mandatory=$true, Position=0)]
-        [string] ${__Command__}, 
-        [Parameter(Mandatory=$false, Position=1, ValueFromRemainingArguments=$true)]
-        ${__Remaining__}
-    )
-
-    process {
-        $info = Invoke-Perforce info
-        # todo: cache this info somehow
-        $client = $info.clientName
-        $user = $info.userName
-
-        switch (${__Command__}) {
-            "log" {
-                Invoke-Perforce changes -L -t -s submitted -m 100 -u $user ${__Remaining__} `
-                    | select change, @{name='date';expression={ConvertFrom-UnixTime $_.time}}, desc
-                    | more
-            }   
-            # todo
-            # shelve, unshelve, stash, stash list, stash pop
-            default {
-                Invoke-Perforce ${__Command__} ${__Remaining__}
-            }
-        }
     }
 }
 
@@ -247,4 +202,9 @@ $local = "~/.local/profile.ps1"
 
 if (Test-Path $local) {
     . $local
+}
+
+$perforce = "$($Env:DEV_HOME)\dotfiles\perforce\perforce.ps1"
+if (Test-Path $perforce) {
+    . $perforce
 }
