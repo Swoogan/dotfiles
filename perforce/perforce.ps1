@@ -1,27 +1,11 @@
 #. "$HOME\p5\p5.ps1"
 # . "$HOME\p5\p6.ps1"
 
-# function Move-P4File ([string]$Path, [string]$Destination) {
-#     p4 edit $Path
-#     Get-ChildItem $Path | ForEach-Object { p4 move $_.FullName ("{0}\{1}" -f $Destination, $_.Name)}
-# }
-#
-# function Rename-P4File ([string]$Path, [string]$Destination) {
-#     p4 edit $Path
-#
-#     foreach ($file in $(Get-ChildItem $Path)) {
-#         $fn = $file.Name
-#         $slash = $fn.IndexOf("\")
-#         [int]$dot
-#         if ($slash -ne -1) {
-#             $dot = $fn.IndexOf(".", $slash)
-#         } else {
-#             $dot = $fn.IndexOf(".")
-#         }
-#         $tail = $fn.Substring($dot)
-#         p4 move $fn (".\{0}{1}" -f $Destination, $tail)
-#     }
-# }
+function ConvertFrom-UnixTime {
+    param ([string]$time)
+
+    Write-Output ([System.DateTimeOffset]::FromUnixTimeSeconds($time).LocalDateTime)
+}
 
 function Invoke-Perforce {
     [CmdletBinding()]
@@ -42,7 +26,7 @@ function New-Changelist {
         [string]$Message
     )
     process {
-        $cl = p4 --field "Description=$Message" change -o | 
+        $cl = p4 --field "Description=$Message" --field "Files=" change -o | 
             p4 change -i | 
             select-string "\b(\d+)" | 
             ForEach-Object {$_.matches[0].value}
@@ -51,10 +35,97 @@ function New-Changelist {
     }
 }
 
-function ConvertFrom-UnixTime {
-    param ([string]$time)
+function Get-FilesInChange {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Change,
+        [Parameter(Mandatory=$false)]
+        [switch]$Shelve
+    )
 
-    Write-Output ([System.DateTimeOffset]::FromUnixTimeSeconds($time).LocalDateTime)
+    process {
+        $files = @()
+
+        # load all the non-shelved files
+        $files += Invoke-Perforce opened -c $Change | select action, depotFile, `
+             @{name='state'; expression={"o"}}
+
+        # load the shelved files if necessary
+        if ($desc.shelved -ne $null) {
+            $files += Invoke-Perforce files "//...@=$Change" | select action, depotFile, `
+                 @{name='state'; expression={"s"}}
+        }
+
+        # find all the local paths for the depot paths
+        $where = $files | select -ExpandProperty depotFile | p4 -ztag -Mj -x - where | ConvertFrom-Json
+
+        # Zip the two lists together
+        for ($i = 0; $i -lt $files.Length; $i++) { 
+            $output = [pscustomobject]@{ 
+                action = $files[$i].action; 
+                state = $files[$i].state; 
+                path = $where[$i].path; 
+                depotFile = $where[$i].depotFile; 
+            }
+
+            Write-Output $output
+        } 
+    }
+}
+
+function Get-ChangeDescription {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Change
+    )
+
+    process {
+        $desc = Invoke-Perforce describe $Change
+        $shevled = ($desc.shelved -ne $null) 
+        $files = Get-FilesInChange $Change -Shelve:$shelved
+
+        $output = [pscustomobject]@{
+            Change = $desc.change;
+            Description = $desc.desc;
+            Status = $desc.status;
+            Date = ConvertFrom-UnixTime $desc.time;
+            Author = $desc.user;
+            Files = $files;
+        }
+
+        Write-Output $output
+    } 
+}
+
+function Write-Modifications {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0, ValueFromPipeline)]
+        [object[]]$Files,
+        [Parameter(Mandatory=$false)]
+        [switch]$Indent
+    )
+
+    process {
+        $prefix = $Indent ? "`t" : ""
+        foreach ($file in $Files) {
+            if ($file.action -eq "add") {
+                Write-Host -ForegroundColor Yellow "$prefix[add]    $($file.path)"
+            }
+            elseif ($file.action -eq "edit") {
+                Write-Host -ForegroundColor Green "$prefix[edit]   $($file.path)"
+            }
+            elseif ($file.action -eq "delete") {
+                Write-Host -ForegroundColor Red "$prefix[delete] $($file.path)"
+            }
+        }
+    }
+
+    end {
+        Write-Host ""
+    }
 }
 
 function Invoke-Pit {
@@ -80,34 +151,23 @@ function Invoke-Pit {
                     | more
             }   
             "pending" {
-                Invoke-Perforce changes -u $user -s pending -c $client ${__Remaining__} | select change, desc
+                Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__} | select change, desc
+            }
+            "describe" {
+                $desc = Get-ChangeDescription ${__Remaining__}
+                Write-Host -ForegroundColor Yellow "change $($desc.Change)"
+                Write-Host "Author: $($desc.Author)"
+                Write-Host "Date: $($desc.Date)"
+                Write-Host "Status: $($desc.Status)"
+                Write-Host "`n`t$($desc.Description)"
+
+                Write-Modifications $desc.Files
             }
             "state" {
                 Write-Host "`n[default]`n"
-                $files = Invoke-Perforce opened -c default
+                Get-FilesInChange default | Write-Modifications -Indent
 
-                $result = $files | ForEach-Object {
-                    # todo: use p4 -x - where
-                    $where = Invoke-Perforce where $_.depotFile
-                    Write-Output @{ action = $_.action; path = $where.path }
-                }
-
-                foreach ($file in $result) {
-                    if ($file.action -eq "add") {
-                        Write-Host -ForegroundColor Yellow "`t[add]    $($file.path)"
-                    }
-                    elseif ($file.action -eq "edit") {
-                        Write-Host -ForegroundColor Green "`t[edit]   $($file.path)"
-                    }
-                    elseif ($file.action -eq "delete") {
-                        Write-Host -ForegroundColor Red "`t[delete] $($file.path)"
-                    }
-                }
-
-                Write-Host ""
-
-                # TODO: might need a way to display whether the files are shelved or not
-                $pending = Invoke-Perforce changes -u $user -s pending -c $client ${__Remaining__}
+                $pending = Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__}
                 foreach ($cl in $pending) {
 
                     Write-Host "[$($cl.change)] $($cl.desc)"
@@ -153,6 +213,15 @@ function Invoke-Pit {
                 }
 
                 Write-Host ""
+                
+                # Find new New-Changelists
+                $count = p4 -ztag -Mj cstat | ConvertFrom-Json | ? status -eq "need" | Measure-Object | select -ExpandProperty Count
+                if ($count -gt 1) {
+                    Write-Warning "Your workspace is $count submits behind the depot."
+                }
+                elseif ($count -gt 0) {
+                    Write-Warning "Your workspace is $count submit behind the depot."
+                }
             }
             "new" {
                 $cl = New-Changelist ${__Remaining__}[0]
