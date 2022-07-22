@@ -109,16 +109,22 @@ function Write-Modifications {
     )
 
     process {
+                #Write-Host -ForegroundColor Yellow "$prefix[$($file.state)][add]    $($file.path)"
+        $fmt = "{0}[{1}] [{2}]{3} {4}"
         $prefix = $Indent ? "`t" : ""
+
         foreach ($file in $Files) {
             if ($file.action -eq "add") {
-                Write-Host -ForegroundColor Yellow "$prefix[add]    $($file.path)"
+                $msg = $fmt -f $prefix,$file.state,$file.action,"    ",$file.path
+                Write-Host -ForegroundColor Yellow $msg
             }
             elseif ($file.action -eq "edit") {
-                Write-Host -ForegroundColor Green "$prefix[edit]   $($file.path)"
+                $msg = $fmt -f $prefix,$file.state,$file.action,"   ",$file.path
+                Write-Host -ForegroundColor Green $msg
             }
             elseif ($file.action -eq "delete") {
-                Write-Host -ForegroundColor Red "$prefix[delete] $($file.path)"
+                $msg = $fmt -f $prefix,$file.state,$file.action," ",$file.path
+                Write-Host -ForegroundColor Red $msg
             }
         }
     }
@@ -167,55 +173,22 @@ function Invoke-Pit {
                 Write-Host "`n[default]`n"
                 Get-FilesInChange default | Write-Modifications -Indent
 
+                # TODO: might need a way to display whether the files are shelved or not
                 $pending = Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__}
                 foreach ($cl in $pending) {
-
                     Write-Host "[$($cl.change)] $($cl.desc)"
-                    $desc = Invoke-Perforce describe $cl.change
-                    $shelf = $desc.shelved -ne $null
-
-                    if ($shelf) {
-                        $files = Invoke-Perforce files "//...@=$($cl.change)"
-                    }
-                    else {
-                        $files = Invoke-Perforce opened -c $cl.change
-                    }
-
-                    foreach ($file in $files) {
-                        $where = Invoke-Perforce where $file.depotFile
-                        if ($file.action -eq "add") {
-                            Write-Host -ForegroundColor Yellow "`t[add]    $($where.path)"
-                        }
-                        elseif ($file.action -eq "edit") {
-                            Write-Host -ForegroundColor Green "`t[edit]   $($where.path)"
-                        }
-                        elseif ($file.action -eq "delete") {
-                            Write-Host -ForegroundColor Red "`t[delete] $($where.path)"
-                        }
-                    }
-
-                    Write-Host ""
+                    $desc = Get-ChangeDescription $cl.change
+                    Write-Modifications $desc.Files -Indent
                 }
 
                 Write-Host "[unopened]`n"
-                $files = Invoke-Perforce reconcile -n ...
-
-                foreach ($file in $files) {
-                    if ($file.action -eq "add") {
-                        Write-Host -ForegroundColor Yellow "`t[add]    $($file.clientFile)"
-                    }
-                    elseif ($file.action -eq "edit") {
-                        Write-Host -ForegroundColor Green "`t[edit]   $($file.clientFile)"
-                    }
-                    elseif ($file.action -eq "delete") {
-                        Write-Host -ForegroundColor Red "`t[delete] $($file.clientFile)"
-                    }
-                }
-
-                Write-Host ""
+                $state = @{name="state"; expression={"u"}}
+                Invoke-Perforce reconcile -n ... | `
+                    select @{name="path"; expression={$_.clientFile}}, $state, action | `
+                    Write-Modifications -Indent
                 
                 # Find new New-Changelists
-                $count = p4 -ztag -Mj cstat | ConvertFrom-Json | ? status -eq "need" | Measure-Object | select -ExpandProperty Count
+                $count = Invoke-Perforce cstat | where status -eq "need" | Measure-Object | select -ExpandProperty Count
                 if ($count -gt 1) {
                     Write-Warning "Your workspace is $count submits behind the depot."
                 }
