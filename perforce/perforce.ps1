@@ -27,6 +27,34 @@ function Add-PitFeature {
     }
 }
 
+function Get-PitActiveFeature {
+    [CmdletBinding()]
+    param ()
+
+    process {
+        $profile = Join-Path $env:USERPROFILE .pit
+        $file = Join-Path $profile "feature"
+
+        Get-Content $file
+    }
+}
+
+function Set-PitActiveFeature {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Name
+    )
+
+    process {
+        $profile = Join-Path $env:USERPROFILE .pit
+        $file = Join-Path $profile "feature"
+
+        Set-Content -Path $file -Value $Name
+        # Todo: check for open files, submit state. Eg: submit, revert or stash
+    }
+}
+
 function Get-PitFeature {
     [CmdletBinding()]
     param (
@@ -57,7 +85,9 @@ function Add-PitFeatureChange {
         [Parameter(Mandatory=$true, Position=0)]
         [string]$Name,
         [Parameter(Mandatory=$true, Position=1)]
-        [int]$Change
+        [int]$Change,
+        [Parameter(Mandatory=$false)]
+        [switch]$Switch
     )
 
     process {
@@ -69,6 +99,10 @@ function Add-PitFeatureChange {
         $changes = Get-Content $file
         $changes += $Change
         Set-Content -Path $file -Value $changes
+
+        if ($Switch) {
+            Set-PitActiveFeature $Name
+        }
     }
 }
 
@@ -80,7 +114,12 @@ function Remove-PitFeature {
     )
 
     process {
-        Write-Error "Not implemented"
+        $profile = Join-Path $env:USERPROFILE .pit
+        $file = Join-Path $profile "$Name.feat"
+
+        # Todo: check for open files, submit state and remove old changelists
+
+        Remove-Item $file
     }
 }
 
@@ -142,8 +181,6 @@ function Get-FilesInChange {
                     @{name='state'; expression={"sh"}}
             }
         }
-
-
 
         # find all the local paths for the depot paths
         $where = $files | select -ExpandProperty depotFile | p4 -ztag -Mj -x - where | ConvertFrom-Json
@@ -267,7 +304,7 @@ function Invoke-Pit {
             }
             "state" {
                 Write-Host "`n[default]`n"
-                Get-FilesInChange default | Write-Modifications -Indent
+                Get-FilesInChange default -OnlyOpened | Write-Modifications -Indent
 
                 $pending = Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__}
                 foreach ($cl in $pending) {
@@ -304,7 +341,8 @@ function Invoke-Pit {
                 $diff_temp = Join-Path $tmp $diff_cl
                 mkdir $diff_temp | Out-Null
 
-                $files = Get-FilesInChange $diff_cl -Shelve
+                # Todo: this will get open files, which may be a bug
+                $files = Get-FilesInChange $diff_cl -Status "pending"
 
                 foreach ($file in $files) {
                     $leaf = Split-Path $file.path -leaf
