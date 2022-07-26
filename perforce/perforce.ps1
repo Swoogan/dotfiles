@@ -83,7 +83,7 @@ function Get-ChangeDescription {
 
     process {
         $desc = Invoke-Perforce describe $Change
-        $shevled = ($desc.shelved -ne $null) 
+        $shelved = $desc.shelved -ne $null
         $files = Get-FilesInChange $Change -Shelve:$shelved
 
         $output = [pscustomobject]@{
@@ -219,6 +219,33 @@ function Invoke-Pit {
                     p4 print -o $local "$($file.depotFile)@=$diff_cl" | Out-Null
                     git diff --no-index $local $file.path	
                 }
+
+                rm -Recurse -Force $diff_temp | Out-Null
+            }
+            "du" { # diff unopened
+                $tmp = Join-Path $env:temp pit
+                if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
+
+                $diff_temp = Join-Path $tmp "have.$(Get-Random -Maximum 10000)"
+                mkdir $diff_temp | Out-Null
+
+                $files = Invoke-Perforce reconcile -n -m ... | ? data -eq $null
+                Write-Host $files
+
+                foreach ($file in $files) {
+                    if ($file.action -eq "edit") {
+                        $leaf = Split-Path $file.clientFile -leaf
+                        $local = Join-Path $diff_temp $leaf
+                        Write-Host $local
+                        p4 print -o $local "$($file.depotFile)#have" | Out-Null
+                        git diff --no-index $local $file.clientFile	
+                    }
+                    else {
+                        Write-Modifications $file
+                    }
+                }
+
+                rm -Recurse -Force $diff_temp | Out-Null
             }
             # todo
             # shelve, unshelve, stash, stash list, stash pop
