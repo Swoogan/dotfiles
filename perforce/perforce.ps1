@@ -2,9 +2,86 @@
 # . "$HOME\p5\p6.ps1"
 
 function ConvertFrom-UnixTime {
-    param ([string]$time)
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Time
+    )
 
-    Write-Output ([System.DateTimeOffset]::FromUnixTimeSeconds($time).LocalDateTime)
+    process {
+        Write-Output ([System.DateTimeOffset]::FromUnixTimeSeconds($Time).LocalDateTime)
+    }
+}
+
+function Add-PitFeature {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Name
+    )
+
+    process {
+        # Todo: check for pit directory
+        $path = Join-Path $env:USERPROFILE .pit "$Name.feat"
+        New-Item -Path $path
+    }
+}
+
+function Get-PitFeature {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$false, Position=0)]
+        [string[]]$Name
+    )
+
+    process {
+        $profile = Join-Path $env:USERPROFILE .pit
+
+        if ($Name -ne $null) {
+            $file = Join-Path $profile "$Name.feat"
+            Get-ChildItem $file | ForEach-Object {
+                (Split-Path $_ -leaf) -replace ".feat", ""
+            }
+        }
+        else {
+            Get-ChildItem $profile -Filter *.feat | ForEach-Object {
+                (Split-Path $_ -leaf) -replace ".feat", ""
+            }
+        }
+    }
+}
+
+function Add-PitFeatureChange {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Name,
+        [Parameter(Mandatory=$true, Position=1)]
+        [int]$Change
+    )
+
+    process {
+        $profile = Join-Path $env:USERPROFILE .pit
+        $file = Join-Path $profile "$Name.feat"
+
+        if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
+
+        $changes = Get-Content $file
+        $changes += $Change
+        Set-Content -Path $file -Value $changes
+    }
+}
+
+function Remove-PitFeature {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Name
+    )
+
+    process {
+        Write-Error "Not implemented"
+    }
 }
 
 function Invoke-Perforce {
@@ -41,21 +118,32 @@ function Get-FilesInChange {
         [Parameter(Mandatory=$true, Position=0)]
         [string]$Change,
         [Parameter(Mandatory=$false)]
-        [switch]$Shelve
+        [string]$Status,
+        [Parameter(Mandatory=$false)]
+        [switch]$OnlyOpened
     )
 
     process {
+        # unopened, submitted, shelved, opened => uo, su, sh, op
         $files = @()
 
-        # load all the non-shelved files
-        $files += Invoke-Perforce opened -c $Change | select action, depotFile, `
-             @{name='state'; expression={"o"}}
-
-        # load the shelved files if necessary
-        if ($Shelve) {
+        if ($Status -eq "submitted") {
             $files += Invoke-Perforce files "//...@=$Change" | select action, depotFile, `
-                 @{name='state'; expression={"s"}}
+                 @{name='state'; expression={"su"}}
         }
+        else {
+            # load all the non-shelved files
+            $files += Invoke-Perforce opened -c $Change | select action, depotFile, `
+                @{name='state'; expression={"op"}}
+
+            # load the shelved files if necessary
+            if (-not $OnlyOpened) {
+                $files += Invoke-Perforce files "//...@=$Change" | select action, depotFile, `
+                    @{name='state'; expression={"sh"}}
+            }
+        }
+
+
 
         # find all the local paths for the depot paths
         $where = $files | select -ExpandProperty depotFile | p4 -ztag -Mj -x - where | ConvertFrom-Json
@@ -82,9 +170,15 @@ function Get-ChangeDescription {
     )
 
     process {
+        if ($Change -eq "default") {
+            # TODO: make this a terminating error once converted to a module
+            Write-Warning "default changelist cannot be described"
+            Exit 1
+        }
+
         $desc = Invoke-Perforce describe $Change
-        $shelved = $desc.shelved -ne $null
-        $files = Get-FilesInChange $Change -Shelve:$shelved
+        $onlyOpened = ($desc.shelved -eq $null) -and ($desc.status -ne "submitted")
+        $files = Get-FilesInChange $Change -Status $desc.status -OnlyOpened:$onlyOpened
 
         $output = [pscustomobject]@{
             Change = $desc.change;
@@ -175,7 +269,6 @@ function Invoke-Pit {
                 Write-Host "`n[default]`n"
                 Get-FilesInChange default | Write-Modifications -Indent
 
-                # TODO: might need a way to display whether the files are shelved or not
                 $pending = Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__}
                 foreach ($cl in $pending) {
                     Write-Host "[$($cl.change)] $($cl.desc)"
@@ -184,8 +277,8 @@ function Invoke-Pit {
                 }
 
                 Write-Host "[unopened]`n"
-                $state = @{name="state"; expression={"u"}}
-                Invoke-Perforce reconcile -n ... | `
+                $state = @{name="state"; expression={"uo"}}
+                Invoke-Perforce reconcile -n -m ... | `
                     select @{name="path"; expression={$_.clientFile}}, $state, action | `
                     Write-Modifications -Indent
                 
@@ -246,6 +339,9 @@ function Invoke-Pit {
                 }
 
                 rm -Recurse -Force $diff_temp | Out-Null
+            }
+            "update" {
+                Invoke-Perforce update | select 
             }
             # todo
             # shelve, unshelve, stash, stash list, stash pop
