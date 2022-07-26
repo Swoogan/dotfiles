@@ -52,7 +52,7 @@ function Get-FilesInChange {
              @{name='state'; expression={"o"}}
 
         # load the shelved files if necessary
-        if ($desc.shelved -ne $null) {
+        if ($Shelve) {
             $files += Invoke-Perforce files "//...@=$Change" | select action, depotFile, `
                  @{name='state'; expression={"s"}}
         }
@@ -150,6 +150,8 @@ function Invoke-Pit {
         $client = $info.clientName
         $user = $info.userName
 
+        # Todo: check to see if user is logged in
+
         switch (${__Command__}) {
             "log" {
                 Invoke-Perforce changes -L -t -s submitted -m 100 -u $user ${__Remaining__} `
@@ -200,6 +202,23 @@ function Invoke-Pit {
                 $cl = New-Changelist ${__Remaining__}[0]
                 $env:PIT_CHANGE = $cl
                 Write-Output $cl
+            }
+            "ds" { # diff shelve
+                $tmp = Join-Path $env:temp pit
+                if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
+
+                $diff_cl = ${__Remaining__}[0]
+                $diff_temp = Join-Path $tmp $diff_cl
+                mkdir $diff_temp | Out-Null
+
+                $files = Get-FilesInChange $diff_cl -Shelve
+
+                foreach ($file in $files) {
+                    $leaf = Split-Path $file.path -leaf
+                    $local = Join-Path $diff_temp $leaf
+                    p4 print -o $local "$($file.depotFile)@=$diff_cl" | Out-Null
+                    git diff --no-index $local $file.path	
+                }
             }
             # todo
             # shelve, unshelve, stash, stash list, stash pop
