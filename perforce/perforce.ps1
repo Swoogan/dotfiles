@@ -187,11 +187,15 @@ function Get-FilesInChange {
 
         # Zip the two lists together
         for ($i = 0; $i -lt $files.Length; $i++) { 
+            $file = $files[$i]
+            $w = $where[$i]     # todo: better variable name
+            $depotFile = $w.depotFile -ne $null ? $w.depotFile : $file.depotFile
+
             $output = [pscustomobject]@{ 
-                action = $files[$i].action; 
-                state = $files[$i].state; 
-                path = $where[$i].path; 
-                depotFile = $where[$i].depotFile; 
+                action = $file.action; 
+                state = $file.state; 
+                path = $w.path; 
+                depotFile = $depotFile; 
             }
 
             Write-Output $output
@@ -245,16 +249,17 @@ function Write-Modifications {
         $prefix = $Indent ? "`t" : ""
 
         foreach ($file in $Files) {
-            if ($file.action -eq "add") {
-                $msg = $fmt -f $prefix,$file.state,$file.action,"    ",$file.path
+            $path = $file.path -ne $null ? $file.path : $file.depotFile
+            if ($file.action -eq "add" -or $file.action -eq "move/add") {
+                $msg = $fmt -f $prefix,$file.state,$file.action,"    ",$path
                 Write-Host -ForegroundColor Yellow $msg
             }
             elseif ($file.action -eq "edit") {
-                $msg = $fmt -f $prefix,$file.state,$file.action,"   ",$file.path
+                $msg = $fmt -f $prefix,$file.state,$file.action,"   ",$path
                 Write-Host -ForegroundColor Green $msg
             }
-            elseif ($file.action -eq "delete") {
-                $msg = $fmt -f $prefix,$file.state,$file.action," ",$file.path
+            elseif ($file.action -eq "delete" -or $file.action -eq "move/delete") {
+                $msg = $fmt -f $prefix,$file.state,$file.action," ",$path
                 Write-Host -ForegroundColor Red $msg
             }
         }
@@ -385,14 +390,29 @@ function Invoke-Pit {
                 rm -Recurse -Force $diff_temp | Out-Null
             }
             "update" {
-                # Invoke-Perforce update | select action, `
-                #     @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
-                #     Out-Host -Paging
+                Write-Host "Gathering Changelists to sync..."
+
+                $latest = Invoke-Perforce changes -m1 "@$client" | select -ExpandProperty change
+                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
+                #$changes = p4 -ztag -Mj changes -e $latest -s submitted "@$client" | ConvertFrom-Json | ` 
+                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | ` 
+                    select -ExpandProperty change -SkipLast 1 | Sort-Object
+                $count = $changes | Measure-Object | select -ExpandProperty count
+
+                if ($count -eq 0) {
+                    Write-Host "Already up to date."
+                    Exit 0
+                }
+                
+                Invoke-Perforce update | select action, `
+                    @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
+                    Out-Host -Paging
+            }
+            "bu" { # better update?
 
                 Write-Host "Gathering Changelists to sync..."
                 $latest = Invoke-Perforce changes -m1 "@$client" | select -ExpandProperty change
                 # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
-                #$changes = p4 -ztag -Mj changes -e $latest -s submitted "@$client" | ConvertFrom-Json | ` 
                 $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | ` 
                     select -ExpandProperty change -SkipLast 1 | Sort-Object
                 $count = $changes | Measure-Object | select -ExpandProperty count
