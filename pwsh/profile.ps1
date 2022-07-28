@@ -101,7 +101,7 @@ function Set-Environment {
         [string] $Value
     )
 
-    Set-Item "`env:\$Name" $Value
+    Set-Item "env:\$Name" $Value
     [System.Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::Machine)
 }
 
