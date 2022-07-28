@@ -285,9 +285,10 @@ function Invoke-Pit {
 
         switch (${__Command__}) {
             "log" {
-                Invoke-Perforce changes -L -t -s submitted -m 100 -u $user ${__Remaining__} `
-                    | select change, @{name='date';expression={ConvertFrom-UnixTime $_.time}}, desc
-                    | more
+                #Invoke-Perforce changes -L -t -s submitted -m 100 -u $user ${__Remaining__} `
+                Invoke-Perforce changes -L -t -s submitted -m 100 ${__Remaining__} `
+                    | select change, user, @{name='date';expression={ConvertFrom-UnixTime $_.time}}, desc
+                    | Out-Host -Paging
             }   
             "pending" {
                 Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__} | select change, desc
@@ -320,7 +321,12 @@ function Invoke-Pit {
                     Write-Modifications -Indent
                 
                 # Find new New-Changelists
-                $count = Invoke-Perforce cstat | where status -eq "need" | Measure-Object | select -ExpandProperty Count
+                $latest = Invoke-Perforce changes -m1 "@$client" | select -ExpandProperty change
+                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
+                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | ` 
+                    select -ExpandProperty change -SkipLast 1
+                $count = $changes | Measure-Object | select -ExpandProperty count
+
                 if ($count -gt 1) {
                     Write-Warning "Your workspace is $count submits behind the depot."
                 }
@@ -379,7 +385,71 @@ function Invoke-Pit {
                 rm -Recurse -Force $diff_temp | Out-Null
             }
             "update" {
-                Invoke-Perforce update | select 
+                # Invoke-Perforce update | select action, `
+                #     @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
+                #     Out-Host -Paging
+
+                Write-Host "Gathering Changelists to sync..."
+                $latest = Invoke-Perforce changes -m1 "@$client" | select -ExpandProperty change
+                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
+                #$changes = p4 -ztag -Mj changes -e $latest -s submitted "@$client" | ConvertFrom-Json | ` 
+                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | ` 
+                    select -ExpandProperty change -SkipLast 1 | Sort-Object
+                $count = $changes | Measure-Object | select -ExpandProperty count
+
+                if ($count -eq 0) {
+                    Write-Host "Already up to date."
+                    Exit 0
+                }
+
+                Write-Host ("Updating {0}..{1}" -f $changes[0], $changes[-1])
+
+                for ($i = 1; $i -le $count; $i++) { 
+                    $change = $changes[$i-1]
+                    $percent = ($i/$count) * 100
+                    
+                    # Write-Host $percent
+                    Write-Progress -Activity "Updating" -Status "Syncing $change..." -PercentComplete $percent
+
+                    pit sync "//...@$($changes[$i])" | select action, `
+                         @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
+                         # Out-Host -Paging
+                         Out-Null
+                }
+            }
+            "fs" {
+
+                Write-Host "Gathering Changelists to sync..."
+                $latest = Invoke-Perforce changes -m1 "@$client" | select -ExpandProperty change
+                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
+                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | ` 
+                    select -ExpandProperty change -SkipLast 1 | Sort-Object
+                $count = $changes | Measure-Object | select -ExpandProperty count
+
+                if ($count -eq 0) {
+                    Write-Host "Already up to date."
+                    Exit 0
+                }
+
+                Write-Host ("Updating {0}..{1}" -f $changes[0], $changes[-1])
+
+                for ($i = 1; $i -le $count; $i++) { 
+                    $change = $changes[$i-1]
+                    $percent = ($i/$count) * 100
+                    
+                    # Write-Host $percent
+                    Write-Progress -Activity "Updating" -Status "Syncing $change..." -PercentComplete $percent
+
+                    $files = Get-FilesInChange $change -Status "submitted"
+                    $fileCount = $files | Measure-Object | select -ExpandProperty count
+
+                    Write-Host "Syncing $fileCount files..."
+
+                    $files | % { "{0}@{1}" -f $_.depotFile, $change } | p4 -ztag -Mj -x - sync | ConvertFrom-Json | Out-Host -Paging
+                }
+            }
+            "help" {
+                p4 help ${__Remaining__}
             }
             # todo
             # shelve, unshelve, stash, stash list, stash pop
