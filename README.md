@@ -36,6 +36,7 @@ Install
     New-Symlink -Link ~/Documents\PowerShell\profile.ps1 C:\dev\dotfiles\pwsh\profile.ps1
     New-Symlink -Link ~/.vsvimrc C:\dev\dotfiles\windows\_vsvimrc
     New-Symlink -Link ~\AppData\Local\nvim\init.lua C:\dev\dotfiles\nvim\.config\nvim\init.lua
+    New-Symlink -Link ~\AppData\Local\nvim\lua C:\dev\dotfiles\nvim\.config\nvim\lua
 
     $compiler = "~\AppData\Local\nvim\compiler"
     if (-not (test-path $compiler)) { mkdir $compiler }
