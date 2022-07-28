@@ -68,11 +68,11 @@ function M.init()
     vim.fn.execute("!git clone https://github.com/wbthomason/packer.nvim " .. install_path)
   end
 
-  vim.api.nvim_create_augroup("Packer", { clear = true })
-  vim.api.nvim_create_autocmd({ "BufWritePost" }, {
-    pattern = "init.lua",
-    callback = "PackerCompile",
-  })
+  -- vim.api.nvim_create_augroup("Packer", { clear = true })
+  -- vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+  --   pattern = "init.lua",
+  --   callback = "PackerCompile",
+  -- })
 
   -- Set plugins to the value defined in lockfile
   vim.api.nvim_create_user_command("PackInstall", function()
