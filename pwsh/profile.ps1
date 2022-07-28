@@ -29,16 +29,17 @@ Import-Module posh-p4
 
 
 if ($host.Name -eq 'ConsoleHost') {
-    Import-Module PSReadLine
     # Delete from the cursor to the beginning of the line
-    Set-PSReadlineKeyHandler -Key Ctrl+u -Function BackwardDeleteLine
+    Set-PSReadlineKeyHandler -Chord "Ctrl+u" -Function BackwardDeleteLine
     # Delete from the cursor to the end of the line
-    Set-PSReadlineKeyHandler -Key Ctrl+k -Function ForwardDeleteLine
+    Set-PSReadlineKeyHandler -Chord "Ctrl+k" -Function ForwardDeleteLine
+    # Accepts the next suggested word
+    Set-PSReadLineKeyHandler -Chord "Ctrl+f" -Function ForwardWord
     # Bash style tab completion
     Set-PSReadlineKeyHandler -Key Tab -Function Complete
 
     # Ctrl-D will exit
-    Set-PSReadlineKeyHandler -Key Ctrl+d `
+    Set-PSReadlineKeyHandler -Chord "Ctrl+d" `
     -BriefDescription "Exit" `
     -LongDescription "Exit" `
     -ScriptBlock {
