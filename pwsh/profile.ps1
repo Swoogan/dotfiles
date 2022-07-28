@@ -196,8 +196,9 @@ Set-Alias ll Get-ChildItem
 #######################
 ### Variables
 #######################
-Set-Item -Path Env:DEV_HOME -Value "C:\dev"
-Set-Item -Path Env:OMNISHARP -Value "$($Env:DEV_HOME)/.ls/omnisharp/OmniSharp.exe"
+# Moved to installation so they are system-wide and work with gui programs (like nvim-qt)
+# Set-Item -Path Env:DEV_HOME -Value "C:\dev"
+# Set-Item -Path Env:OMNISHARP -Value "$($Env:DEV_HOME)/.ls/omnisharp/OmniSharp.exe"
 
 $local = "~/.local/profile.ps1"
 
