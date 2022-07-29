@@ -431,9 +431,9 @@ vim.keymap.set('', '<Space>', '<Nop>', opts)
 vim.g.mapleader = ','
 vim.g.maplocalleader = ','
 
+-- disable builtin plugins I don't use
 vim.g.loaded_tutor = 1
 vim.g.loaded_netrwPlugin = 1
-
 
 
 -- Add telescope shortcuts
@@ -480,9 +480,9 @@ vim.api.nvim_exec([[ set iskeyword+=_ ]], false)
 
 -- launch a terminal
 if is_windows then
-    vim.api.nvim_set_keymap('n', '<leader>t', [[<cmd>10split\|term pwsh<Cr>a<CR>]], opts)
+    vim.keymap.set('n', '<leader>t', '<cmd>10split|term pwsh<Cr>a', opts)
 else
-    vim.api.nvim_set_keymap('n', '<leader>qp', [[<cmd>10split\|term<Cr>a<CR>]], opts)
+    vim.keymap.set('n', '<leader>t', '<cmd>10split|term<Cr>a', opts)
 end
 
 -- autogroups
