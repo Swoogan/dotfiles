@@ -118,14 +118,6 @@ cmp.setup({
     completion = { keyword_length = 3 }
 })
 
--- Set configuration for specific filetype.
---    cmp.setup.filetype('gitcommit', {
-    -- sources = cmp.config.sources({
-    -- { name = 'cmp_git' }, -- You can specify the `cmp_git` source if you were installed it. 
-    -- }, {
-    --     { name = 'buffer' },
-    --     })
---    })
 
 -- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
 cmp.setup.cmdline('/', {
@@ -280,13 +272,13 @@ foxxy.load()
 require('nvim-web-devicons').setup {
  -- globally enable default icons (default to false)
  -- will get overriden by `get_icons` option
- default = true;
+  default = true;
 }
 
 -- *** Start luasnips
 local function prequire(...)
-local status, lib = pcall(require, ...)
-if (status) then return lib end
+    local status, lib = pcall(require, ...)
+    if (status) then return lib end
     return nil
 end
 
@@ -371,12 +363,6 @@ require("luasnip/loaders/from_vscode").lazy_load()
 
 require('nvim-tree').setup({})
 
-local os_uname = vim.loop.os_uname()
-local is_windows = os_uname.sysname == "Windows_NT"
-if is_windows then
-  -- vim.opt.shell = "pwsh"
-end
-
 -- Takes user input and replaces space with underscore, capitalizes each word
 -- Ex. "this is a test method" => "This_Is_A_Test_Method"
 _G.transform_test_name = function()
@@ -435,16 +421,18 @@ vim.opt.inccommand = 'nosplit'    -- shows effects of substitutions
 vim.opt.mouse = 'a'
 
 --Save undo history
-vim.cmd([[set undofile]])
+vim.opt.undofile = true
 
 --Decrease update time
 vim.opt.updatetime = 250
 vim.opt.signcolumn = 'yes'
 
-vim.api.nvim_set_keymap('', '<Space>', '<Nop>', opts)
+vim.keymap.set('', '<Space>', '<Nop>', opts)
 vim.g.mapleader = ','
 vim.g.maplocalleader = ','
 
+vim.g.loaded_tutor = 1
+vim.g.loaded_netrwPlugin = 1
 
 
 
@@ -575,51 +563,44 @@ vim.keymap.set('n', '<leader>p', '"+p', opts)
 -- Pastes from system clipboard
 vim.keymap.set('n', '<leader>P', '"+P', opts)
 
+-- Edit vim config in split
+vim.keymap.set('n', '<leader>ec', '<cmd>vsplit $MYVIMRC<cr>', opts)
+-- Source vim config
+vim.keymap.set('n', '<leader>sc', '<cmd>source $MYVIMRC<cr>', opts)
+
+-- Remap keys in terminal mode
+vim.keymap.set('t', '<esc>', '<c-\\><c-n>', opts)
+vim.keymap.set('t', '<c-v><esc>', '<esc>', opts)
+
+vim.keymap.set('n', '<c-n>', '<cmd>NvimTreeToggle<cr>', opts)
+-- vim.keymap.set('n', '<leader>r', '<cmd>NvimTreeRefresh<cr>', opts)
+-- vim.keymap.set('n', '<leader>n', '<cmd>NvimTreeFindFile<cr>', opts)
+
+-- auto complete html closing tags
+-- vim.keymap.set('i', '</', '</<c-n>', opts)
+vim.api.nvim_exec([[inoremap </ </<C-N>]], false)
+
 -- Add: Press sa{motion/textobject}{addition}. For example, a key sequence saiw( makes foo to (foo).
 -- Delete: Press sdb or sd{deletion}. For example, key sequences sdb or sd( makes (foo) to foo. sdb searches a set of surrounding automatically.
 -- Replace: Press srb{addition} or sr{deletion}{addition}. For example, key sequences srb" or sr(" makes (foo) to "foo".
 vim.api.nvim_exec( [[ let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes) ]], false)
 
-vim.api.nvim_exec(
-  [[
+-- local function is_dir(filename)
+--   local stat = vim.loop.fs_stat(filename)
+--   return stat and stat.type == 'directory' or false
+-- end
 
-"" Mappings
+local swap = vim.fn.expand("$HOME/.cache/nvim/swap")
+if not vim.fn.isdirectory(swap) then
+  vim.fn.mkdir(swap, "p")
+end
+vim.cmd([[set directory=$HOME/.cache/nvim/swap]])
 
+vim.api.nvim_create_user_command("DiffOrig", function()
+  vim.cmd([[vertical new | set buftype=nofile | read # | 0d_ | diffthis | wincmd p | diffthis ]])
+end, {})
 
-" Edit vim config in split
-nnoremap <Leader>ec :vsplit $MYVIMRC<Cr>
-" Source vim config
-nnoremap <Leader>sc :source $MYVIMRC<Cr>
-
-" Remap keys in terminal mode
-tnoremap <Esc> <C-\><C-n>
-tnoremap <M-[> <Esc>
-tnoremap <C-v><Esc> <Esc>
-
-nnoremap <C-n> :NvimTreeToggle<CR>
-nnoremap <leader>r :NvimTreeRefresh<CR>
-nnoremap <leader>n :NvimTreeFindFile<CR>
-
-" auto complete html closing tags
-inoremap </ </<C-N>
-
-"" Functions
-
-" Setup cache directory so .swp files aren't in the cwd
-if !isdirectory(expand("$HOME/.cache/nvim/swap"))
-  call mkdir(expand("$HOME/.cache/nvim/swap"), "p")
-endif
-set directory=$HOME/.cache/nvim/swap
-
-command! DiffOrig vertical new | set buftype=nofile | read # | 0d_ | diffthis | wincmd p | diffthis
-
-"" Prettier
-" Format on save (even without header)
-let g:prettier#autoformat = 1
-let g:prettier#autoformat_require_pragma = 0
-nmap <Leader>pf <Plug>(PrettierAsync)
-
-]],
-  false
-)
-
+-- Prettier
+vim.g['prettier#autoformat'] = 1
+vim.g['prettier#autoformat_require_pragma'] = 0
+vim.keymap.set('n', '<leader>pf', '<cmd>PrettierAsync<cr>', opts)
