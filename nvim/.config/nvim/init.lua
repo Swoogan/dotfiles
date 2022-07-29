@@ -438,14 +438,14 @@ vim.g.loaded_netrwPlugin = 1
 
 -- Add telescope shortcuts
 vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, opts)
--- vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files({previewer = false}), opts)
+vim.keymap.set('n', '<leader>sf', function() require('telescope.builtin').find_files({previewer = false}) end, opts)
 vim.keymap.set('n', '<leader>sb', require('telescope.builtin').current_buffer_fuzzy_find, opts)
 vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, opts)
 vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, opts)
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').grep_string, opts)
-vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, opts)
--- vim.keymap.set('n', '<leader>sv', require('telescope').setup { defaults = { layout_strategy = 'vertical', }, }, opts)
--- vim.keymap.set('n', '<leader>sz', require('telescope').setup { defaults = { layout_strategy = 'horizontal', }, }, opts)
+vim.keymap.set('n', '<leader>so' require('telescope.builtin').oldfiles, opts)
+vim.keymap.set('n', '<leader>sv', function() require('telescope').setup { defaults = { layout_strategy = 'vertical', }, } end, opts)
+vim.keymap.set('n', '<leader>sz', function() require('telescope').setup { defaults = { layout_strategy = 'horizontal', }, } end, opts)
 
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
 
