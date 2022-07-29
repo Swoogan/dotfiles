@@ -4,6 +4,7 @@ plugins.load() -- Load packer with the packer spec
 
 local cmd = vim.cmd
 local indent = 4
+local is_windows = vim.loop.os_uname().sysname == "Windows_NT"
 local opts = { noremap=true, silent=true }
 
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, opts)
@@ -141,16 +142,6 @@ sources = cmp.config.sources({
   { name = 'cmdline' }
 })
 })
-
--- -- Setup lspconfig.
--- local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
--- -- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
--- require('lspconfig')['omnisharp'].setup {
---     capabilities = capabilities
--- }
--- require('lspconfig')['tsserver'].setup {
---     capabilities = capabilities
--- }
 
 --Set statusbar
 require('lualine').setup {
@@ -418,7 +409,7 @@ _G.transform_test_name = function()
 end
 
 -- global keymap
-vim.api.nvim_set_keymap("n", "<leader>tt", [[<cmd>lua transform_test_name()<cr>]], opts)
+vim.keymap.set("n", "<leader>tt", transform_test_name, opts)
 
 -- *** CONFIG *** --
 
@@ -444,7 +435,7 @@ vim.opt.inccommand = 'nosplit'    -- shows effects of substitutions
 vim.opt.mouse = 'a'
 
 --Save undo history
-vim.cmd [[set undofile]]
+vim.cmd([[set undofile]])
 
 --Decrease update time
 vim.opt.updatetime = 250
@@ -455,32 +446,25 @@ vim.g.mapleader = ','
 vim.g.maplocalleader = ','
 
 
--- -- Highlight on yank
-vim.api.nvim_exec(
-  [[
-  augroup YankHighlight
-    autocmd!
-    autocmd TextYankPost * silent! lua vim.highlight.on_yank()
-  augroup end
-]],
-  false
-)
+
 
 -- Add telescope shortcuts
-vim.api.nvim_set_keymap('n', '<leader><space>', [[<cmd>lua require('telescope.builtin').buffers()<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>sf', [[<cmd>lua require('telescope.builtin').find_files({previewer = false})<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>sb', [[<cmd>lua require('telescope.builtin').current_buffer_fuzzy_find()<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>sh', [[<cmd>lua require('telescope.builtin').help_tags()<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>sg', [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>sd', [[<cmd>lua require('telescope.builtin').grep_string()<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>?', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>sv', [[<cmd>lua require('telescope').setup { defaults = { layout_strategy = 'vertical', }, }<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>sz', [[<cmd>lua require('telescope').setup { defaults = { layout_strategy = 'horizontal', }, }<CR>]], opts)
+vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, opts)
+-- vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files({previewer = false}), opts)
+vim.keymap.set('n', '<leader>sb', require('telescope.builtin').current_buffer_fuzzy_find, opts)
+vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, opts)
+vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, opts)
+vim.keymap.set('n', '<leader>sd', require('telescope.builtin').grep_string, opts)
+vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, opts)
+-- vim.keymap.set('n', '<leader>sv', require('telescope').setup { defaults = { layout_strategy = 'vertical', }, }, opts)
+-- vim.keymap.set('n', '<leader>sz', require('telescope').setup { defaults = { layout_strategy = 'horizontal', }, }, opts)
 
+vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
 
 -- Buffer Mappings
 -- Close current buffer
 vim.api.nvim_set_keymap('n', '<leader>bd', [[<cmd>bd<CR>]], opts)
+-- lua vim.api.nvim_buf_delete(vim.api.nvim_get_current_buf(), {})
 -- Swap buffer
 vim.api.nvim_set_keymap('n', '<leader>bs', [[<cmd>b#<CR>]], opts)
 -- vim.api.nvim_set_keymap('n', '<leader><leader>', [[<cmd>b#<CR>]], opts)
@@ -488,13 +472,13 @@ vim.api.nvim_set_keymap('n', '<leader>bs', [[<cmd>b#<CR>]], opts)
 vim.api.nvim_set_keymap('n', '<leader>bq', [[<cmd>b#|bd#<CR>]], opts)
 
 -- dap hotkeys
-vim.api.nvim_set_keymap('n', '<leader>db', [[<cmd>lua require('dap').toggle_breakpoint()<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>dc', [[<cmd>lua require('dap').continue()<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>do', [[<cmd>lua require('dap').step_over()<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>di', [[<cmd>lua require('dap').step_into()<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>ds', [[<cmd>lua require('dap').close()<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>dro', [[<cmd>lua require('dap').repl.open()<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>drc', [[<cmd>lua require('dap').repl.close()<CR>]], opts)
+vim.keymap.set('n', '<leader>db', require('dap').toggle_breakpoint, opts)
+vim.keymap.set('n', '<leader>dc', require('dap').continue, opts)
+vim.keymap.set('n', '<leader>do', require('dap').step_over, opts)
+vim.keymap.set('n', '<leader>di', require('dap').step_into, opts)
+vim.keymap.set('n', '<leader>ds', require('dap').close, opts)
+vim.keymap.set('n', '<leader>dro', require('dap').repl.open, opts)
+vim.keymap.set('n', '<leader>drc', require('dap').repl.close, opts)
 
 -- quickfix hotkeys
 vim.api.nvim_set_keymap('n', '<leader>qc', [[<cmd>cclose<CR>]], opts)
@@ -506,73 +490,101 @@ vim.api.nvim_exec([[ set iskeyword+=- ]], false)
 -- treat _ seperated words as a word object  
 vim.api.nvim_exec([[ set iskeyword+=_ ]], false)
 
+-- launch a terminal
+if is_windows then
+    vim.api.nvim_set_keymap('n', '<leader>t', [[<cmd>10split\|term pwsh<Cr>a<CR>]], opts)
+else
+    vim.api.nvim_set_keymap('n', '<leader>qp', [[<cmd>10split\|term<Cr>a<CR>]], opts)
+end
+
+-- autogroups
+
+-- -- Highlight on yank
+id = vim.api.nvim_create_augroup("YankHighlight", { clear = true })
+vim.api.nvim_create_autocmd("TextYankPost", {
+  group = id,
+  pattern = "*", -- silent! 
+  callback = function() vim.highlight.on_yank() end,
+})
+
+id = vim.api.nvim_create_augroup("NumberToggle", { clear = true })
+vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave" }, {
+  group = id,
+  pattern = "*",
+  callback = function() vim.cmd([[set relativenumber]]) end,
+})
+
+vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter" }, {
+  group = id,
+  pattern = "*",
+  callback = function() vim.cmd([[set norelativenumber]]) end,
+})
+
+id = vim.api.nvim_create_augroup("Markdown", { clear = true })
+vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
+  group = id,
+  pattern = "*.md",
+  callback = function() vim.cmd([[setlocal wrap spell linebreak]]) end,
+})
+
+id = vim.api.nvim_create_augroup("CSharp", { clear = true })
+vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
+  group = id,
+  pattern = "*.cs",
+  callback = function() vim.cmd([[compiler dotnet]]) end,
+})
+
+vim.api.nvim_create_autocmd("BufReadPost", {
+  group = id,
+  pattern = "*.zig",
+  callback = function() vim.cmd([[set ft=zig]]) end,
+})
+
+id = vim.api.nvim_create_augroup("ZigLang", { clear = true })
+vim.api.nvim_create_autocmd("FileType", {
+  group = id,
+  pattern = "zig",
+  callback = function() vim.cmd([[iabbrev <buffer> oom return error.OutOfMemory;]]) end,
+})
+
+---- Mappings
+-- Repeats the character under the cursor
+vim.keymap.set('n', '<leader>r', 'ylp', opts)
+
+-- Removes search highlighting
+vim.keymap.set('n', '<leader>nl', '<cmd>nohl<cr>', opts)
+-- Save file
+vim.keymap.set('n', '<leader>w', '<esc><cmd>w<cr>', opts)
+-- Save and quit
+vim.keymap.set('n', '<leader>x', '<esc><cmd>x<cr>', opts)
+
+-- Simplified window management
+vim.keymap.set('n', '<c-h>', '<c-w>h', opts)
+vim.keymap.set('n', '<c-j>', '<c-w>j', opts)
+vim.keymap.set('n', '<c-k>', '<c-w>k', opts)
+vim.keymap.set('n', '<c-l>', '<c-w>l', opts)
+
+-- Yanks selection to system clipboard
+vim.keymap.set('n', '<leader>y', '"+y', opts)
+-- Yanks selection to system clipboard
+vim.keymap.set('v', '<leader>y', '"+y', opts)
+-- Yanks line to system clipboard
+vim.keymap.set('n', '<leader>yy', '"+yy', opts)
+-- Pastes from system clipboard
+vim.keymap.set('n', '<leader>p', '"+p', opts)
+-- Pastes from system clipboard
+vim.keymap.set('n', '<leader>P', '"+P', opts)
+
+-- Add: Press sa{motion/textobject}{addition}. For example, a key sequence saiw( makes foo to (foo).
+-- Delete: Press sdb or sd{deletion}. For example, key sequences sdb or sd( makes (foo) to foo. sdb searches a set of surrounding automatically.
+-- Replace: Press srb{addition} or sr{deletion}{addition}. For example, key sequences srb" or sr(" makes (foo) to "foo".
+vim.api.nvim_exec( [[ let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes) ]], false)
+
 vim.api.nvim_exec(
   [[
 
-" launch a terminal
-if has('win32') || has('win64')
-    noremap <Leader>t :10split\|term pwsh<Cr>a
-else
-    noremap <Leader>t :10split\|term<Cr>a
-endif
-
-let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes)
-" Add: Press sa{motion/textobject}{addition}. For example, a key sequence saiw( makes foo to (foo).
-" Delete: Press sdb or sd{deletion}. For example, key sequences sdb or sd( makes (foo) to foo. sdb searches a set of surrounding automatically.
-" Replace: Press srb{addition} or sr{deletion}{addition}. For example, key sequences srb" or sr(" makes (foo) to "foo".
-
-" Auto commands
-augroup numbertoggle
-    autocmd!
-    autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
-    autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
-augroup END
-
-augroup markdown
-  autocmd!
-  autocmd BufNewFile,BufRead *.md setlocal wrap spell linebreak
-augroup END
-
-augroup cs
-  autocmd!
-  autocmd BufNewFile,BufRead *.cs compiler dotnet
-augroup END
-
-au BufReadPost *.zig set ft=zig
-
-augroup zig
-  autocmd!
-  autocmd FileType zig :iabbrev <buffer> oom return error.OutOfMemory; 
-augroup END
-
 "" Mappings
 
-"" Simplified window management
-map <C-h> <C-W>h
-map <C-j> <C-W>j
-map <C-k> <C-W>k
-map <C-l> <C-W>l
-
-"" Custom
-" Repeats the character under the cursor
-noremap <Leader>r ylp
-" Removes search highlighting
-noremap <Leader>nl :nohl<Cr>
-" Save file
-nnoremap <leader>w <Esc>:w<cr>
-" Save and quit
-nnoremap <leader>x <Esc>:x<cr>
-
-" Yanks selection to system clipboard
-nnoremap <Leader>y "+y
-" Yanks selection to system clipboard
-vnoremap <Leader>y "+y  
-" Yanks line to system clipboard
-nnoremap <Leader>yy "+yy 
-" Pastes from system clipboard
-nnoremap <Leader>p "+p
-" Pastes from system clipboard
-nnoremap <Leader>P "+P
 
 " Edit vim config in split
 nnoremap <Leader>ec :vsplit $MYVIMRC<Cr>
