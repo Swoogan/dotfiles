@@ -15,8 +15,6 @@ M.spec = {
   { "neovim/nvim-lspconfig" }, -- Easy configuration of LSP
   { "nvim-treesitter/nvim-treesitter", run = ":TSUpdate" }, -- incremental language parser
   { "nvim-treesitter/nvim-treesitter-textobjects" }, -- Additional textobjects for treesitter
-  -- { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate', branch = '0.5-compat' }, -- incremental language parser
-  -- { 'nvim-treesitter/nvim-treesitter-textobjects', branch = '0.5-compat' }, -- Additional textobjects for treesitter
   { "nvim-treesitter/playground" },
 
   { "Hoffs/omnisharp-extended-lsp.nvim" },
@@ -46,7 +44,6 @@ M.spec = {
     config = function()
       require("Comment").setup()
     end,
-    tag = "v0.6",
   },
 
   { "machakann/vim-sandwich" }, -- add, delete, replace pairs (like {}, (), "")
@@ -121,8 +118,9 @@ function M.lockfile_update()
 end
 
 function M.set_on_packer_complete(fn, pattern)
-  vim.api.nvim_create_augroup("PackOnComplete", { clear = true })
+  local id = vim.api.nvim_create_augroup("PackOnComplete", { clear = true })
   vim.api.nvim_create_autocmd("User", {
+    group = id,
     pattern = pattern or "PackerComplete",
     callback = function()
       require("plugins").on_packer_complete(fn)
