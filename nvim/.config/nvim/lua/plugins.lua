@@ -42,7 +42,7 @@ M.spec = {
   {
     "numToStr/Comment.nvim",
     config = function()
-      require("Comment").setup()
+      require("Comment").setup({})
     end,
   },
 
@@ -123,7 +123,7 @@ function M.set_on_packer_complete(fn, pattern)
     group = id,
     pattern = pattern or "PackerComplete",
     callback = function()
-      require("plugins").on_packer_complete(fn)
+      M.on_packer_complete(fn)
     end,
   })
 end
