@@ -137,6 +137,15 @@ M.setup = function()
   }
 
   require('nvim-tree').setup({})
+
+  -- Add: Press sa{motion/textobject}{addition}. For example, a key sequence saiw( makes foo to (foo).
+  -- Delete: Press sdb or sd{deletion}. For example, key sequences sdb or sd( makes (foo) to foo. sdb searches a set of surrounding automatically.
+  -- Replace: Press srb{addition} or sr{deletion}{addition}. For example, key sequences srb" or sr(" makes (foo) to "foo".
+  vim.api.nvim_exec([[ let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes) ]], false)
+
+  -- Prettier
+  vim.g['prettier#autoformat'] = 1
+  vim.g['prettier#autoformat_require_pragma'] = 0
 end
 
 return M
