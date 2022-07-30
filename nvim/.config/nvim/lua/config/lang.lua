@@ -6,7 +6,7 @@ M.setup = function()
   -- Setup Language sever protocol
   local nvim_lsp = require('lspconfig')
 
-  local on_attach = function(client, bufnr)
+  local on_attach = function(_, bufnr)
     --Enable completion triggered by <c-x><c-o>
     vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
@@ -90,6 +90,12 @@ M.setup = function()
       },
     },
     cmd = { vim.env.DEV_HOME .. '/.ls/lua-language-server/bin/lua-language-server' },
+    capabilities = capabilities,
+    on_attach = on_attach,
+  }
+
+  nvim_lsp['zls'].setup {
+    cmd = {  vim.env.DEV_HOME .. '/.ls/zigtools-zls/bin/zls'  },
     capabilities = capabilities,
     on_attach = on_attach,
   }
