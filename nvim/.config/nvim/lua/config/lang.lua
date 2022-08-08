@@ -25,13 +25,13 @@ M.setup = function()
     -- end, bufopts)
 
     -- TODO: unify these keypresses
-    vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
-    vim.keymap.set('n', '<leader>sh', vim.lsp.buf.signature_help, bufopts)
-    vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, bufopts)
-    vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, bufopts)
-    vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, bufopts)
-    vim.keymap.set('n', '<leader>f', vim.lsp.buf.formatting, bufopts)
-    vim.keymap.set('n', '<leader>so', require('telescope.builtin').lsp_document_symbols, bufopts)
+    vim.keymap.set('n', '<leader>lh', vim.lsp.buf.hover, bufopts)
+    vim.keymap.set('n', '<leader>ls', vim.lsp.buf.signature_help, bufopts)
+    vim.keymap.set('n', '<leader>lt', vim.lsp.buf.type_definition, bufopts)
+    vim.keymap.set('n', '<leader>lr', vim.lsp.buf.rename, bufopts)
+    vim.keymap.set('n', '<leader>lc', vim.lsp.buf.code_action, bufopts)
+    vim.keymap.set('n', '<leader>lf', vim.lsp.buf.formatting, bufopts)
+    vim.keymap.set('n', '<leader>ld', require('telescope.builtin').lsp_document_symbols, bufopts)
 
   end
 
