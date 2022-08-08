@@ -401,12 +401,12 @@ function Invoke-Pit {
 
                 if ($count -eq 0) {
                     Write-Host "Already up to date."
-                    Exit 0
                 }
-                
-                Invoke-Perforce update | select action, `
-                    @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
-                    Out-Host -Paging
+                else {
+                    Invoke-Perforce update | select action, `
+                        @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
+                        Out-Host -Paging
+                }
             }
             "bu" { # better update?
 
@@ -431,7 +431,7 @@ function Invoke-Pit {
                     # Write-Host $percent
                     Write-Progress -Activity "Updating" -Status "Syncing $change..." -PercentComplete $percent
 
-                    pit sync "//...@$($changes[$i])" | select action, `
+                    pit sync "//...@$change" | select action, `
                          @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
                          # Out-Host -Paging
                          Out-Null
