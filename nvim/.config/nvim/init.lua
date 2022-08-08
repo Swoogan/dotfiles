@@ -101,13 +101,13 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
 
 -- Buffer Mappings
 -- Close current buffer
-vim.api.nvim_set_keymap('n', '<leader>bd', [[<cmd>bd<CR>]], opts)
+vim.keymap.set('n', '<leader>bd', '<cmd>bd<CR>', opts)
 -- lua vim.api.nvim_buf_delete(vim.api.nvim_get_current_buf(), {})
 -- Swap buffer
-vim.api.nvim_set_keymap('n', '<leader>bs', [[<cmd>b#<CR>]], opts)
+vim.keymap.set('n', '<leader>bd', '<cmd>bd<CR>', opts)
 -- vim.api.nvim_set_keymap('n', '<leader><leader>', [[<cmd>b#<CR>]], opts)
 -- Close current buffer and switch to last used
-vim.api.nvim_set_keymap('n', '<leader>bq', [[<cmd>b#|bd#<CR>]], opts)
+vim.keymap.set('n', '<leader>bq', '<cmd>b#|bd#<CR>', opts)
 
 -- dap hotkeys
 vim.keymap.set('n', '<leader>db', require('dap').toggle_breakpoint, opts)
@@ -119,9 +119,9 @@ vim.keymap.set('n', '<leader>dro', require('dap').repl.open, opts)
 vim.keymap.set('n', '<leader>drc', require('dap').repl.close, opts)
 
 -- quickfix hotkeys
-vim.api.nvim_set_keymap('n', '<leader>qc', [[<cmd>cclose<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>qn', [[<cmd>cnext<CR>]], opts)
-vim.api.nvim_set_keymap('n', '<leader>qp', [[<cmd>cprev<CR>]], opts)
+vim.keymap.set('n', '<leader>qc', '<cmd>cclose<CR>', opts)
+vim.keymap.set('n', '<leader>qn', '<cmd>cnext<CR>', opts)
+vim.keymap.set('n', '<leader>qp', '<cmd>cprev<CR>', opts)
 
 -- Repeats the character under the cursor
 vim.keymap.set('n', '<leader>r', 'ylp', opts)
@@ -163,16 +163,12 @@ vim.keymap.set('n', '<c-n>', '<cmd>NvimTreeToggle<cr>', opts)
 -- vim.keymap.set('n', '<leader>r', '<cmd>NvimTreeRefresh<cr>', opts)
 -- vim.keymap.set('n', '<leader>n', '<cmd>NvimTreeFindFile<cr>', opts)
 
--- auto complete html closing tags
--- vim.keymap.set('i', '</', '</<c-n>', opts)
-vim.api.nvim_exec([[inoremap </ </<C-N>]], false)
-
 -- Run prettier
 vim.keymap.set('n', '<leader>pf', '<cmd>PrettierAsync<cr>', opts)
 
 -- *** AUTOGROUPS *** --
 
--- -- Highlight on yank
+-- Highlight on yank
 local id = vim.api.nvim_create_augroup("YankHighlight", { clear = true })
 vim.api.nvim_create_autocmd("TextYankPost", {
     group = id,
@@ -180,6 +176,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
     callback = function() vim.highlight.on_yank() end,
 })
 
+-- Turn on relativenumber for focused buffer
 id = vim.api.nvim_create_augroup("NumberToggle", { clear = true })
 vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave" }, {
     group = id,
@@ -187,12 +184,14 @@ vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave" }, {
     callback = function() vim.cmd([[set relativenumber]]) end,
 })
 
+-- Turn off relativenumber for unfocused buffers
 vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter" }, {
     group = id,
     pattern = "*",
     callback = function() vim.cmd([[set norelativenumber]]) end,
 })
 
+-- Various settings for markdown
 id = vim.api.nvim_create_augroup("Markdown", { clear = true })
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
     group = id,
@@ -200,6 +199,7 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
     callback = function() vim.cmd([[setlocal wrap spell linebreak]]) end,
 })
 
+-- Set the compiler to dotnet for cs files
 id = vim.api.nvim_create_augroup("CSharp", { clear = true })
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
     group = id,
@@ -207,12 +207,14 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
     callback = function() vim.cmd([[compiler dotnet]]) end,
 })
 
+-- Set zig files to zig filetype
 vim.api.nvim_create_autocmd("BufReadPost", {
     group = id,
     pattern = "*.zig",
     callback = function() vim.cmd([[set ft=zig]]) end,
 })
 
+-- Abbreviate oom to error.OutOfMemory in Zig
 id = vim.api.nvim_create_augroup("ZigLang", { clear = true })
 vim.api.nvim_create_autocmd("FileType", {
     group = id,
@@ -220,6 +222,15 @@ vim.api.nvim_create_autocmd("FileType", {
     callback = function() vim.cmd([[iabbrev <buffer> oom return error.OutOfMemory;]]) end,
 })
 
+-- auto completion for html closing tags
+id = vim.api.nvim_create_augroup("TagCompletion", { clear = true })
+vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
+  group = id,
+  pattern = {"*.html", "*.xml"},
+  callback = function() vim.keymap.set('i', '</', '</<c-n>', opts) end,
+})
+
+-- Set indentation to 2 for lua and python
 id = vim.api.nvim_create_augroup("IndentTwo", { clear = true })
 vim.api.nvim_create_autocmd("FileType", {
     group = id,
