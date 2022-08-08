@@ -169,71 +169,66 @@ vim.keymap.set('n', '<leader>pf', '<cmd>PrettierAsync<cr>', opts)
 -- *** AUTOGROUPS *** --
 
 -- Highlight on yank
-local id = vim.api.nvim_create_augroup("YankHighlight", { clear = true })
 vim.api.nvim_create_autocmd("TextYankPost", {
-    group = id,
+    group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
     pattern = "*", -- silent!
     callback = function() vim.highlight.on_yank() end,
 })
 
+local group = vim.api.nvim_create_augroup("NumberToggle", { clear = true })
 -- Turn on relativenumber for focused buffer
-id = vim.api.nvim_create_augroup("NumberToggle", { clear = true })
 vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave" }, {
-    group = id,
+    group = group,
     pattern = "*",
     callback = function() vim.cmd([[set relativenumber]]) end,
 })
 
 -- Turn off relativenumber for unfocused buffers
 vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter" }, {
-    group = id,
+    group = group,
     pattern = "*",
     callback = function() vim.cmd([[set norelativenumber]]) end,
 })
 
 -- Various settings for markdown
-id = vim.api.nvim_create_augroup("Markdown", { clear = true })
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-    group = id,
+    group = vim.api.nvim_create_augroup("Markdown", { clear = true }),
     pattern = "*.md",
     callback = function() vim.cmd([[setlocal wrap spell linebreak]]) end,
 })
 
 -- Set the compiler to dotnet for cs files
-id = vim.api.nvim_create_augroup("CSharp", { clear = true })
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-    group = id,
+    group = vim.api.nvim_create_augroup("CSharp", { clear = true }),
     pattern = "*.cs",
     callback = function() vim.cmd([[compiler dotnet]]) end,
 })
 
+group = vim.api.nvim_create_augroup("ZigLang", { clear = true })
 -- Set zig files to zig filetype
 vim.api.nvim_create_autocmd("BufReadPost", {
-    group = id,
+    group = group,
     pattern = "*.zig",
     callback = function() vim.cmd([[set ft=zig]]) end,
 })
 
 -- Abbreviate oom to error.OutOfMemory in Zig
-id = vim.api.nvim_create_augroup("ZigLang", { clear = true })
 vim.api.nvim_create_autocmd("FileType", {
-    group = id,
+    group = group,
     pattern = "zig",
     callback = function() vim.cmd([[iabbrev <buffer> oom return error.OutOfMemory;]]) end,
 })
 
 -- auto completion for html closing tags
-id = vim.api.nvim_create_augroup("TagCompletion", { clear = true })
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-  group = id,
+  group = vim.api.nvim_create_augroup("TagCompletion", { clear = true }),
   pattern = {"*.html", "*.xml"},
   callback = function() vim.keymap.set('i', '</', '</<c-n>', opts) end,
 })
 
 -- Set indentation to 2 for lua and python
-id = vim.api.nvim_create_augroup("IndentTwo", { clear = true })
 vim.api.nvim_create_autocmd("FileType", {
-    group = id,
+    group = vim.api.nvim_create_augroup("IndentTwo", { clear = true }),
     pattern = { "lua", "python" },
     callback = function() vim.cmd([[setlocal shiftwidth=2 softtabstop=2 expandtab]]) end,
 })
