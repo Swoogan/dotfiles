@@ -1,6 +1,8 @@
 #. "$HOME\p5\p5.ps1"
 # . "$HOME\p5\p6.ps1"
 
+$PIT_CONFIG = Join-Path $env:USERPROFILE .pit
+
 function ConvertFrom-UnixTime {
     [CmdletBinding()]
     param (
@@ -22,8 +24,18 @@ function Add-PitFeature {
 
     process {
         # Todo: check for pit directory
-        $path = Join-Path $env:USERPROFILE .pit "$Name.feat"
+        $path = Join-Path $PIT_CONFIG "$Name.feat"
         New-Item -Path $path
+    }
+}
+
+function Get-PitActiveFeatureFile {
+    [CmdletBinding()]
+    param ()
+
+    process {
+        $file = Join-Path $PIT_CONFIG "feature"
+        Write-Output $file
     }
 }
 
@@ -32,10 +44,8 @@ function Get-PitActiveFeature {
     param ()
 
     process {
-        $profile = Join-Path $env:USERPROFILE .pit
-        $file = Join-Path $profile "feature"
-
-        Get-Content $file
+        $file = Get-PitActiveFeatureFile
+        Get-Content -Path $file
     }
 }
 
@@ -47,9 +57,7 @@ function Set-PitActiveFeature {
     )
 
     process {
-        $profile = Join-Path $env:USERPROFILE .pit
-        $file = Join-Path $profile "feature"
-
+        $file = Get-PitActiveFeatureFile
         Set-Content -Path $file -Value $Name
         # Todo: check for open files, submit state. Eg: submit, revert or stash
     }
@@ -63,16 +71,15 @@ function Get-PitFeature {
     )
 
     process {
-        $profile = Join-Path $env:USERPROFILE .pit
 
         if ($Name -ne $null) {
-            $file = Join-Path $profile "$Name.feat"
+            $file = Get-PitActiveFeatureFile
             Get-ChildItem $file | ForEach-Object {
                 (Split-Path $_ -leaf) -replace ".feat", ""
             }
         }
         else {
-            Get-ChildItem $profile -Filter *.feat | ForEach-Object {
+            Get-ChildItem $PIT_CONFIG -Filter *.feat | ForEach-Object {
                 (Split-Path $_ -leaf) -replace ".feat", ""
             }
         }
@@ -91,8 +98,7 @@ function Add-PitFeatureChange {
     )
 
     process {
-        $profile = Join-Path $env:USERPROFILE .pit
-        $file = Join-Path $profile "$Name.feat"
+        $file = Get-PitActiveFeatureFile
 
         if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
 
@@ -114,11 +120,9 @@ function Remove-PitFeature {
     )
 
     process {
-        $profile = Join-Path $env:USERPROFILE .pit
-        $file = Join-Path $profile "$Name.feat"
+        file = Get-PitActiveFeatureFile
 
         # Todo: check for open files, submit state and remove old changelists
-
         Remove-Item $file
     }
 }
@@ -167,23 +171,23 @@ function Get-FilesInChange {
         $files = @()
 
         if ($Status -eq "submitted") {
-            $files += Invoke-Perforce files "//...@=$Change" | select action, depotFile, `
+            $files += Invoke-Perforce files "//...@=$Change" | Select-Object action, depotFile, `
                  @{name='state'; expression={"su"}}
         }
         else {
             # load all the non-shelved files
-            $files += Invoke-Perforce opened -c $Change | select action, depotFile, `
+            $files += Invoke-Perforce opened -c $Change | Select-Object action, depotFile, `
                 @{name='state'; expression={"op"}}
 
             # load the shelved files if necessary
             if (-not $OnlyOpened) {
-                $files += Invoke-Perforce files "//...@=$Change" | select action, depotFile, `
+                $files += Invoke-Perforce files "//...@=$Change" | Select-Object action, depotFile, `
                     @{name='state'; expression={"sh"}}
             }
         }
 
         # find all the local paths for the depot paths
-        $where = $files | select -ExpandProperty depotFile | p4 -ztag -Mj -x - where | ConvertFrom-Json
+        $where = $files | Select-Object -ExpandProperty depotFile | p4 -ztag -Mj -x - where | ConvertFrom-Json
 
         # Zip the two lists together
         for ($i = 0; $i -lt $files.Length; $i++) { 
@@ -292,11 +296,11 @@ function Invoke-Pit {
             "log" {
                 #Invoke-Perforce changes -L -t -s submitted -m 100 -u $user ${__Remaining__} `
                 Invoke-Perforce changes -L -t -s submitted -m 100 ${__Remaining__} `
-                    | select change, user, @{name='date';expression={ConvertFrom-UnixTime $_.time}}, desc
+                    | Select-Object change, user, @{name='date';expression={ConvertFrom-UnixTime $_.time}}, desc `
                     | Out-Host -Paging
             }   
             "pending" {
-                Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__} | select change, desc
+                Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__} | Select-Object change, desc
             }
             "describe" {
                 $desc = Get-ChangeDescription ${__Remaining__}
@@ -322,15 +326,15 @@ function Invoke-Pit {
                 Write-Host "[unopened]`n"
                 $state = @{name="state"; expression={"uo"}}
                 Invoke-Perforce reconcile -n -m ... | `
-                    select @{name="path"; expression={$_.clientFile}}, $state, action | `
+                    Select-Object @{name="path"; expression={$_.clientFile}}, $state, action | `
                     Write-Modifications -Indent
                 
                 # Find new New-Changelists
-                $latest = Invoke-Perforce changes -m1 "@$client" | select -ExpandProperty change
+                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
                 # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
-                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | ` 
-                    select -ExpandProperty change -SkipLast 1
-                $count = $changes | Measure-Object | select -ExpandProperty count
+                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
+                    Select-Object -ExpandProperty change -SkipLast 1
+                $count = $changes | Measure-Object | Select-Object -ExpandProperty count
 
                 if ($count -gt 1) {
                     Write-Warning "Your workspace is $count submits behind the depot."
@@ -362,7 +366,7 @@ function Invoke-Pit {
                     git diff --no-index $local $file.path	
                 }
 
-                rm -Recurse -Force $diff_temp | Out-Null
+                Remove-Item -Recurse -Force $diff_temp | Out-Null
             }
             "du" { # diff unopened
                 $tmp = Join-Path $env:temp pit
@@ -371,7 +375,7 @@ function Invoke-Pit {
                 $diff_temp = Join-Path $tmp "have.$(Get-Random -Maximum 10000)"
                 mkdir $diff_temp | Out-Null
 
-                $files = Invoke-Perforce reconcile -n -m ... | ? data -eq $null
+                $files = Invoke-Perforce reconcile -n -m ... | Where-Object data -eq $null
                 Write-Host $files
 
                 foreach ($file in $files) {
@@ -387,23 +391,23 @@ function Invoke-Pit {
                     }
                 }
 
-                rm -Recurse -Force $diff_temp | Out-Null
+                Remove-Item -Recurse -Force $diff_temp | Out-Null
             }
             "update" {
                 Write-Host "Gathering Changelists to sync..."
 
-                $latest = Invoke-Perforce changes -m1 "@$client" | select -ExpandProperty change
+                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
                 # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
-                #$changes = p4 -ztag -Mj changes -e $latest -s submitted "@$client" | ConvertFrom-Json | ` 
-                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | ` 
-                    select -ExpandProperty change -SkipLast 1 | Sort-Object
-                $count = $changes | Measure-Object | select -ExpandProperty count
+                #$changes = p4 -ztag -Mj changes -e $latest -s submitted "@$client" | ConvertFrom-Json | `
+                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
+                    Select-Object -ExpandProperty change -SkipLast 1 | Sort-Object
+                $count = $changes | Measure-Object | Select-Object -ExpandProperty count
 
                 if ($count -eq 0) {
                     Write-Host "Already up to date."
                 }
                 else {
-                    Invoke-Perforce update | select action, `
+                    Invoke-Perforce update | Select-Object action, `
                         @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
                         Out-Host -Paging
                 }
@@ -411,11 +415,11 @@ function Invoke-Pit {
             "bu" { # better update?
 
                 Write-Host "Gathering Changelists to sync..."
-                $latest = Invoke-Perforce changes -m1 "@$client" | select -ExpandProperty change
+                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
                 # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
-                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | ` 
-                    select -ExpandProperty change -SkipLast 1 | Sort-Object
-                $count = $changes | Measure-Object | select -ExpandProperty count
+                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
+                    Select-Object -ExpandProperty change -SkipLast 1 | Sort-Object
+                $count = $changes | Measure-Object | Select-Object -ExpandProperty count
 
                 if ($count -eq 0) {
                     Write-Host "Already up to date."
@@ -431,7 +435,7 @@ function Invoke-Pit {
                     # Write-Host $percent
                     Write-Progress -Activity "Updating" -Status "Syncing $change..." -PercentComplete $percent
 
-                    pit sync "//...@$change" | select action, `
+                    pit sync "//...@$change" | Select-Object action, `
                          @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
                          # Out-Host -Paging
                          Out-Null
@@ -440,11 +444,11 @@ function Invoke-Pit {
             "fs" {
 
                 Write-Host "Gathering Changelists to sync..."
-                $latest = Invoke-Perforce changes -m1 "@$client" | select -ExpandProperty change
+                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
                 # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
-                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | ` 
-                    select -ExpandProperty change -SkipLast 1 | Sort-Object
-                $count = $changes | Measure-Object | select -ExpandProperty count
+                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
+                    Select-Object -ExpandProperty change -SkipLast 1 | Sort-Object
+                $count = $changes | Measure-Object | Select-Object -ExpandProperty count
 
                 if ($count -eq 0) {
                     Write-Host "Already up to date."
@@ -461,11 +465,12 @@ function Invoke-Pit {
                     Write-Progress -Activity "Updating" -Status "Syncing $change..." -PercentComplete $percent
 
                     $files = Get-FilesInChange $change -Status "submitted"
-                    $fileCount = $files | Measure-Object | select -ExpandProperty count
+                    $fileCount = $files | Measure-Object | Select-Object -ExpandProperty count
 
                     Write-Host "Syncing $fileCount files..."
 
-                    $files | % { "{0}@{1}" -f $_.depotFile, $change } | p4 -ztag -Mj -x - sync | ConvertFrom-Json | Out-Host -Paging
+                    $files | ForEach-Object { "{0}@{1}" -f $_.depotFile, $change } | p4 -ztag -Mj -x - sync | `
+                        ConvertFrom-Json | Out-Host -Paging
                 }
             }
             "help" {
