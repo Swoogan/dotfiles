@@ -76,10 +76,12 @@ local opts = { noremap = true, silent = true }
 -- not sure why I do this?
 vim.keymap.set('', '<Space>', '<Nop>', opts)
 
-vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
+
+-- These use the <leader>l lsp prefix even though they aren't lsp specific.
+vim.keymap.set('n', '<leader>le', vim.diagnostic.open_float, opts)
+vim.keymap.set('n', '<leader>lq', vim.diagnostic.setloclist, opts)
 
 -- Generate test names in the standard format
 vim.keymap.set("n", "<leader>tt", require('utils').transform_test_name, opts)
