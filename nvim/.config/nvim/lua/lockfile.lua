@@ -15,7 +15,7 @@ return {
   ["mfussenegger/nvim-dap"] = "a13d6cb9ea8f7bbf8dd9c5de9ca2cbee64d2e258",
   ["neovim/nvim-lspconfig"] = "ba25b747a3cff70c1532c2f28fcc912cf7b938ea",
   ["numToStr/Comment.nvim"] = "0aaea32f27315e2a99ba4c12ab9def5cbb4842e4",
-  ["nvim-lua/plenary.nvim"] = "986ad71ae930c7d96e812734540511b4ca838aa2",
+  ["nvim-lua/plenary.nvim"] = "31807eef4ed574854b8a53ae40ea3292033a78ea",
   ["nvim-lualine/lualine.nvim"] = "788805771c1ca7fe2c6652c38523cf208908934c",
   ["nvim-telescope/telescope.nvim"] = "b5833a682c511885887373aad76272ad70f7b3c2",
   ["nvim-treesitter/nvim-treesitter"] = "6289410c7a4715d6e7743c4d81cf5d262e90951e",
