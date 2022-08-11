@@ -57,6 +57,9 @@ function Set-PitActiveFeature {
     )
 
     process {
+        $feat = Join-Path $PIT_CONFIG "$Name.feat"
+        if (-not (Test-Path $feat)) { throw "Feature $Name does not exist" }
+
         $file = Get-PitActiveFeatureFile
         Set-Content -Path $file -Value $Name
         # Todo: check for open files, submit state. Eg: submit, revert or stash
@@ -71,9 +74,8 @@ function Get-PitFeature {
     )
 
     process {
-
-        if ($Name -ne $null) {
-            $file = Get-PitActiveFeatureFile
+        if ($null -ne $Name) {
+            $file = Join-Path $PIT_CONFIG "$Name.feat"
             Get-ChildItem $file | ForEach-Object {
                 (Split-Path $_ -leaf) -replace ".feat", ""
             }
@@ -120,7 +122,9 @@ function Remove-PitFeature {
     )
 
     process {
-        file = Get-PitActiveFeatureFile
+        $file = Join-Path $PIT_CONFIG "$Name.feat"
+
+        if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
 
         # Todo: check for open files, submit state and remove old changelists
         Remove-Item $file
