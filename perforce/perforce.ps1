@@ -15,6 +15,18 @@ function ConvertFrom-UnixTime {
     }
 }
 
+function Invoke-Perforce {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0, ValueFromRemainingArguments=$true)]
+        ${__Remaining__}
+    )
+
+    process {
+        p4 -Ztag -Mj ${__Remaining__} | ConvertFrom-Json
+    }
+}
+
 function Add-PitFeature {
     [CmdletBinding()]
     param (
@@ -60,9 +72,25 @@ function Set-PitActiveFeature {
         $feat = Join-Path $PIT_CONFIG "$Name.feat"
         if (-not (Test-Path $feat)) { throw "Feature $Name does not exist" }
 
-        $file = Get-PitActiveFeatureFile
-        Set-Content -Path $file -Value $Name
-        # Todo: check for open files, submit state. Eg: submit, revert or stash
+        $activeFeatureFile = Get-PitActiveFeatureFile
+        $active = Get-Content $activeFeatureFile
+
+        if ($active -eq $Name) {
+            Write-Warning "Feature $Name is already the active feature."
+        }
+        else {
+            # Todo: find-unopened should run on the whole depot, or some well known root. However, I do not
+            # want to hard-code that root in this file. Might need some kind of pit config file that sets up
+            # sub-workspaces for large monorepos, where p4 rec //... is really expensive
+            $unopened = Find-UnopenFiles "..."
+            if ($null -ne $unopened) {
+                Write-Error "There are unopened changes in your workspace. Submit or stash.`n"
+                Write-Modifications $unopened
+            }
+            else {
+                Set-Content -Path $activeFeatureFile -Value $Name
+            }
+        }
     }
 }
 
@@ -131,18 +159,6 @@ function Remove-PitFeature {
     }
 }
 
-function Invoke-Perforce {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory=$true, Position=0, ValueFromRemainingArguments=$true)]
-        ${__Remaining__}
-    )
-
-    process {
-        p4 -Ztag -Mj ${__Remaining__} | ConvertFrom-Json
-    }
-}
-
 function New-Changelist {
     [CmdletBinding()]
     param (
@@ -157,6 +173,21 @@ function New-Changelist {
 
         Write-Output $cl
     }
+}
+
+function Find-UnopenFiles {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Path
+    )
+
+    $state = @{name="state"; expression={"uo"}}
+    $outPath = @{name="path"; expression={$_.clientFile}}
+
+    Invoke-Perforce reconcile -n -m $Path | `
+        Where-Object data -eq $null | `
+        Select-Object $outPath, $state, action
 }
 
 function Get-FilesInChange {
@@ -328,10 +359,7 @@ function Invoke-Pit {
                 }
 
                 Write-Host "[unopened]`n"
-                $state = @{name="state"; expression={"uo"}}
-                Invoke-Perforce reconcile -n -m ... | `
-                    Select-Object @{name="path"; expression={$_.clientFile}}, $state, action | `
-                    Write-Modifications -Indent
+                Find-UnopenFiles "..." | Write-Modifications -Indent
                 
                 # Find new New-Changelists
                 $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
@@ -445,7 +473,7 @@ function Invoke-Pit {
                          Out-Null
                 }
             }
-            "fs" {
+            "fs" { # File-based syncing (might be faster in some instances, needs more testing)
 
                 Write-Host "Gathering Changelists to sync..."
                 $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
