@@ -173,6 +173,31 @@ function Add-PitFeatureChange {
     }
 }
 
+function Get-PitFeatureChanges {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Name
+    )
+
+    process {
+        # Todo: check for pit directory
+        $file = Join-Path $PIT_CONFIG "$Name.feat"
+        if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
+
+        $content = Get-Content $file
+        if ($null -eq $content) {
+            $changes = @($Change)
+        }
+        else {
+            $changes = $content
+            $changes += $Change
+        }
+
+        Write-Output $changes
+    }
+}
+
 function Remove-PitFeature {
     [CmdletBinding()]
     param (
@@ -187,6 +212,50 @@ function Remove-PitFeature {
 
         # Todo: check for open files, submit state and remove old changelists
         Remove-Item $file
+    }
+}
+
+function Copy-ShelveToTemp {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [int]$Change,
+        [Parameter(Mandatory=$true, Position=1)]
+        [string[]]$Files
+    )
+
+    process {
+        $tmp = Join-Path $env:temp pit
+        if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
+
+        # todo: deal with the possiblity that there are multiple files of the same name,
+        # but in different directories, within the same changelist
+        $diff_temp = Join-Path $tmp $Change
+        mkdir $diff_temp | Out-Null
+
+        foreach ($file in $Files) {
+            $leaf = Split-Path $file -leaf
+            $local = Join-Path $diff_temp $leaf
+            p4 print -o $local "$($file.depotFile)@=$Change" | Out-Null
+            Write-Output $local
+        }
+    }
+}
+
+function Compare-Files {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$File1,
+        [Parameter(Mandatory=$true, Position=1)]
+        [string]$File2
+    )
+
+    process {
+        fc.exe /B $File1 $File2 | Out-Null
+
+        # todo: do a -1,0,1 compare instead of $true/$false?
+        Write-Output ($LASTEXITCODE -eq 0)
     }
 }
 
@@ -378,15 +447,27 @@ function Invoke-Pit {
             "status" {
                 # todo: 
                 $feature = Get-PitActiveFeature
-                Write-Host "On feature $feature`n"
+                Write-Host "On feature " -NoNewline
+                Write-Host -ForegroundColor Blue "$feature`n"
 
-                $opened = Get-FilesInChange default
+                # todo: handle the case of no changes
+                $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
+
+                $opened = Get-FilesInChange default -OnlyOpened
                 $count = $opened | Measure-Object | Select-Object -ExpandProperty count
 
                 if ($count -gt 0) {
                     Write-Host "Changes to be submitted:"
                     Write-Host "  (use `"pit restore --staged <file>...`" to unstage)"
-                    $opened | Write-Modifications -Indent
+                
+                    # need to make sure the opened file is in the shelve, then...
+                    $opened | ForEach-Object {
+                        $local = Copy-ShelveToTemp $lastFeatureChange $_ 
+                        $equal = Compare-Files $_.path $local
+                        if (-not $equal) {
+                            Write-Output $_
+                        }
+                    } | Write-Modifications -Indent
                 }
 
                 Write-Host "Changes not staged for submit:"
@@ -411,7 +492,8 @@ function Invoke-Pit {
                     Write-Error "  (use `"pit add <file>...`" to update what will be submitted)"
                 }
                 else {
-                    $cl = New-Changelist -Reopen ${__Remaining__}[0]
+                    $message = ${__Remaining__}[0]
+                    $cl = New-Changelist -Reopen $message
                     p4 shelve -f -c $cl | Out-Null
                     # Shelving files for change 37504.
                     # add //hvn/games/bleep/game/Plugins/DiffAssets/Content/WritePermissions.B9C10A2E466CC3FD4203ECAC8F85A9FB.temp#1
@@ -419,7 +501,11 @@ function Invoke-Pit {
                     
                     p4 revert -k -c $cl //...
                     # todo: should Add-PitFeatureChange just always use the current feature?
-                    Add-PitFeatureChange -Name (Get-PitActiveFeature) -Change $cl
+                    $feat = Get-PitActiveFeature
+                    Add-PitFeatureChange -Name $feat -Change $cl
+                    
+                    Write-Host "[$feat $cl] $message"
+                    #Write-Host " $countChanged file(s) changed..."
                 }
             }
             "pending" {
