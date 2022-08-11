@@ -31,13 +31,44 @@ function Add-PitFeature {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true, Position=0)]
-        [string]$Name
+        [string]$Name,
+        [Parameter(Mandatory=$false)]
+        [switch]$Switch
     )
 
     process {
-        # Todo: check for pit directory
-        $path = Join-Path $PIT_CONFIG "$Name.feat"
-        New-Item -Path $path
+        if ($Switch) {
+            # Todo: find-unopened should run on the whole depot, or some well known root. However, I do not
+            # want to hard-code that root in this file. Might need some kind of pit config file that sets up
+            # sub-workspaces for large monorepos, where p4 rec //... is really expensive
+            $unopened = Find-UnopenFiles "..."
+            if ($null -ne $unopened) {
+                Write-Error "There are unopened changes in your workspace. Submit or stash.`n"
+                Write-Modifications $unopened
+            }
+            else {
+                # Todo: check for pit directory
+                $path = Join-Path $PIT_CONFIG "$Name.feat"
+                if (Test-Path $path) {
+                    Write-Error "Feature $Name already exists.`n"
+                }
+                else {
+                    New-Item -Path $path
+                }
+                Set-Content -Path $activeFeatureFile -Value $Name
+            }
+        }
+        else {
+            # Todo: check for pit directory
+            $path = Join-Path $PIT_CONFIG "$Name.feat"
+            if (Test-Path $path) {
+                Write-Error "Feature $Name already exists.`n"
+            }
+            else {
+                New-Item -Path $path
+                Set-Content -Path $activeFeatureFile -Value $Name
+            }
+        }
     }
 }
 
@@ -330,10 +361,39 @@ function Invoke-Pit {
         switch (${__Command__}) {
             "log" {
                 #Invoke-Perforce changes -L -t -s submitted -m 100 -u $user ${__Remaining__} `
+                # todo: why does the paging go two lines too far?
                 Invoke-Perforce changes -L -t -s submitted -m 100 ${__Remaining__} `
                     | Select-Object change, user, @{name='date';expression={ConvertFrom-UnixTime $_.time}}, desc `
                     | Out-Host -Paging
-            }   
+            }
+            "status" {
+                $feature = Get-PitActiveFeature
+                Write-Host "On feature $feature`n"
+
+                $opened = Get-FilesInChange default
+                $count = $opened | Measure-Object | Select-Object -ExpandProperty count
+
+                if ($count -gt 0) {
+                    Write-Host "Changes to be submitted:"
+                    Write-Host "  (use `"pit restore --staged <file>...`" to unstage)"
+                    $opened | Write-Modifications -Indent
+                }
+
+                Write-Host "Changes not staged for submit:"
+                Write-Host "  (use `"pit add <file>...`" to update what will be submitted)"
+                #Write-Host "  (use `"pit restore <file>...`" to discard changes in workspace)"
+                Find-UnopenFiles "..." | Write-Modifications -Indent
+
+                if ($count -eq 0) {
+                    Write-Host "`nno changes added to commit (use `"git add`" and/or `"git commit -a`")"
+                }
+            }
+            "add" {
+                Invoke-Perforce reconcile -m ${__Remaining__} | Where-Object data -eq $null | Out-Null
+            }
+            "submit" {
+                # 1. 
+            }
             "pending" {
                 Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__} | Select-Object change, desc
             }
