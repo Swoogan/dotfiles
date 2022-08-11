@@ -153,23 +153,23 @@ function Add-PitFeatureChange {
         [Parameter(Mandatory=$true, Position=0)]
         [string]$Name,
         [Parameter(Mandatory=$true, Position=1)]
-        [int]$Change,
-        [Parameter(Mandatory=$false)]
-        [switch]$Switch
+        [int]$Change
     )
 
     process {
-        $file = Get-PitActiveFeatureFile
-
+        # Todo: check for pit directory
+        $file = Join-Path $PIT_CONFIG "$Name.feat"
         if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
 
-        $changes = Get-Content $file
-        $changes += $Change
-        Set-Content -Path $file -Value $changes
-
-        if ($Switch) {
-            Set-PitActiveFeature $Name
+        $content = Get-Content $file
+        if ($null -eq $content) {
+            $changes = @($Change)
         }
+        else {
+            $changes = $content
+            $changes += $Change
+        }
+        Set-Content -Path $file -Value $changes
     }
 }
 
@@ -193,12 +193,20 @@ function Remove-PitFeature {
 function New-Changelist {
     [CmdletBinding()]
     param (
+        [Parameter(Mandatory=$false, Position=0)]
+        [string]$Message, 
         [Parameter(Mandatory=$false)]
-        [string]$Message
+        [switch]$Reopen
     )
     process {
-        $cl = p4 --field "Description=$Message" --field "Files=" change -o | 
-            p4 change -i | 
+        if ($Reopen) {
+            $change = p4 --field "Description=$Message" change -o
+        }
+        else {
+            $change = p4 --field "Description=$Message" --field "Files=" change -o
+        }
+
+        $cl = $change | p4 change -i | 
             select-string "\b(\d+)" | 
             ForEach-Object {$_.matches[0].value}
 
@@ -254,9 +262,10 @@ function Get-FilesInChange {
 
         # find all the local paths for the depot paths
         $where = $files | Select-Object -ExpandProperty depotFile | p4 -ztag -Mj -x - where | ConvertFrom-Json
+        $count = $files | Measure-Object | Select-Object -ExpandProperty count
 
         # Zip the two lists together
-        for ($i = 0; $i -lt $files.Length; $i++) { 
+        for ($i = 0; $i -lt $count; $i++) { 
             $file = $files[$i]
             $w = $where[$i]     # todo: better variable name
             $depotFile = $w.depotFile -ne $null ? $w.depotFile : $file.depotFile
@@ -367,6 +376,7 @@ function Invoke-Pit {
                     | Out-Host -Paging
             }
             "status" {
+                # todo: 
                 $feature = Get-PitActiveFeature
                 Write-Host "On feature $feature`n"
 
@@ -392,7 +402,25 @@ function Invoke-Pit {
                 Invoke-Perforce reconcile -m ${__Remaining__} | Where-Object data -eq $null | Out-Null
             }
             "submit" {
-                # 1. 
+                $opened = Get-FilesInChange default
+                $count = $opened | Measure-Object | Select-Object -ExpandProperty count
+
+                if ($count -eq 0) {
+                    # Note: git just does a git status and exits
+                    Write-Error "No files have been staged for commit"
+                    Write-Error "  (use `"pit add <file>...`" to update what will be submitted)"
+                }
+                else {
+                    $cl = New-Changelist -Reopen ${__Remaining__}[0]
+                    p4 shelve -f -c $cl | Out-Null
+                    # Shelving files for change 37504.
+                    # add //hvn/games/bleep/game/Plugins/DiffAssets/Content/WritePermissions.B9C10A2E466CC3FD4203ECAC8F85A9FB.temp#1
+                    # Change 37504 files shelved.
+                    
+                    p4 revert -k -c $cl //...
+                    # todo: should Add-PitFeatureChange just always use the current feature?
+                    Add-PitFeatureChange -Name (Get-PitActiveFeature) -Change $cl
+                }
             }
             "pending" {
                 Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__} | Select-Object change, desc
