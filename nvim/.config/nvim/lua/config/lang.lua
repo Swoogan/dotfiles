@@ -49,7 +49,7 @@ M.setup = function()
   -- Use a loop to conveniently call 'setup' on multiple servers and
   -- map buffer local keybindings when the language server attaches
 
-  local servers = { "pyright", "rust_analyzer", "tsserver", "clangd" }
+  local servers = { "pyright", "rust_analyzer", "tsserver" }
   for _, lsp in ipairs(servers) do
     nvim_lsp[lsp].setup {
       capabilities = capabilities,
@@ -112,6 +112,12 @@ M.setup = function()
     on_attach = on_attach,
     cmd = { omnisharp, "--languageserver", "--hostPID", tostring(pid),
       "formattingOptions:EnableEditorConfigSupport=true" }
+  }
+
+  nvim_lsp['clangd'].setup {
+    capabilities = capabilities,
+    on_attach = on_attach,
+    cmd = { 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/x64/bin/clangd.exe' }
   }
 end
 
