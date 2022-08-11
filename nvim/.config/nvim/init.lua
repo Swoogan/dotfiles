@@ -241,7 +241,7 @@ local is_windows = vim.loop.os_uname().sysname == "Windows_NT"
 
 -- launch a terminal
 if is_windows then
-    vim.keymap.set('n', '<leader>t', '<cmd>10split|term pwsh<Cr>a', opts)
+    vim.keymap.set('n', '<leader>t', '<cmd>10split|term pwsh -NoLogo<Cr>a', opts)
 else
     vim.keymap.set('n', '<leader>t', '<cmd>10split|term<Cr>a', opts)
 end
