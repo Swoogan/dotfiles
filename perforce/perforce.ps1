@@ -453,7 +453,7 @@ function Invoke-Pit {
                 $countStaged = $opened | Measure-Object | Select-Object -ExpandProperty count
                 if ($countStaged -gt 0) {
                     Write-Host "Changes to be submitted:"
-                    Write-Host "  (use `"pit restore --staged <file>...`" to unstage)"
+                    Write-Host "  (use `"pit unstaged <file>...`" to unstage)"
                     $opened | Write-Modifications -Indent
                 }
 
@@ -490,7 +490,7 @@ function Invoke-Pit {
                     Write-Host "no changes added to submit (use `"pit add`" and/or `"pit submit -a`")"
                 }
             }
-            "add" {
+            "add" {  # todo: rename this `stage` to avoid confusion with `p4 add`?
                 Invoke-Perforce reconcile -m ${__Remaining__} | Where-Object data -eq $null | Out-Null
             }
             "unstage" {
@@ -508,6 +508,13 @@ function Invoke-Pit {
                 else {
                     $message = ${__Remaining__}[0]
                     $cl = New-Changelist -Reopen $message
+                    
+                    # todo: add all the files that were in the last cl :(
+                    $feature = Get-PitActiveFeature
+                    $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
+                    $previous = Get-FilesInChange $lastFeatureChange | Select-Object -ExpandProperty path
+                    $files = Invoke-Perforce reconcile -m -c $cl $previous | Where-Object data -eq $null
+
                     p4 shelve -f -c $cl | Out-Null
                     # Shelving files for change 37504.
                     # add //hvn/games/bleep/game/Plugins/DiffAssets/Content/WritePermissions.B9C10A2E466CC3FD4203ECAC8F85A9FB.temp#1
