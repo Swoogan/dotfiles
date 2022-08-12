@@ -119,8 +119,12 @@ function Edit-Profile {
     nvim-qt --maximized $HOME/Documents/Powershell/profile.ps1
 }
 
-function Source-Profile {
+function Read-Profile {
     . ~/Documents/Powershell/profile.ps1
+}
+
+function New-TestPrompt {
+    pwsh -NoLogo -NoExit -Command { function Prompt { "$($executionContext.SessionState.Path.CurrentLocation) (test)$('> ')" } }
 }
 
 function Get-AuthHeader {
@@ -186,7 +190,7 @@ function Set-Development ([string]$location) {
 Set-Alias touch Set-LastWriteToNow
 Set-Alias pit Invoke-Pit
 Set-Alias ep Edit-Profile
-Set-Alias spp Source-Profile
+Set-Alias spp Read-Profile
 Set-Alias rc Reset-Colors
 Set-Alias env Get-Environment
 Set-Alias rmr Remove-ItemsRecursive
