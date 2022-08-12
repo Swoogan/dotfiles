@@ -231,7 +231,7 @@ function Copy-ShelveToTemp {
         # todo: deal with the possiblity that there are multiple files of the same name,
         # but in different directories, within the same changelist
         $diff_temp = Join-Path $tmp $Change
-        mkdir $diff_temp | Out-Null
+        if (-not (Test-Path $diff_temp)) { mkdir $diff_temp | Out-Null }
 
         foreach ($file in $Files) {
             $leaf = Split-Path $file -leaf
@@ -445,42 +445,56 @@ function Invoke-Pit {
                     | Out-Host -Paging
             }
             "status" {
-                # todo: 
                 $feature = Get-PitActiveFeature
                 Write-Host "On feature " -NoNewline
                 Write-Host -ForegroundColor Blue "$feature`n"
 
-                # todo: handle the case of no changes
-                $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
-
                 $opened = Get-FilesInChange default -OnlyOpened
-                $count = $opened | Measure-Object | Select-Object -ExpandProperty count
-
-                if ($count -gt 0) {
+                $countStaged = $opened | Measure-Object | Select-Object -ExpandProperty count
+                if ($countStaged -gt 0) {
                     Write-Host "Changes to be submitted:"
                     Write-Host "  (use `"pit restore --staged <file>...`" to unstage)"
-                
-                    # need to make sure the opened file is in the shelve, then...
-                    $opened | ForEach-Object {
-                        $local = Copy-ShelveToTemp $lastFeatureChange $_ 
-                        $equal = Compare-Files $_.path $local
-                        if (-not $equal) {
-                            Write-Output $_
-                        }
-                    } | Write-Modifications -Indent
+                    $opened | Write-Modifications -Indent
                 }
 
-                Write-Host "Changes not staged for submit:"
-                Write-Host "  (use `"pit add <file>...`" to update what will be submitted)"
-                #Write-Host "  (use `"pit restore <file>...`" to discard changes in workspace)"
-                Find-UnopenFiles "..." | Write-Modifications -Indent
+                $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
+                $previous = Get-FilesInChange $lastFeatureChange
 
-                if ($count -eq 0) {
-                    Write-Host "`nno changes added to commit (use `"git add`" and/or `"git commit -a`")"
+                $unopened = Find-UnopenFiles "..." 
+
+                $changes = @()
+                foreach ($file in $unopened) {
+                    $exists = $null -ne ($previous | Where-Object path -eq $file.path)
+                    if (-not $exists) { 
+                        $changes += $file 
+                    }
+                    else {
+                        $local = Copy-ShelveToTemp $lastFeatureChange $file 
+                        $equal = Compare-Files $file.path $local
+                        if (-not $equal) {
+                            $changes += $file 
+                        }
+                    }
+                }
+
+                $countChanged = $changes | Measure-Object | Select-Object -ExpandProperty count
+
+                if ($countChanged -gt 0) {
+                    Write-Host "Changes not staged for submit:"
+                    Write-Host "  (use `"pit add <file>...`" to update what will be submitted)"
+                    #Write-Host "  (use `"pit restore <file>...`" to discard changes in workspace)"
+                    $changes | Write-Modifications -Indent
+                }
+
+                if ($countStaged -eq 0) {
+                    Write-Host "no changes added to submit (use `"pit add`" and/or `"pit submit -a`")"
                 }
             }
             "add" {
                 Invoke-Perforce reconcile -m ${__Remaining__} | Where-Object data -eq $null | Out-Null
+            }
+            "unstage" {
+                p4 revert -k -c default ${__Remaining__} | Out-Null
             }
             "submit" {
                 $opened = Get-FilesInChange default
