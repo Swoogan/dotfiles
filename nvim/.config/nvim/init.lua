@@ -12,7 +12,6 @@ require('config.snippets').setup()
 local indent = 4
 
 -- Vim options
-vim.opt.background = "dark"
 vim.opt.termguicolors = true
 vim.opt.number = true -- show the current line number (w/ relative on)
 vim.opt.relativenumber = true -- show relative line numbers
@@ -20,7 +19,6 @@ vim.opt.splitbelow = true -- new horizontal windows appear on the bottom
 vim.opt.splitright = true -- new vertical windows appear on the right
 vim.opt.smartindent = true
 vim.opt.cursorline = true -- highlights current line
-vim.opt.hidden = true
 vim.opt.smartcase = true -- searching case insensitive unless mixed case
 vim.opt.ignorecase = true
 vim.opt.wrap = false
@@ -56,16 +54,13 @@ vim.api.nvim_exec([[ set iskeyword+=_ ]], false)
 
 -- *** THEME *** --
 
-local foxxy = require('nightfox')
-
--- Load the colorscheme
-foxxy.setup({
+require('nightfox').setup({
     styles = {
         comments = "italic"
     }
 })
 
-foxxy.load()
+vim.cmd("colorscheme nightfox")
 
 -- *** MAPPINGS *** --
 
