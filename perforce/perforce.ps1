@@ -37,6 +37,8 @@ function Add-PitFeature {
     )
 
     process {
+        if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
+
         if ($Switch) {
             # Todo: find-unopened should run on the whole depot, or some well known root. However, I do not
             # want to hard-code that root in this file. Might need some kind of pit config file that sets up
@@ -47,7 +49,6 @@ function Add-PitFeature {
                 Write-Modifications $unopened
             }
             else {
-                # Todo: check for pit directory
                 $path = Join-Path $PIT_CONFIG "$Name.feat"
                 if (Test-Path $path) {
                     Write-Error "Feature $Name already exists.`n"
@@ -59,14 +60,12 @@ function Add-PitFeature {
             }
         }
         else {
-            # Todo: check for pit directory
             $path = Join-Path $PIT_CONFIG "$Name.feat"
             if (Test-Path $path) {
                 Write-Error "Feature $Name already exists.`n"
             }
             else {
                 New-Item -Path $path
-                Set-Content -Path $activeFeatureFile -Value $Name
             }
         }
     }
@@ -77,7 +76,9 @@ function Get-PitActiveFeatureFile {
     param ()
 
     process {
+        if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
         $file = Join-Path $PIT_CONFIG "feature"
+        if (-not (Test-Path $file)) { throw "No active feature current specified" }
         Write-Output $file
     }
 }
@@ -100,11 +101,12 @@ function Set-PitActiveFeature {
     )
 
     process {
+        if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
+
         $feat = Join-Path $PIT_CONFIG "$Name.feat"
         if (-not (Test-Path $feat)) { throw "Feature $Name does not exist" }
 
-        $activeFeatureFile = Get-PitActiveFeatureFile
-        $active = Get-Content $activeFeatureFile
+        $active = Get-PitActiveFeature
 
         if ($active -eq $Name) {
             Write-Warning "Feature $Name is already the active feature."
@@ -133,6 +135,8 @@ function Get-PitFeature {
     )
 
     process {
+        if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
+
         if ($null -ne $Name) {
             $file = Join-Path $PIT_CONFIG "$Name.feat"
             Get-ChildItem $file | ForEach-Object {
@@ -157,11 +161,11 @@ function Add-PitFeatureChange {
     )
 
     process {
-        # Todo: check for pit directory
+        if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
         $file = Join-Path $PIT_CONFIG "$Name.feat"
         if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
 
-        $content = Get-Content $file
+        [string[]]$content = Get-Content $file
         if ($null -eq $content) {
             $changes = @($Change)
         }
@@ -181,7 +185,7 @@ function Get-PitFeatureChanges {
     )
 
     process {
-        # Todo: check for pit directory
+        if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
         $file = Join-Path $PIT_CONFIG "$Name.feat"
         if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
 
@@ -206,6 +210,7 @@ function Remove-PitFeature {
     )
 
     process {
+        if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
         $file = Join-Path $PIT_CONFIG "$Name.feat"
 
         if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
@@ -362,23 +367,23 @@ function Get-ChangeDescription {
         if ($Change -eq "default") {
             # TODO: make this a terminating error once converted to a module
             Write-Warning "default changelist cannot be described"
-            Exit 1
         }
+        else {
+            $desc = Invoke-Perforce describe $Change
+            $onlyOpened = ($desc.shelved -eq $null) -and ($desc.status -ne "submitted")
+            $files = Get-FilesInChange $Change -Status $desc.status -OnlyOpened:$onlyOpened
 
-        $desc = Invoke-Perforce describe $Change
-        $onlyOpened = ($desc.shelved -eq $null) -and ($desc.status -ne "submitted")
-        $files = Get-FilesInChange $Change -Status $desc.status -OnlyOpened:$onlyOpened
+            $output = [pscustomobject]@{
+                Change = $desc.change;
+                Description = $desc.desc;
+                Status = $desc.status;
+                Date = ConvertFrom-UnixTime $desc.time;
+                Author = $desc.user;
+                Files = $files;
+            }
 
-        $output = [pscustomobject]@{
-            Change = $desc.change;
-            Description = $desc.desc;
-            Status = $desc.status;
-            Date = ConvertFrom-UnixTime $desc.time;
-            Author = $desc.user;
-            Files = $files;
+            Write-Output $output
         }
-
-        Write-Output $output
     } 
 }
 
@@ -418,6 +423,12 @@ function Write-Modifications {
     }
 }
 
+# Todo: pit log that shows depot plus feature changes
+# Todo: pit switch that reverts unopen changes and unshelves from other feature
+# Todo: various diffing commands (pit diff, pit diff --staged)
+# Todo: ??? Swarm updates (these need to go to the same changelist)
+# Todo: where to keep the swarm url?
+
 function Invoke-Pit {
     [CmdletBinding()]
     param (
@@ -434,7 +445,10 @@ function Invoke-Pit {
         $client = $info.clientName
         $user = $info.userName
 
-        # Todo: check to see if user is logged in
+        p4 login -s | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            p4 login
+        }
 
         switch (${__Command__}) {
             "log" {
@@ -516,11 +530,8 @@ function Invoke-Pit {
                     $files = Invoke-Perforce reconcile -m -c $cl $previous | Where-Object data -eq $null
 
                     p4 shelve -f -c $cl | Out-Null
-                    # Shelving files for change 37504.
-                    # add //hvn/games/bleep/game/Plugins/DiffAssets/Content/WritePermissions.B9C10A2E466CC3FD4203ECAC8F85A9FB.temp#1
-                    # Change 37504 files shelved.
-                    
-                    p4 revert -k -c $cl //...
+                    p4 revert -k -c $cl //... | Out-Null
+
                     # todo: should Add-PitFeatureChange just always use the current feature?
                     $feat = Get-PitActiveFeature
                     Add-PitFeatureChange -Name $feat -Change $cl
