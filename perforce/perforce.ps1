@@ -453,10 +453,26 @@ function Invoke-Pit {
         switch (${__Command__}) {
             "log" {
                 #Invoke-Perforce changes -L -t -s submitted -m 100 -u $user ${__Remaining__} `
-                # todo: why does the paging go two lines too far?
-                Invoke-Perforce changes -L -t -s submitted -m 100 ${__Remaining__} `
-                    | Select-Object change, user, @{name='date';expression={ConvertFrom-UnixTime $_.time}}, desc `
-                    | Out-Host -Paging
+                $pageSize = $Host.UI.RawUI.WindowSize.Height - 5
+                $more = "-- MORE --"
+                $limit = "" 
+                while ($true) {
+                    $changes = Invoke-Perforce changes -L -t -s submitted -m $pageSize "//...$limit" ${__Remaining__} `
+                        | Select-Object change, user, @{name='date';expression={ConvertFrom-UnixTime $_.time}}, desc `
+                    
+                    $changes | Out-Host
+                    Write-Host -NoNewline "$more"
+                    $in = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+                    # q or escape to quit
+                    if ($in.Character -eq "q" -or $in.VirtualKeyCode -eq 27) {
+                        break
+                    }
+                    elseif ($in.VirtualKeyCode -eq 32) { # space to page
+                        Write-Host "" # just some feedback that the keypress was received
+                        $last = $changes | Select-Object -Last 1 -ExpandProperty change
+                        $limit = "@$($last - 1)"
+                    }
+                }
             }
             "status" {
                 $feature = Get-PitActiveFeature
