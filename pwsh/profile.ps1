@@ -5,6 +5,12 @@ if ($HOST.Name -eq "Package Manager Host") {
 Import-Module Posh-Git
 Import-Module posh-p4
 
+# The default style, Minimal, is broken on Windows Terminal.
+# Revert to the classic style until they fix it (lol, like that will happen)
+if ($null -ne $env:WT_SESSION) {
+    $PSStyle.Progress.View = "Classic"
+}
+
 #
 # another prompt sample
 # posh-p4 enabled, posh-git enabled and current folder in window's top bar
