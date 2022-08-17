@@ -539,57 +539,23 @@ function Invoke-Pit {
             }
             "diff" {
                 if ($null -eq ${__Remaining__}) {
-                    $opened = Get-FilesInChange default
-                    $countStaged = $opened | Measure-Object | Select-Object -ExpandProperty count
-                    if ($countStaged -gt 0) {
-                        Write-Host "Changes to be submitted:"
-                        Write-Host "  (use `"pit unstaged <file>...`" to unstage)"
-                        $opened | Write-Modifications -Indent
-                    }
-
+                    $feature = Get-PitActiveFeature
                     $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
                     $previous = Get-FilesInChange $lastFeatureChange
 
+                    # Todo: check more than CWD
                     $unopened = Find-UnopenFiles "..." 
 
                     $changes = @()
                     foreach ($file in $unopened) {
                         $exists = $null -ne ($previous | Where-Object path -eq $file.path)
-                        if (-not $exists) { 
-                            $changes += $file 
-                        }
-                        else {
+                        if ($exists) { 
                             $local = Copy-ShelveToTemp $lastFeatureChange $file 
                             $equal = Compare-Files $file.path $local
                             if (-not $equal) {
-                                $changes += $file 
+                                git diff --no-index $local $file.path
                             }
                         }
-                    }
-
-                    $countChanged = $changes | Measure-Object | Select-Object -ExpandProperty count
-
-                    if ($countChanged -gt 0) {
-                        Write-Host "Changes not staged for submit:"
-                        Write-Host "  (use `"pit stage <file>...`" to update what will be submitted)"
-                        #Write-Host "  (use `"pit restore <file>...`" to discard changes in workspace)"
-                        $changes | Write-Modifications -Indent
-                    }
-
-                    if ($countStaged -eq 0) {
-                        Write-Host "no changes added to submit (use `"pit add`" and/or `"pit submit -a`")"
-                    }
-                    # Todo: handle errors
-                    $fullPath = Invoke-Perforce where $file | Select-Object -ExpandProperty path
-
-                    $feature = Get-PitActiveFeature
-                    $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
-                    $previous = Get-FilesInChange $lastFeatureChange | Select-Object -ExpandProperty path
-
-                    if ($previous -contains $fullPath) {
-                        $local = Copy-ShelveToTemp $lastFeatureChange $fullPath
-                        Write-Host $fullPath
-                        git diff --no-index $local $fullPath
                     }
                 }
                 elseif (${__Remaining__}[0] -eq "--staged") {
@@ -603,9 +569,14 @@ function Invoke-Pit {
                     $previous = Get-FilesInChange $lastFeatureChange | Select-Object -ExpandProperty path
 
                     if ($previous -contains $fullPath) {
+                        $opened = Get-FilesInChange default
+                        $countStaged = $opened | Measure-Object | Select-Object -ExpandProperty count
                         $local = Copy-ShelveToTemp $lastFeatureChange $fullPath
-                        Write-Host $fullPath
                         git diff --no-index $local $fullPath
+                    }
+                    else {
+                        # Todo: diff against null.
+                        # Not sure how to do this. Create empty file in temp dir?
                     }
                 }
                 else {
@@ -620,7 +591,6 @@ function Invoke-Pit {
 
                     if ($previous -contains $fullPath) {
                         $local = Copy-ShelveToTemp $lastFeatureChange $fullPath
-                        Write-Host $fullPath
                         git diff --no-index $local $fullPath
                     }
                 }
