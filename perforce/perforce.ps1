@@ -429,11 +429,8 @@ function Write-Modifications {
     }
 }
 
-# Todo: pit log that shows depot plus feature changes
 # Todo: pit switch that reverts unopen changes and unshelves from other feature
-# Todo: various diffing commands (pit diff, pit diff --staged)
 # Todo: ??? Swarm updates (these need to go to the same changelist)
-# Todo: where to keep the swarm url?
 
 function Invoke-Pit {
     [CmdletBinding()]
@@ -458,13 +455,27 @@ function Invoke-Pit {
 
         switch (${__Command__}) {
             "log" {
-                #Invoke-Perforce changes -L -t -s submitted -m 100 -u $user ${__Remaining__} `
                 $pageSize = $Host.UI.RawUI.WindowSize.Height - 5
                 $more = "-- MORE --"
                 $limit = "" 
+
+                $feature = Get-PitActiveFeature
+                $shelved = Get-PitFeatureChanges $feature
+                $countShelved = $shelved | Measure-Object | Select-Object -ExpandProperty count
+                $currentPageSize = $pageSize - $countShelved
+
+                $date = @{name='date';expression={ConvertFrom-UnixTime $_.time}}
+
+                $changes = @()
+                foreach ($change in $shelved) {
+                    $changes += Invoke-Perforce describe $change | Select-Object change, user, $date, desc
+                }
+
+                # Todo: figure out why there is a space in the array
+
                 while ($true) {
-                    $changes = Invoke-Perforce changes -L -t -s submitted -m $pageSize "//...$limit" ${__Remaining__} `
-                        | Select-Object change, user, @{name='date';expression={ConvertFrom-UnixTime $_.time}}, desc `
+                    $changes += Invoke-Perforce changes -L -t -s submitted -m $currentPageSize "//...$limit" ${__Remaining__} `
+                        | Select-Object change, user, $date, desc
                     
                     $changes | Out-Host
                     Write-Host -NoNewline "$more"
@@ -478,6 +489,9 @@ function Invoke-Pit {
                         $last = $changes | Select-Object -Last 1 -ExpandProperty change
                         $limit = "@$($last - 1)"
                     }
+
+                    $currentPageSize = $pageSize
+                    $changes = @()
                 }
             }
             "status" {
@@ -527,6 +541,7 @@ function Invoke-Pit {
                 }
             }
             "restore" {
+                # Todo: work with multiple/all files
                 $local = Invoke-Perforce where ${__Remaining__} | Select-Object -ExpandProperty path
                 p4 print -o $local "$($file.depotFile)@=$Change" | Out-Null
                 Invoke-Perforce reconcile -m ${__Remaining__} | Where-Object data -eq $null | Out-Null
