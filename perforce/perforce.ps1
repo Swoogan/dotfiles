@@ -253,6 +253,20 @@ function Copy-ShelveToTemp {
     }
 }
 
+function Remove-Shelf {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [int]$Change
+    )
+
+    process {
+        p4 shelve -d -c $Change | Out-Null
+        p4 change -d $Change | Out-Null
+        Write-Host "Shelf $Change deleted."
+    }
+}
+
 function Compare-Files {
     [CmdletBinding()]
     param (
@@ -431,6 +445,29 @@ function Write-Modifications {
 
 # Todo: pit switch that reverts unopen changes and unshelves from other feature
 # Todo: ??? Swarm updates (these need to go to the same changelist)
+#   - Need to implement the changelist shuffle :(
+#   - see: p4 reshelve
+#   - should this always be the flow for the sake of simplicity/consistency?
+#   - omg, this is what swarm does under the hood. Could I cheat and use swarm?
+#       - swarm/api/v9/reviews/?fields=id,changes,stateLabel&change[]=123
+# Todo: Add the concept of being on "main" (called "depot"?)
+# Todo: implement no-allwrite workflow
+# Todo: what to do about features that build on other features?
+#   - usecase: my feature is in review, I want to start on another feature that depends on the first
+#       - in git, branch from the existing branch, rebase on main once feat1 is merged.
+# Todo: Final submit
+#   - submit head cl
+#   - revert all files to main/depot? How git-like should this workflow be?
+#       - remember perforce works on file revisions, not atomic commits. Workspaces can be in 
+#       a state that doesn't reflect any sequence of changelists
+#   - delete feature branch? or is that a manual step?
+#       - delete shelved files
+# Todo: reset --hard HEAD~n
+# Todo: reset --soft HEAD~n
+# Todo: checkout HEAD~n
+# todo: stash, stash list, stash pop?
+
+# start a swarm review: https://stackoverflow.com/a/42176705/140377
 
 function Invoke-Pit {
     [CmdletBinding()]
@@ -454,103 +491,15 @@ function Invoke-Pit {
         }
 
         switch (${__Command__}) {
-            "log" {
-                $pageSize = $Host.UI.RawUI.WindowSize.Height - 5
-                $more = "-- MORE --"
-                $limit = "" 
+            "describe" {
+                $desc = Get-ChangeDescription ${__Remaining__}
+                Write-Host -ForegroundColor Yellow "change $($desc.Change)"
+                Write-Host "Author: $($desc.Author)"
+                Write-Host "Date: $($desc.Date)"
+                Write-Host "Status: $($desc.Status)"
+                Write-Host "`n`t$($desc.Description)"
 
-                $feature = Get-PitActiveFeature
-                $shelved = Get-PitFeatureChanges $feature
-                $countShelved = $shelved | Measure-Object | Select-Object -ExpandProperty count
-                $currentPageSize = $pageSize - $countShelved
-
-                $date = @{name='date';expression={ConvertFrom-UnixTime $_.time}}
-
-                $changes = @()
-                foreach ($change in $shelved) {
-                    $changes += Invoke-Perforce describe $change | Select-Object change, user, $date, desc
-                }
-
-                # Todo: figure out why there is a space in the array
-
-                while ($true) {
-                    $changes += Invoke-Perforce changes -L -t -s submitted -m $currentPageSize "//...$limit" ${__Remaining__} `
-                        | Select-Object change, user, $date, desc
-                    
-                    $changes | Out-Host
-                    Write-Host -NoNewline "$more"
-                    $in = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-                    # q or escape to quit
-                    if ($in.Character -eq "q" -or $in.VirtualKeyCode -eq 27) {
-                        break
-                    }
-                    elseif ($in.VirtualKeyCode -eq 32) { # space to page
-                        Write-Host "" # just some feedback that the keypress was received
-                        $last = $changes | Select-Object -Last 1 -ExpandProperty change
-                        $limit = "@$($last - 1)"
-                    }
-
-                    $currentPageSize = $pageSize
-                    $changes = @()
-                }
-            }
-            "status" {
-                $feature = Get-PitActiveFeature
-                Write-Host "On feature " -NoNewline
-                Write-Host -ForegroundColor Blue "$feature`n"
-
-                $opened = Get-FilesInChange default
-                $countStaged = $opened | Measure-Object | Select-Object -ExpandProperty count
-                if ($countStaged -gt 0) {
-                    Write-Host "Changes to be submitted:"
-                    Write-Host "  (use `"pit unstaged <file>...`" to unstage)"
-                    $opened | Write-Modifications -Indent
-                }
-
-                $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
-                $previous = Get-FilesInChange $lastFeatureChange
-
-                $unopened = Find-UnopenFiles "..." 
-
-                $changes = @()
-                foreach ($file in $unopened) {
-                    $exists = $null -ne ($previous | Where-Object path -eq $file.path)
-                    if (-not $exists) { 
-                        $changes += $file 
-                    }
-                    else {
-                        $local = Copy-ShelveToTemp $lastFeatureChange $file 
-                        $equal = Compare-Files $file.path $local
-                        if (-not $equal) {
-                            $changes += $file 
-                        }
-                    }
-                }
-
-                $countChanged = $changes | Measure-Object | Select-Object -ExpandProperty count
-
-                if ($countChanged -gt 0) {
-                    Write-Host "Changes not staged for submit:"
-                    Write-Host "  (use `"pit stage <file>...`" to update what will be submitted)"
-                    #Write-Host "  (use `"pit restore <file>...`" to discard changes in workspace)"
-                    $changes | Write-Modifications -Indent
-                }
-
-                if ($countStaged -eq 0) {
-                    Write-Host "no changes added to submit (use `"pit add`" and/or `"pit submit -a`")"
-                }
-            }
-            "restore" {
-                # Todo: work with multiple/all files
-                $local = Invoke-Perforce where ${__Remaining__} | Select-Object -ExpandProperty path
-                p4 print -o $local "$($file.depotFile)@=$Change" | Out-Null
-                Invoke-Perforce reconcile -m ${__Remaining__} | Where-Object data -eq $null | Out-Null
-            }
-            "stage" {
-                Invoke-Perforce reconcile -m ${__Remaining__} | Where-Object data -eq $null | Out-Null
-            }
-            "unstage" {
-                p4 revert -k -c default ${__Remaining__} | Out-Null
+                Write-Modifications $desc.Files
             }
             "diff" {
                 if ($null -eq ${__Remaining__}) {
@@ -610,84 +559,6 @@ function Invoke-Pit {
                     }
                 }
             }
-            "submit" {
-                $opened = Get-FilesInChange default
-                $count = $opened | Measure-Object | Select-Object -ExpandProperty count
-
-                if ($count -eq 0) {
-                    # Note: git just does a git status and exits
-                    Write-Error "No files have been staged for commit"
-                    Write-Error "  (use `"pit stage <file>...`" to update what will be submitted)"
-                }
-                else {
-                    $message = ${__Remaining__}[0]
-                    $cl = New-Changelist -Reopen $message
-                    
-                    # todo: add all the files that were in the last cl :(
-                    $feature = Get-PitActiveFeature
-                    $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
-                    $previous = Get-FilesInChange $lastFeatureChange | Select-Object -ExpandProperty path
-                    $files = Invoke-Perforce reconcile -m -c $cl $previous | Where-Object data -eq $null
-
-                    p4 shelve -f -c $cl | Out-Null
-                    p4 revert -k -c $cl //... | Out-Null
-
-                    # todo: should Add-PitFeatureChange just always use the current feature?
-                    $feat = Get-PitActiveFeature
-                    Add-PitFeatureChange -Name $feat -Change $cl
-                    
-                    Write-Host "[$feat $cl] $message"
-                    #Write-Host " $countChanged file(s) changed..."
-                    $swarm = Invoke-Perforce property -l -n P4.Swarm.CommitURL | Select-Object -ExpandProperty value
-                    Write-Host "Start a review: $swarm$cl"
-                }
-            }
-            "pending" {
-                Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__} | Select-Object change, desc
-            }
-            "describe" {
-                $desc = Get-ChangeDescription ${__Remaining__}
-                Write-Host -ForegroundColor Yellow "change $($desc.Change)"
-                Write-Host "Author: $($desc.Author)"
-                Write-Host "Date: $($desc.Date)"
-                Write-Host "Status: $($desc.Status)"
-                Write-Host "`n`t$($desc.Description)"
-
-                Write-Modifications $desc.Files
-            }
-            "state" {
-                Write-Host "`n[default]`n"
-                Get-FilesInChange default -OnlyOpened | Write-Modifications -Indent
-
-                $pending = Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__}
-                foreach ($cl in $pending) {
-                    Write-Host "[$($cl.change)] $($cl.desc)"
-                    $desc = Get-ChangeDescription $cl.change
-                    Write-Modifications $desc.Files -Indent
-                }
-
-                Write-Host "[unopened]`n"
-                Find-UnopenFiles "..." | Write-Modifications -Indent
-                
-                # Find new New-Changelists
-                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
-                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
-                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
-                    Select-Object -ExpandProperty change -SkipLast 1
-                $count = $changes | Measure-Object | Select-Object -ExpandProperty count
-
-                if ($count -gt 1) {
-                    Write-Warning "Your workspace is $count submits behind the depot."
-                }
-                elseif ($count -gt 0) {
-                    Write-Warning "Your workspace is $count submit behind the depot."
-                }
-            }
-            "new" {
-                $cl = New-Changelist ${__Remaining__}[0]
-                $env:PIT_CHANGE = $cl
-                Write-Output $cl
-            }
             "ds" { # diff shelve
                 $tmp = Join-Path $env:temp pit
                 if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
@@ -733,55 +604,8 @@ function Invoke-Pit {
 
                 Remove-Item -Recurse -Force $diff_temp | Out-Null
             }
-            "update" { 
-                Write-Host "Gathering Changelists to sync..."
-
-                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
-                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
-                [string[]]$changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
-                    Select-Object -ExpandProperty change -SkipLast 1 | Sort-Object
-                $count = $changes.Length
-
-                if ($count -eq 0) {
-                    Write-Host "Already up to date."
-                }
-                else {
-                    Write-Host ("Updating {0}..{1}" -f $changes[0], $changes[-1])
-
-                    for ($i = 1; $i -le $count; $i++) { 
-                        $change = $changes[$i-1]
-                        $percent = ($i/$count) * 100
-                        
-                        # Write-Host $percent
-                        Write-Progress -Activity "Updating" -Status "Syncing $change..." -PercentComplete $percent
-
-                        Invoke-Perforce sync "//...@$change" | Select-Object action, `
-                             @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
-                             # Out-Host -Paging
-                             Out-Null
-                    }
-                }
-            }
-            "su" { # simple update (aka old/original update, aka deprecated)
-                Write-Host "Gathering Changelists to sync..."
-
-                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
-                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
-                #$changes = p4 -ztag -Mj changes -e $latest -s submitted "@$client" | ConvertFrom-Json | `
-                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
-                    Select-Object -ExpandProperty change -SkipLast 1 | Sort-Object
-                $count = $changes | Measure-Object | Select-Object -ExpandProperty count
-
-                if ($count -eq 0) {
-                    # Note: this short circuit makes no-ops faster, but everything else slower
-                    Write-Host "Already up to date."
-                }
-                else {
-                    Write-Host ("Updating {0}..{1}" -f $changes[0], $changes[-1])
-                    Invoke-Perforce update | Select-Object action, `
-                        @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
-                        Out-Host -Paging
-                }
+            "feat" {
+                Add-PitFeature ${__Remaining__}
             }
             "fs" { # File-based syncing (might be faster in some instances, needs more testing)
 
@@ -818,8 +642,222 @@ function Invoke-Pit {
             "help" {
                 p4 help ${__Remaining__}
             }
-            # todo
-            # shelve, unshelve, stash, stash list, stash pop
+            "log" {
+                $pageSize = $Host.UI.RawUI.WindowSize.Height - 5
+                $more = "-- MORE --"
+                $limit = "" 
+
+                $feature = Get-PitActiveFeature
+                $shelved = Get-PitFeatureChanges $feature
+                $countShelved = $shelved | Measure-Object | Select-Object -ExpandProperty count
+                $currentPageSize = $pageSize - $countShelved
+
+                $date = @{name='date';expression={ConvertFrom-UnixTime $_.time}}
+
+                $changes = @()
+                foreach ($change in $shelved) {
+                    $changes += Invoke-Perforce describe $change | Select-Object change, user, $date, desc
+                }
+
+                # Todo: figure out why there is a space in the array
+
+                while ($true) {
+                    $changes += Invoke-Perforce changes -L -t -s submitted -m $currentPageSize "//...$limit" ${__Remaining__} `
+                        | Select-Object change, user, $date, desc
+                    
+                    $changes | Out-Host
+                    Write-Host -NoNewline "$more"
+                    $in = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+                    # q or escape to quit
+                    if ($in.Character -eq "q" -or $in.VirtualKeyCode -eq 27) {
+                        break
+                    }
+                    elseif ($in.VirtualKeyCode -eq 32) { # space to page
+                        Write-Host "" # just some feedback that the keypress was received
+                        $last = $changes | Select-Object -Last 1 -ExpandProperty change
+                        $limit = "@$($last - 1)"
+                    }
+
+                    $currentPageSize = $pageSize
+                    $changes = @()
+                }
+            }
+            "pending" {
+                Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__} | Select-Object change, desc
+            }
+            "new" {
+                $cl = New-Changelist ${__Remaining__}[0]
+                $env:PIT_CHANGE = $cl
+                Write-Output $cl
+            }
+            "restore" {
+                # Todo: work with multiple/all files
+                $local = Invoke-Perforce where ${__Remaining__} | Select-Object -ExpandProperty path
+                p4 print -o $local "$($file.depotFile)@=$Change" | Out-Null
+                Invoke-Perforce reconcile -m ${__Remaining__} | Where-Object data -eq $null | Out-Null
+            }
+            "stage" {
+                Invoke-Perforce reconcile -m ${__Remaining__} | Where-Object data -eq $null | Out-Null
+            }
+            "state" {
+                Write-Host "`n[default]`n"
+                Get-FilesInChange default -OnlyOpened | Write-Modifications -Indent
+
+                $pending = Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__}
+                foreach ($cl in $pending) {
+                    Write-Host "[$($cl.change)] $($cl.desc)"
+                    $desc = Get-ChangeDescription $cl.change
+                    Write-Modifications $desc.Files -Indent
+                }
+
+                Write-Host "[unopened]`n"
+                Find-UnopenFiles "..." | Write-Modifications -Indent
+                
+                # Find new New-Changelists
+                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
+                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
+                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
+                    Select-Object -ExpandProperty change -SkipLast 1
+                $count = $changes | Measure-Object | Select-Object -ExpandProperty count
+
+                if ($count -gt 1) {
+                    Write-Warning "Your workspace is $count submits behind the depot."
+                }
+                elseif ($count -gt 0) {
+                    Write-Warning "Your workspace is $count submit behind the depot."
+                }
+            }
+            "status" {
+                $feature = Get-PitActiveFeature
+                Write-Host "On feature " -NoNewline
+                Write-Host -ForegroundColor Blue "$feature`n"
+
+                $opened = Get-FilesInChange default
+                $countStaged = $opened | Measure-Object | Select-Object -ExpandProperty count
+                if ($countStaged -gt 0) {
+                    Write-Host "Changes to be submitted:"
+                    Write-Host "  (use `"pit unstaged <file>...`" to unstage)"
+                    $opened | Write-Modifications -Indent
+                }
+
+                $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
+                $previous = Get-FilesInChange $lastFeatureChange
+
+                $unopened = Find-UnopenFiles "..." 
+
+                $changes = @()
+                foreach ($file in $unopened) {
+                    $exists = $null -ne ($previous | Where-Object path -eq $file.path)
+                    if (-not $exists) { 
+                        $changes += $file 
+                    }
+                    else {
+                        $local = Copy-ShelveToTemp $lastFeatureChange $file 
+                        $equal = Compare-Files $file.path $local
+                        if (-not $equal) {
+                            $changes += $file 
+                        }
+                    }
+                }
+
+                $countChanged = $changes | Measure-Object | Select-Object -ExpandProperty count
+
+                if ($countChanged -gt 0) {
+                    Write-Host "Changes not staged for submit:"
+                    Write-Host "  (use `"pit stage <file>...`" to update what will be submitted)"
+                    #Write-Host "  (use `"pit restore <file>...`" to discard changes in workspace)"
+                    $changes | Write-Modifications -Indent
+                }
+
+                if ($countStaged -eq 0) {
+                    Write-Host "no changes added to submit (use `"pit add`" and/or `"pit submit -a`")"
+                }
+            }
+            "submit" {
+                $opened = Get-FilesInChange default
+                $count = $opened | Measure-Object | Select-Object -ExpandProperty count
+
+                if ($count -eq 0) {
+                    # Note: git just does a git status and exits
+                    Write-Error "No files have been staged for commit"
+                    Write-Error "  (use `"pit stage <file>...`" to update what will be submitted)"
+                }
+                else {
+                    $message = ${__Remaining__}[0]
+                    $cl = New-Changelist -Reopen $message
+                    
+                    # todo: add all the files that were in the last cl :(
+                    $feature = Get-PitActiveFeature
+                    $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
+                    $previous = Get-FilesInChange $lastFeatureChange | Select-Object -ExpandProperty path
+                    $files = Invoke-Perforce reconcile -m -c $cl $previous | Where-Object data -eq $null
+
+                    p4 shelve -f -c $cl | Out-Null
+                    p4 revert -k -c $cl //... | Out-Null
+
+                    # todo: should Add-PitFeatureChange just always use the current feature?
+                    $feat = Get-PitActiveFeature
+                    Add-PitFeatureChange -Name $feat -Change $cl
+                    
+                    Write-Host "[$feat $cl] $message"
+                    #Write-Host " $countChanged file(s) changed..."
+                    $swarm = Invoke-Perforce property -l -n P4.Swarm.CommitURL | Select-Object -ExpandProperty value
+                    Write-Host "Start a review: $swarm$cl"
+                }
+            }
+            "su" { # simple update (aka old/original update, aka deprecated)
+                Write-Host "Gathering Changelists to sync..."
+
+                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
+                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
+                #$changes = p4 -ztag -Mj changes -e $latest -s submitted "@$client" | ConvertFrom-Json | `
+                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
+                    Select-Object -ExpandProperty change -SkipLast 1 | Sort-Object
+                $count = $changes | Measure-Object | Select-Object -ExpandProperty count
+
+                if ($count -eq 0) {
+                    # Note: this short circuit makes no-ops faster, but everything else slower
+                    Write-Host "Already up to date."
+                }
+                else {
+                    Write-Host ("Updating {0}..{1}" -f $changes[0], $changes[-1])
+                    Invoke-Perforce update | Select-Object action, `
+                        @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
+                        Out-Host -Paging
+                }
+            }
+            "unstage" {
+                p4 revert -k -c default ${__Remaining__} | Out-Null
+            }
+            "update" { 
+                Write-Host "Gathering Changelists to sync..."
+
+                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
+                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
+                [string[]]$changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
+                    Select-Object -ExpandProperty change -SkipLast 1 | Sort-Object
+                $count = $changes.Length
+
+                if ($count -eq 0) {
+                    Write-Host "Already up to date."
+                }
+                else {
+                    Write-Host ("Updating {0}..{1}" -f $changes[0], $changes[-1])
+
+                    for ($i = 1; $i -le $count; $i++) { 
+                        $change = $changes[$i-1]
+                        $percent = ($i/$count) * 100
+                        
+                        # Write-Host $percent
+                        Write-Progress -Activity "Updating" -Status "Syncing $change..." -PercentComplete $percent
+
+                        Invoke-Perforce sync "//...@$change" | Select-Object action, `
+                             @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
+                             # Out-Host -Paging
+                             Out-Null
+                    }
+                }
+            }
             default {
                 Invoke-Perforce ${__Command__} ${__Remaining__}
             }
