@@ -62,7 +62,7 @@ function Add-PitFeature {
                 else {
                     New-Item -Path $path
                 }
-                Set-Content -Path $activeFeatureFile -Value $Name
+                Set-Content -Path $path -Value $Name
             }
         }
         else {
@@ -118,10 +118,13 @@ function Set-PitActiveFeature {
             Write-Warning "Feature $Name is already the active feature."
         }
         else {
+            # Todo: Todo: this command should only abort when data loss would occur.
+<#
             # Todo: find-unopened should run on the whole depot, or some well known root. However, I do not
             # want to hard-code that root in this file. Might need some kind of pit config file that sets up
             # sub-workspaces for large monorepos, where p4 rec //... is really expensive
             $unopened = Find-UnopenFiles "..."
+            # Todo: also need to check for opened files
             if ($null -ne $unopened) {
                 Write-Error "There are unopened changes in your workspace. Submit or stash.`n"
                 Write-Modifications $unopened
@@ -129,6 +132,8 @@ function Set-PitActiveFeature {
             else {
                 Set-Content -Path $activeFeatureFile -Value $Name
             }
+#>
+            Set-Content -Path (Get-PitActiveFeatureFile) -Value $Name
         }
     }
 }
@@ -484,6 +489,9 @@ function Invoke-Pit {
         # todo: cache this info somehow
         $client = $info.clientName
         $user = $info.userName
+        $clientSpec = Invoke-Perforce client "-o" $client
+        $options = $clientSpec | Select-Object -ExpandProperty Options
+        $isAllWrite = $options -match "allwrite"
 
         p4 login -s | Out-Null
         if ($LASTEXITCODE -ne 0) {
@@ -741,36 +749,54 @@ function Invoke-Pit {
                 }
 
                 $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
-                $previous = Get-FilesInChange $lastFeatureChange
+                if ($null -ne $lastFeatureChange) {
+                    $previous = Get-FilesInChange $lastFeatureChange
 
-                $unopened = Find-UnopenFiles "..." 
+                    $unopened = Find-UnopenFiles "..." 
 
-                $changes = @()
-                foreach ($file in $unopened) {
-                    $exists = $null -ne ($previous | Where-Object path -eq $file.path)
-                    if (-not $exists) { 
-                        $changes += $file 
-                    }
-                    else {
-                        $local = Copy-ShelveToTemp $lastFeatureChange $file 
-                        $equal = Compare-Files $file.path $local
-                        if (-not $equal) {
+                    $changes = @()
+                    foreach ($file in $unopened) {
+                        $exists = $null -ne ($previous | Where-Object path -eq $file.path)
+                        if (-not $exists) { 
                             $changes += $file 
                         }
+                        else {
+                            $local = Copy-ShelveToTemp $lastFeatureChange $file 
+                            $equal = Compare-Files $file.path $local
+                            if (-not $equal) {
+                                $changes += $file 
+                            }
+                        }
+                    }
+
+                    $countChanged = $changes | Measure-Object | Select-Object -ExpandProperty count
+
+                    if ($countChanged -gt 0) {
+                        Write-Host "Changes not staged for submit:"
+                        Write-Host "  (use `"pit stage <file>...`" to update what will be submitted)"
+                        #Write-Host "  (use `"pit restore <file>...`" to discard changes in workspace)"
+                        $changes | Write-Modifications -Indent
+                    }
+
+                    if ($countStaged -eq 0) {
+                        Write-Host "no changes added to submit (use `"pit add`" and/or `"pit submit -a`")"
                     }
                 }
+                else {
+                    $unopened = Find-UnopenFiles "..." 
 
-                $countChanged = $changes | Measure-Object | Select-Object -ExpandProperty count
+                    $countUnopened = $unopened | Measure-Object | Select-Object -ExpandProperty count
 
-                if ($countChanged -gt 0) {
-                    Write-Host "Changes not staged for submit:"
-                    Write-Host "  (use `"pit stage <file>...`" to update what will be submitted)"
-                    #Write-Host "  (use `"pit restore <file>...`" to discard changes in workspace)"
-                    $changes | Write-Modifications -Indent
-                }
+                    if ($countUnopened -gt 0) {
+                        Write-Host "Changes not staged for submit:"
+                        Write-Host "  (use `"pit stage <file>...`" to update what will be submitted)"
+                        #Write-Host "  (use `"pit restore <file>...`" to discard changes in workspace)"
+                        $unopened | Write-Modifications -Indent
+                    }
 
-                if ($countStaged -eq 0) {
-                    Write-Host "no changes added to submit (use `"pit add`" and/or `"pit submit -a`")"
+                    if ($countStaged -eq 0) {
+                        Write-Host "no changes added to submit (use `"pit add`" and/or `"pit submit -a`")"
+                    }
                 }
             }
             "submit" {
@@ -825,6 +851,9 @@ function Invoke-Pit {
                         @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
                         Out-Host -Paging
                 }
+            }
+            "switch" {
+                Set-PitActiveFeature ${__Remaining__}
             }
             "unstage" {
                 p4 revert -k -c default ${__Remaining__} | Out-Null
