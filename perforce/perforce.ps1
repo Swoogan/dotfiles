@@ -448,7 +448,7 @@ function Write-Modifications {
     }
 }
 
-# Todo: pit switch that reverts unopen changes and unshelves from other feature
+# Todo: pit switch that unshelves from other feature and aborts on data loss
 # Todo: ??? Swarm updates (these need to go to the same changelist)
 #   - Need to implement the changelist shuffle :(
 #   - see: p4 reshelve
@@ -700,9 +700,18 @@ function Invoke-Pit {
             }
             "restore" {
                 # Todo: work with multiple/all files
-                $local = Invoke-Perforce where ${__Remaining__} | Select-Object -ExpandProperty path
-                p4 print -o $local "$($file.depotFile)@=$Change" | Out-Null
-                Invoke-Perforce reconcile -m ${__Remaining__} | Where-Object data -eq $null | Out-Null
+                if (${__Remaining__} -eq "--staged") {
+                    $file = ${__Remaining__}
+                    $local = Invoke-Perforce where $file | Select-Object -ExpandProperty path
+                    # p4 print -o $local "$($file.depotFile)@=$Change" | Out-Null
+                    Invoke-Perforce reconcile -m $file | Where-Object data -eq $null | Out-Null
+                }
+                else {
+                    # todo: see if file is staged or not
+                    $file = ${__Remaining__}
+                    $local = Invoke-Perforce where $file | Select-Object -ExpandProperty path
+                    Invoke-Perforce clean -m $file | Where-Object data -eq $null | Out-Null
+                }
             }
             "stage" {
                 Invoke-Perforce reconcile -m ${__Remaining__} | Where-Object data -eq $null | Out-Null
