@@ -448,6 +448,9 @@ function Write-Modifications {
     }
 }
 
+# Todo: Add the concept of being on "main" (called "depot"?)
+# Todo: implement no-allwrite workflow
+# Todo: pit diff --staged
 # Todo: pit switch that unshelves from other feature and aborts on data loss
 # Todo: ??? Swarm updates (these need to go to the same changelist)
 #   - Need to implement the changelist shuffle :(
@@ -455,8 +458,6 @@ function Write-Modifications {
 #   - should this always be the flow for the sake of simplicity/consistency?
 #   - omg, this is what swarm does under the hood. Could I cheat and use swarm?
 #       - swarm/api/v9/reviews/?fields=id,changes,stateLabel&change[]=123
-# Todo: Add the concept of being on "main" (called "depot"?)
-# Todo: implement no-allwrite workflow
 # Todo: what to do about features that build on other features?
 #   - usecase: my feature is in review, I want to start on another feature that depends on the first
 #       - in git, branch from the existing branch, rebase on main once feat1 is merged.
@@ -512,20 +513,72 @@ function Invoke-Pit {
             "diff" {
                 if ($null -eq ${__Remaining__}) {
                     $feature = Get-PitActiveFeature
-                    $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
-                    $previous = Get-FilesInChange $lastFeatureChange
-
                     # Todo: check more than CWD
                     $unopened = Find-UnopenFiles "..." 
 
-                    $changes = @()
-                    foreach ($file in $unopened) {
-                        $exists = $null -ne ($previous | Where-Object path -eq $file.path)
-                        if ($exists) { 
-                            $local = Copy-ShelveToTemp $lastFeatureChange $file 
-                            $equal = Compare-Files $file.path $local
-                            if (-not $equal) {
+                    $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
+                    if ($null -ne $lastFeatureChange) {
+                        $previous = Get-FilesInChange $lastFeatureChange
+
+                        $changes = @()
+                        foreach ($file in $unopened) {
+                            $exists = $null -ne ($previous | Where-Object path -eq $file.path)
+                            if ($exists) { 
+                                $local = Copy-ShelveToTemp $lastFeatureChange $file 
+                                $equal = Compare-Files $file.path $local
+                                if (-not $equal) {
+                                    git diff --no-index $local $file.path
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        foreach ($file in $unopened) {
+                            if ($file.action -eq "add") {
+                                $tmp = Join-Path $env:temp pit
+                                if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
+
+                                # todo: deal with the possiblity that there are multiple files of the same name,
+                                # but in different directories, within the same changelist
+                                $diffTemp = Join-Path $tmp "add"
+                                if (-not (Test-Path $diffTemp)) { mkdir $diffTemp | Out-Null }
+
+                                $leaf = Split-Path $file.path -leaf
+                                $local = Join-Path $diffTemp $leaf
+                                New-Item -Type File -Path $local -Force | Out-Null
+
                                 git diff --no-index $local $file.path
+                            }
+                            elseif ($file.action -eq "delete") {
+                                $tmp = Join-Path $env:temp pit
+                                if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
+
+                                # todo: deal with the possiblity that there are multiple files of the same name,
+                                # but in different directories, within the same changelist
+                                $diffTemp = Join-Path $tmp "delete"
+                                if (-not (Test-Path $diffTemp)) { mkdir $diffTemp | Out-Null }
+
+                                $leaf = Split-Path $file.path -leaf
+                                $local = Join-Path $diffTemp "$leaf#empty"
+                                $depot = Join-Path $diffTemp "$leaf#have"
+                                New-Item -Type File -Path $local -Force | Out-Null
+                                p4 print -o $depot "$($file.path)#have" | Out-Null
+
+                                git diff --no-index $depot $local 
+                            }
+                            elseif ($file.action -eq "edit") {
+                                $tmp = Join-Path $env:temp pit
+                                if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
+
+                                # todo: deal with the possiblity that there are multiple files of the same name,
+                                # but in different directories, within the same changelist
+                                $diffTemp = Join-Path $tmp "edit"
+                                if (-not (Test-Path $diffTemp)) { mkdir $diffTemp | Out-Null }
+
+                                $leaf = Split-Path $file.path -leaf
+                                $depot = Join-Path $diffTemp $leaf
+                                p4 print -o $depot "$($file.path)#have" | Out-Null
+                                git diff --no-index $depot $file.path
                             }
                         }
                     }
@@ -559,11 +612,14 @@ function Invoke-Pit {
 
                     $feature = Get-PitActiveFeature
                     $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
-                    $previous = Get-FilesInChange $lastFeatureChange | Select-Object -ExpandProperty path
 
-                    if ($previous -contains $fullPath) {
-                        $local = Copy-ShelveToTemp $lastFeatureChange $fullPath
-                        git diff --no-index $local $fullPath
+                    if ($lastFeatureChange) {
+                        $previous = Get-FilesInChange $lastFeatureChange | Select-Object -ExpandProperty path
+
+                        if ($previous -contains $fullPath) {
+                            $local = Copy-ShelveToTemp $lastFeatureChange $fullPath
+                            git diff --no-index $local $fullPath
+                        }
                     }
                 }
             }
@@ -754,7 +810,6 @@ function Invoke-Pit {
                     $previous = Get-FilesInChange $lastFeatureChange
 
                     $unopened = Find-UnopenFiles "..." 
-                    
 
                     $changes = @()
                     foreach ($file in $unopened) {
@@ -798,12 +853,13 @@ function Invoke-Pit {
                     if ($countUnopened -gt 0) {
                         Write-Host "Changes not staged for submit:"
                         Write-Host "  (use `"pit stage <file>...`" to update what will be submitted)"
-                        Write-Host "  (use `"pit unstage <file>...`" to unstage)"
+                        Write-Host "  (use `"pit restore <file>...`" to discard changes in workspace)"
                         $unopened | Write-Modifications -Indent
                     }
 
                     if ($countStaged -eq 0) {
-                        Write-Host "no changes added to submit (use `"pit add`" and/or `"pit submit -a`")"
+                        # Write-Host "no changes staged to submit (use `"pit stage`" and/or `"pit submit -a`")"
+                        Write-Host "no changes staged to submit (use `"pit stage <file>...`")"
                     }
                 }
             }
