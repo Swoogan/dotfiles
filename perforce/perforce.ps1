@@ -62,7 +62,7 @@ function Add-PitFeature {
                 else {
                     New-Item -Path $path
                 }
-                Set-Content -Path $path -Value $Name
+                Set-Content -Path (Get-PitActiveFeatureFile) -Value $Name
             }
         }
         else {
@@ -700,18 +700,10 @@ function Invoke-Pit {
             }
             "restore" {
                 # Todo: work with multiple/all files
-                if (${__Remaining__} -eq "--staged") {
-                    $file = ${__Remaining__}
-                    $local = Invoke-Perforce where $file | Select-Object -ExpandProperty path
-                    # p4 print -o $local "$($file.depotFile)@=$Change" | Out-Null
-                    Invoke-Perforce reconcile -m $file | Where-Object data -eq $null | Out-Null
-                }
-                else {
-                    # todo: see if file is staged or not
-                    $file = ${__Remaining__}
-                    $local = Invoke-Perforce where $file | Select-Object -ExpandProperty path
-                    Invoke-Perforce clean -m $file | Where-Object data -eq $null | Out-Null
-                }
+                # todo: see if file is staged or not
+                $file = ${__Remaining__}
+                $local = Invoke-Perforce where $file | Select-Object -ExpandProperty path
+                Invoke-Perforce clean -m $file | Where-Object data -eq $null | Out-Null
             }
             "stage" {
                 Invoke-Perforce reconcile -m ${__Remaining__} | Where-Object data -eq $null | Out-Null
@@ -753,7 +745,7 @@ function Invoke-Pit {
                 $countStaged = $opened | Measure-Object | Select-Object -ExpandProperty count
                 if ($countStaged -gt 0) {
                     Write-Host "Changes to be submitted:"
-                    Write-Host "  (use `"pit unstaged <file>...`" to unstage)"
+                    Write-Host "  (use `"pit unstage <file>...`" to unstage)"
                     $opened | Write-Modifications -Indent
                 }
 
@@ -762,6 +754,7 @@ function Invoke-Pit {
                     $previous = Get-FilesInChange $lastFeatureChange
 
                     $unopened = Find-UnopenFiles "..." 
+                    
 
                     $changes = @()
                     foreach ($file in $unopened) {
@@ -770,7 +763,7 @@ function Invoke-Pit {
                             $changes += $file 
                         }
                         else {
-                            $local = Copy-ShelveToTemp $lastFeatureChange $file 
+                            $local = Copy-ShelveToTemp $lastFeatureChange $file.path
                             $equal = Compare-Files $file.path $local
                             if (-not $equal) {
                                 $changes += $file 
@@ -799,7 +792,7 @@ function Invoke-Pit {
                     if ($countUnopened -gt 0) {
                         Write-Host "Changes not staged for submit:"
                         Write-Host "  (use `"pit stage <file>...`" to update what will be submitted)"
-                        #Write-Host "  (use `"pit restore <file>...`" to discard changes in workspace)"
+                        Write-Host "  (use `"pit unstage <file>...`" to unstage)"
                         $unopened | Write-Modifications -Indent
                     }
 
