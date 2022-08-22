@@ -781,7 +781,13 @@ function Invoke-Pit {
                     }
 
                     if ($countStaged -eq 0) {
-                        Write-Host "no changes added to submit (use `"pit add`" and/or `"pit submit -a`")"
+                        if ($countChanged -eq 0) {
+                            # Write-Host "Your branch is up to date with 'origin/master'."
+                            Write-Host "nothing to submit, workspace clean"
+                        }
+                        else {
+                            Write-Host "no changes staged to submit (use `"pit stage`" and/or `"pit submit -a`")"
+                        }
                     }
                 }
                 else {
