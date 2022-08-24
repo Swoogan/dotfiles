@@ -486,6 +486,11 @@ function Invoke-Pit {
     )
 
     process {
+        p4 login -s | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            p4 login
+        }
+
         $info = Invoke-Perforce info
         # todo: cache this info somehow
         $client = $info.clientName
@@ -493,11 +498,6 @@ function Invoke-Pit {
         $clientSpec = Invoke-Perforce client "-o" $client
         $options = $clientSpec | Select-Object -ExpandProperty Options
         $isAllWrite = $options -match "allwrite"
-
-        p4 login -s | Out-Null
-        if ($LASTEXITCODE -ne 0) {
-            p4 login
-        }
 
         switch (${__Command__}) {
             "describe" {
@@ -524,7 +524,7 @@ function Invoke-Pit {
                         foreach ($file in $unopened) {
                             $exists = $null -ne ($previous | Where-Object path -eq $file.path)
                             if ($exists) { 
-                                $local = Copy-ShelveToTemp $lastFeatureChange $file 
+                                $local = Copy-ShelveToTemp $lastFeatureChange $file.path
                                 $equal = Compare-Files $file.path $local
                                 if (-not $equal) {
                                     git diff --no-index $local $file.path
