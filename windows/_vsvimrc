@@ -16,4 +16,7 @@ map <Leader>x :x<CR>
 map <Leader>b :vsc Build.BuildSolution<CR>
 map <Leader>r :vsc Debug.Start<CR>
 
-abbrev lg private readonly ILogger _logger = LogManager.GetCurrentClassLogger();
+map gcc :vsc Edit.ToggleLineComment<CR>
+map gd :vsc Edit.GotoDefinition<CR>
+map gD :vsc Edit.GotoDeclaration<CR>
+
