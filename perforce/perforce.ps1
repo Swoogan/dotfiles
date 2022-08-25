@@ -236,25 +236,31 @@ function Copy-ShelveToTemp {
     param (
         [Parameter(Mandatory=$true, Position=0)]
         [int]$Change,
-        [Parameter(Mandatory=$true, Position=1)]
-        [string[]]$Files
+        [Parameter(Mandatory=$true, Position=1, ValueFromPipeline=$true)]
+        [string[]]$File
     )
 
-    process {
+    begin {
         $tmp = Join-Path $env:temp pit
         if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
 
         # todo: deal with the possiblity that there are multiple files of the same name,
         # but in different directories, within the same changelist
-        $diff_temp = Join-Path $tmp $Change
-        if (-not (Test-Path $diff_temp)) { mkdir $diff_temp | Out-Null }
+        $diffTemp = Join-Path $tmp $Change
+        if (-not (Test-Path $diffTemp)) { mkdir $diffTemp | Out-Null }
+    }
 
-        foreach ($file in $Files) {
-            $leaf = Split-Path $file -leaf
-            $local = Join-Path $diff_temp $leaf
-            p4 print -o $local "$file@=$Change" | Out-Null
+    process {
+        foreach ($f in $File) {
+            $leaf = Split-Path $f -leaf
+            $local = Join-Path $diffTemp $leaf
+            p4 print -o $local "$f@=$Change" | Out-Null
             Write-Output $local
         }
+    }
+
+    end {
+        # Remove-Item -Force -Recurse $diffTemp | Out-Null
     }
 }
 
@@ -416,6 +422,7 @@ function Write-Modifications {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true, Position=0, ValueFromPipeline)]
+        # Todo: make this a class
         [object[]]$Files,
         [Parameter(Mandatory=$false)]
         [switch]$Indent
@@ -445,6 +452,77 @@ function Write-Modifications {
 
     end {
         Write-Host ""
+    }
+}
+
+function Compare-WorkspaceToPrevious {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true)]
+        # Todo: make this a class
+        [object[]]$File
+    )
+
+    begin {
+        $feature = Get-PitActiveFeature
+        $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
+        if ($null -ne $lastFeatureChange) {
+            $previous = Get-FilesInChange $lastFeatureChange
+        }
+
+        $tmp = Join-Path $env:temp pit
+        if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
+
+        $diffTemp = Join-Path $tmp "have.$(Get-Random -Maximum 10000)"
+        mkdir $diffTemp | Out-Null
+    }
+
+    process {
+        foreach ($f in $File) {
+            $inShelve = $null -ne ($previous | Where-Object path -eq $f.path)
+
+            if ($inShelve) { 
+                $leaf = Split-Path $f.path -leaf
+                $local = Join-Path $diffTemp $leaf
+                p4 print -o $local "$($f.path)@=$lastFeatureChange" | Out-Null
+
+                $equal = Compare-Files $f.path $local
+                if (-not $equal) {
+                    git diff --no-index $local $f.path
+                }
+            }
+            else { # compare against the have revision
+                # todo: deal with the possiblity that there are multiple files of the same name,
+                # but in different directories, within the same changelist
+
+                if ($f.action -eq "add") {
+                    $leaf = Split-Path $f.path -leaf
+                    $local = Join-Path $diffTemp $leaf
+                    New-Item -Type File -Path $local -Force | Out-Null
+
+                    git diff --no-index $local $f.path
+                }
+                elseif ($f.action -eq "delete") {
+                    $leaf = Split-Path $f.path -leaf
+                    $local = Join-Path $diffTemp "$leaf#empty"
+                    $depot = Join-Path $diffTemp "$leaf#have"
+                    New-Item -Type File -Path $local -Force | Out-Null
+                    p4 print -o $depot "$($f.path)#have" | Out-Null
+
+                    git diff --no-index $depot $local 
+                }
+                elseif ($f.action -eq "edit") {
+                    $leaf = Split-Path $f.path -leaf
+                    $depot = Join-Path $diffTemp $leaf
+                    p4 print -o $depot "$($f.path)#have" | Out-Null
+                    git diff --no-index $depot $f.path
+                }
+            }
+        }
+    }
+
+    end {
+        Remove-Item -Force -Recurse $diffTemp | Out-Null
     }
 }
 
@@ -482,6 +560,8 @@ function Compare-UnopenedToDepot {
         $unopened = Find-UnopenFiles "..." 
 
         foreach ($file in $unopened) {
+            # $diffTemp = Join-Path $tmp "have.$(Get-Random -Maximum 10000)"
+            # mkdir $diffTemp | Out-Null
             if ($file.action -eq "add") {
                 $tmp = Join-Path $env:temp pit
                 if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
@@ -532,19 +612,8 @@ function Compare-UnopenedToDepot {
     }
 }
 
-# Todo: Add the concept of being on "main" (called "depot"?)
-# Todo: implement no-allwrite workflow
 # Todo: pit diff --staged
 # Todo: pit switch that unshelves from other feature and aborts on data loss
-# Todo: ??? Swarm updates (these need to go to the same changelist)
-#   - Need to implement the changelist shuffle :(
-#   - see: p4 reshelve
-#   - should this always be the flow for the sake of simplicity/consistency?
-#   - omg, this is what swarm does under the hood. Could I cheat and use swarm?
-#       - swarm/api/v9/reviews/?fields=id,changes,stateLabel&change[]=123
-# Todo: what to do about features that build on other features?
-#   - usecase: my feature is in review, I want to start on another feature that depends on the first
-#       - in git, branch from the existing branch, rebase on main once feat1 is merged.
 # Todo: Final submit
 #   - submit head cl
 #   - revert all files to main/depot? How git-like should this workflow be?
@@ -552,12 +621,28 @@ function Compare-UnopenedToDepot {
 #       a state that doesn't reflect any sequence of changelists
 #   - delete feature branch? or is that a manual step?
 #       - delete shelved files
+# Todo: Move PIT_CONFIG directory to %APPDATA%
+# Todo: Move feature tracking into a json file instead of file-based
+# Todo: Add the concept of being on "main" (called "depot"?)
+# Todo: implement no-allwrite workflow
 # Todo: reset --hard HEAD~n
 # Todo: reset --soft HEAD~n
 # Todo: checkout HEAD~n
 # todo: stash, stash list, stash pop?
+# Todo: what to do about features that build on other features?
+#   - usecase: my feature is in review, I want to start on another feature that depends on the first
+#       - in git, branch from the existing branch, rebase on main once feat1 is merged.
 
 # start a swarm review: https://stackoverflow.com/a/42176705/140377
+
+
+# Todo: ??? Swarm updates (these need to go to the same changelist)
+# FOR NOW, THIS WORKFLOW ENDS AT THE REVIEW
+#   - Need to implement the changelist shuffle :(
+#   - see: p4 reshelve
+#   - should this always be the flow for the sake of simplicity/consistency?
+#   - omg, this is what swarm does under the hood. Could I cheat and use swarm?
+#       - swarm/api/v9/reviews/?fields=id,changes,stateLabel&change[]=123
 
 function Invoke-Pit {
     [CmdletBinding()]
@@ -596,15 +681,7 @@ function Invoke-Pit {
             }
             "diff" {
                 if ($null -eq ${__Remaining__}) {
-                    $feature = Get-PitActiveFeature
-                    $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
-
-                    if ($null -ne $lastFeatureChange) {
-                        Compare-UnopenedToShelve $lastFeatureChange
-                    }
-                    else {
-                        Compare-UnopenedToDepot
-                    }
+                    Find-UnopenFiles ... | Compare-WorkspaceToPrevious
                 }
                 elseif (${__Remaining__}[0] -eq "--staged") {
                     # Todo: work on array of files
@@ -627,48 +704,18 @@ function Invoke-Pit {
                     }
                 }
                 else {
-                    # Todo: work on array of files
-                    $file = ${__Remaining__}[0]
-                    # Todo: handle errors
-                    $fullPath = Invoke-Perforce where $file | Select-Object -ExpandProperty path
+                    $files = ${__Remaining__}
 
-                    $feature = Get-PitActiveFeature
-                    $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
-
-                    if ($lastFeatureChange) {
-                        $previous = Get-FilesInChange $lastFeatureChange | Select-Object -ExpandProperty path
-
-                        if ($previous -contains $fullPath) {
-                            $local = Copy-ShelveToTemp $lastFeatureChange $fullPath
-                            git diff --no-index $local $fullPath
-                        }
+                    $changed = @()
+                    foreach ($f in $files) {
+                        # Todo: handle errors
+                        $fullPath = Invoke-Perforce where $f | Select-Object -ExpandProperty path
+                        $delta = Find-UnopenFiles $fullPath
+                        if ($delta) { $changed += $delta }
                     }
+
+                    $changed | Compare-WorkspaceToPrevious
                 }
-            }
-            "du" { # diff unopened
-                $tmp = Join-Path $env:temp pit
-                if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
-
-                $diff_temp = Join-Path $tmp "have.$(Get-Random -Maximum 10000)"
-                mkdir $diff_temp | Out-Null
-
-                $files = Invoke-Perforce reconcile -n -m ... | Where-Object data -eq $null
-                Write-Host $files
-
-                foreach ($file in $files) {
-                    if ($file.action -eq "edit") {
-                        $leaf = Split-Path $file.clientFile -leaf
-                        $local = Join-Path $diff_temp $leaf
-                        Write-Host $local
-                        p4 print -o $local "$($file.depotFile)#have" | Out-Null
-                        git diff --no-index $local $file.clientFile	
-                    }
-                    else {
-                        Write-Modifications $file
-                    }
-                }
-
-                Remove-Item -Recurse -Force $diff_temp | Out-Null
             }
             "feat" {
                 Add-PitFeature ${__Remaining__}
