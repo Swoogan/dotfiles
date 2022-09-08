@@ -612,8 +612,10 @@ function Compare-UnopenedToDepot {
     }
 }
 
+# Bug: `pit stage ...` stages files that haven't changed
 # Todo: pit diff --staged
 # Todo: pit switch that unshelves from other feature and aborts on data loss
+# Todo: implement no-allwrite workflow
 # Todo: Final submit
 #   - submit head cl
 #   - revert all files to main/depot? How git-like should this workflow be?
@@ -624,7 +626,6 @@ function Compare-UnopenedToDepot {
 # Todo: Move PIT_CONFIG directory to %APPDATA%
 # Todo: Move feature tracking into a json file instead of file-based
 # Todo: Add the concept of being on "main" (called "depot"?)
-# Todo: implement no-allwrite workflow
 # Todo: reset --hard HEAD~n
 # Todo: reset --soft HEAD~n
 # Todo: checkout HEAD~n
@@ -669,6 +670,36 @@ function Invoke-Pit {
         $isAllWrite = $options -match "allwrite"
 
         switch (${__Command__}) {
+            "clsync" { # Changelist-based syncing. Seems to be really slow (Perforce seems to have a 6 sec overhead for each cl)
+
+                Write-Host "Gathering Changelists to sync..."
+
+                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
+                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
+                [string[]]$changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
+                    Select-Object -ExpandProperty change -SkipLast 1 | Sort-Object
+                $count = $changes.Length
+
+                if ($count -eq 0) {
+                    Write-Host "Already up to date."
+                }
+                else {
+                    Write-Host ("Updating {0}..{1}" -f $changes[0], $changes[-1])
+
+                    for ($i = 1; $i -le $count; $i++) { 
+                        $change = $changes[$i-1]
+                        $percent = ($i/$count) * 100
+                        
+                        # Write-Host $percent
+                        Write-Progress -Activity "Updating" -Status "Syncing $change..." -PercentComplete $percent
+
+                        Invoke-Perforce sync "//...@$change" | Select-Object action, `
+                             @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
+                             # Out-Host -Paging
+                             Out-Null
+                    }
+                }
+            }
             "describe" {
                 $desc = Get-ChangeDescription ${__Remaining__}
                 Write-Host -ForegroundColor Yellow "change $($desc.Change)"
@@ -720,7 +751,7 @@ function Invoke-Pit {
             "feat" {
                 Add-PitFeature ${__Remaining__}
             }
-            "fs" { # File-based syncing (might be faster in some instances, needs more testing)
+            "filesync" { # File-based syncing (might be faster in some instances, needs more testing)
 
                 Write-Host "Gathering Changelists to sync..."
                 $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
@@ -928,17 +959,23 @@ function Invoke-Pit {
                     # todo: add all the files that were in the last cl :(
                     $feature = Get-PitActiveFeature
                     $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
-                    $previous = Get-FilesInChange $lastFeatureChange | Select-Object -ExpandProperty path
-                    $files = Invoke-Perforce reconcile -m -c $cl $previous | Where-Object data -eq $null
 
-                    p4 shelve -f -c $cl | Out-Null
-                    p4 revert -k -c $cl //... | Out-Null
+                    if ($null -eq $lastFeatureChange) {
+                        p4 shelve -f -c $cl | Out-Null
+                        p4 revert -k -c $cl //... | Out-Null
+                    }
+                    else {
+                        $previous = Get-FilesInChange $lastFeatureChange | Select-Object -ExpandProperty path
+                        $files = Invoke-Perforce reconcile -m -c $cl $previous | Where-Object data -eq $null
 
-                    # todo: should Add-PitFeatureChange just always use the current feature?
-                    $feat = Get-PitActiveFeature
-                    Add-PitFeatureChange -Name $feat -Change $cl
-                    
-                    Write-Host "[$feat $cl] $message"
+                        p4 shelve -f -c $cl | Out-Null
+                        p4 revert -k -c $cl //... | Out-Null
+
+                        # todo: should Add-PitFeatureChange just always use the current feature?
+                        Add-PitFeatureChange -Name $feature -Change $cl
+                    }
+
+                    Write-Host "[$feature $cl] $message"
                     #Write-Host " $countChanged file(s) changed..."
                     $swarm = Invoke-Perforce property -l -n P4.Swarm.CommitURL | Select-Object -ExpandProperty value
                     Write-Host "Start a review: $swarm$cl"
@@ -971,33 +1008,34 @@ function Invoke-Pit {
             "unstage" {
                 p4 revert -k -c default ${__Remaining__} | Out-Null
             }
-            "update" { 
-                Write-Host "Gathering Changelists to sync..."
-
-                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
-                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
-                [string[]]$changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
-                    Select-Object -ExpandProperty change -SkipLast 1 | Sort-Object
-                $count = $changes.Length
+            "update" {
+                Write-Host "Gathering files to sync..."
+                $files = Invoke-Perforce sync -n | Where-Object data -eq $null
+                $count = $files | Measure-Object | Select-Object -ExpandProperty count
 
                 if ($count -eq 0) {
                     Write-Host "Already up to date."
                 }
                 else {
-                    Write-Host ("Updating {0}..{1}" -f $changes[0], $changes[-1])
+                    Write-Host "Syncing $count files..."
 
                     for ($i = 1; $i -le $count; $i++) { 
-                        $change = $changes[$i-1]
+                        $file = $files[$i-1]
                         $percent = ($i/$count) * 100
                         
-                        # Write-Host $percent
-                        Write-Progress -Activity "Updating" -Status "Syncing $change..." -PercentComplete $percent
+                        Write-Progress -Activity "Updating" -Status "Syncing ($i/$count) files..." -PercentComplete $percent
 
-                        Invoke-Perforce sync "//...@$change" | Select-Object action, `
-                             @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
-                             # Out-Host -Paging
-                             Out-Null
+                        # WTF Perforce? What the actual...
+                        $rev = ($file.action -eq "deleted") ? $file.rev + 1 : $file.rev
+
+                        $f = "{0}#{1}" -f $file.depotFile, $rev
+                        p4 sync $f | Out-Null
                     }
+
+                    $add = $files | Where-Object action -eq "added" | Measure-Object | Select-Object -ExpandProperty count
+                    $delete = $files | Where-Object action -eq "deleted" | Measure-Object | Select-Object -ExpandProperty count
+                    $edit = $files | Where-Object action -eq "updated" | Measure-Object | Select-Object -ExpandProperty count
+                    Write-Host "$edit edits, $add adds, and $delete deletes"
                 }
             }
             default {
