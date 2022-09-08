@@ -118,22 +118,50 @@ function Set-PitActiveFeature {
             Write-Warning "Feature $Name is already the active feature."
         }
         else {
-            # Todo: Todo: this command should only abort when data loss would occur.
-<#
+            # Todo: this command should only abort when data loss would occur.
             # Todo: find-unopened should run on the whole depot, or some well known root. However, I do not
             # want to hard-code that root in this file. Might need some kind of pit config file that sets up
             # sub-workspaces for large monorepos, where p4 rec //... is really expensive
-            $unopened = Find-UnopenFiles "..."
-            # Todo: also need to check for opened files
-            if ($null -ne $unopened) {
-                Write-Error "There are unopened changes in your workspace. Submit or stash.`n"
-                Write-Modifications $unopened
+
+            $opened = Invoke-Perforce opened
+            $openedDelta = $opened | Select-DiffersFromDepot
+            $openChanged = $openedDelta | Measure-Object | Select-Object -ExpandProperty count
+
+            if ($openChanged -gt 0) {
+                Write-Host -ForegroundColor Red "Your workspace has modified files, submit or revert`n"
+                Write-Modifications -Indent $openedDelta
+                return
+            }
+
+            $lastFeatureChange = Get-PitFeatureChanges $active | Select-Object -Last 1
+            $unopened = Find-UnopenFiles ... 
+        
+            if ($null -ne $lastFeatureChange) {
+                # Todo: reuse $unopened here
+                $unopenedDelta = Find-DeltaToShelve $lastFeatureChange
             }
             else {
-                Set-Content -Path $activeFeatureFile -Value $Name
+                $unopenedDelta = $unopened | Select-DiffersFromDepot
             }
-#>
-            Set-Content -Path (Get-PitActiveFeatureFile) -Value $Name
+
+            $unopenChanged = $unopenedDelta | Measure-Object | Select-Object -ExpandProperty count
+
+            if ($unopenChanged -gt 0) {
+                Write-Host -ForegroundColor Red "Your workspace has modified files, submit or revert`n"
+                Write-Modifications -Indent $unopenedDelta
+                return
+            }
+
+            Write-Warning "Dry run. Following files would be reverted...`n"
+            # Revert opened
+            # ($opened | Select-Object -ExpandProperty depotFile) | p4 -x- revert -w -n
+            Write-Modifications -Indent $opened
+            # Invoke-Perforce revert
+            # Revert unopened
+            # ($unopened | Select-Object -ExpandProperty depotFile) | p4 -x- revert -w -n
+            Write-Modifications -Indent $unopened
+
+            # Set-Content -Path (Get-PitActiveFeatureFile) -Value $Name
         }
     }
 }
@@ -526,6 +554,34 @@ function Compare-WorkspaceToPrevious {
     }
 }
 
+function Find-DeltaToShelve {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Change
+    )
+
+    process {
+        # Todo: check more than CWD
+        $unopened = Find-UnopenFiles "..." 
+        $previous = Get-FilesInChange $Change
+
+        foreach ($file in $unopened) {
+            $exists = $null -ne ($previous | Where-Object path -eq $file.path)
+            if (-not $exists) { 
+                Write-Output $file
+            }
+            else {
+                $local = Copy-ShelveToTemp $lastFeatureChange $file.path
+                $equal = Compare-Files $file.path $local
+                if (-not $equal) {
+                    Write-Output $file
+                }
+            }
+        }
+    }
+}
+
 function Compare-UnopenedToShelve {
     [CmdletBinding()]
     param (
@@ -540,11 +596,48 @@ function Compare-UnopenedToShelve {
 
         foreach ($file in $unopened) {
             $exists = $null -ne ($previous | Where-Object path -eq $file.path)
-            if ($exists) { 
+            if (-not $exists) { 
+                # Todo: diff against null
+            }
+            else {
                 $local = Copy-ShelveToTemp $lastFeatureChange $file.path
                 $equal = Compare-Files $file.path $local
                 if (-not $equal) {
                     git diff --no-index $local $file.path
+                }
+            }
+        }
+    }
+}
+
+function Select-DiffersFromDepot {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true)]
+        [pscustomobject[]]$File
+    )
+
+    process {
+        foreach ($file in $Files) {
+            if ($file.action -eq "add" -or $file.action -eq "delete") {
+                Write-Output $file
+            }
+            elseif ($file.action -eq "edit") {
+                $tmp = Join-Path $env:temp pit
+                if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
+
+                # todo: deal with the possiblity that there are multiple files of the same name,
+                # but in different directories, within the same changelist
+                $diffTemp = Join-Path $tmp "edit"
+                if (-not (Test-Path $diffTemp)) { mkdir $diffTemp | Out-Null }
+
+                $leaf = Split-Path $file.path -leaf
+                $depot = Join-Path $diffTemp $leaf
+                p4 print -o $depot "$($file.path)#have" | Out-Null
+
+                $equal = Compare-Files $depot $file.path
+                if (-not $equal) {
+                    Write-Output $file
                 }
             }
         }
@@ -616,6 +709,8 @@ function Compare-UnopenedToDepot {
 # Todo: pit diff --staged
 # Todo: pit switch that unshelves from other feature and aborts on data loss
 # Todo: implement no-allwrite workflow
+# Todo: decide if workflow ends at review or not
+#   - If not, figure out how to work with updates
 # Todo: Final submit
 #   - submit head cl
 #   - revert all files to main/depot? How git-like should this workflow be?
@@ -623,6 +718,8 @@ function Compare-UnopenedToDepot {
 #       a state that doesn't reflect any sequence of changelists
 #   - delete feature branch? or is that a manual step?
 #       - delete shelved files
+# Todo: Support creating review and adding reviewers?
+#   - Use swarm api or changelist comments?
 # Todo: Move PIT_CONFIG directory to %APPDATA%
 # Todo: Move feature tracking into a json file instead of file-based
 # Todo: Add the concept of being on "main" (called "depot"?)
@@ -887,24 +984,7 @@ function Invoke-Pit {
 
                 $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
                 if ($null -ne $lastFeatureChange) {
-                    $previous = Get-FilesInChange $lastFeatureChange
-
-                    $unopened = Find-UnopenFiles "..." 
-
-                    $changes = @()
-                    foreach ($file in $unopened) {
-                        $exists = $null -ne ($previous | Where-Object path -eq $file.path)
-                        if (-not $exists) { 
-                            $changes += $file 
-                        }
-                        else {
-                            $local = Copy-ShelveToTemp $lastFeatureChange $file.path
-                            $equal = Compare-Files $file.path $local
-                            if (-not $equal) {
-                                $changes += $file 
-                            }
-                        }
-                    }
+                    $changes = Find-DeltaToShelve $lastFeatureChange
 
                     $countChanged = $changes | Measure-Object | Select-Object -ExpandProperty count
 
