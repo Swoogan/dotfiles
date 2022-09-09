@@ -45,34 +45,16 @@ function Add-PitFeature {
     process {
         if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
 
-        if ($Switch) {
-            # Todo: find-unopened should run on the whole depot, or some well known root. However, I do not
-            # want to hard-code that root in this file. Might need some kind of pit config file that sets up
-            # sub-workspaces for large monorepos, where p4 rec //... is really expensive
-            $unopened = Find-UnopenFiles "..."
-            if ($null -ne $unopened) {
-                Write-Error "There are unopened changes in your workspace. Submit or stash.`n"
-                Write-Modifications $unopened
-            }
-            else {
-                $path = Join-Path $PIT_CONFIG "$Name.feat"
-                if (Test-Path $path) {
-                    Write-Error "Feature $Name already exists.`n"
-                }
-                else {
-                    New-Item -Path $path
-                }
-                Set-Content -Path (Get-PitActiveFeatureFile) -Value $Name
-            }
+        $path = Join-Path $PIT_CONFIG "$Name.feat"
+        if (Test-Path $path) {
+            Write-Error "Feature $Name already exists.`n"
         }
         else {
-            $path = Join-Path $PIT_CONFIG "$Name.feat"
-            if (Test-Path $path) {
-                Write-Error "Feature $Name already exists.`n"
-            }
-            else {
-                New-Item -Path $path
-            }
+            New-Item -Path $path
+        }
+
+        if ($Switch) {
+            Set-PitActiveFeature $Name
         }
     }
 }
