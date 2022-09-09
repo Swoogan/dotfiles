@@ -153,15 +153,17 @@ function Set-PitActiveFeature {
             }
 
             Write-Warning "Dry run. Following files would be reverted...`n"
-            # Revert opened
-            # ($opened | Select-Object -ExpandProperty depotFile) | p4 -x- revert -w -n
-            Write-Modifications -Indent $opened
-            # Invoke-Perforce revert
-            # Revert unopened
-            # ($unopened | Select-Object -ExpandProperty depotFile) | p4 -x- revert -w -n
-            Write-Modifications -Indent $unopened
+            ($opened | Select-Object -ExpandProperty depotFile) | p4 -x- revert -w -n
+            ($unopened | Select-Object -ExpandProperty path) | p4 -x- revert -w -n
 
-            # Set-Content -Path (Get-PitActiveFeatureFile) -Value $Name
+            $confirm = Read-Host "`nWould you like to proceed? (yes/no)"
+            if ($confirm -ieq "yes") {
+                Set-Content -Path (Get-PitActiveFeatureFile) -Value $Name
+                # Revert opened
+                ($opened | Select-Object -ExpandProperty depotFile) | p4 -x- revert -w
+                # Revert unopened
+                ($unopened | Select-Object -ExpandProperty path) | p4 -x- revert -w
+            }
         }
     }
 }
