@@ -761,6 +761,73 @@ function Invoke-Pit {
         $isAllWrite = $options -match "allwrite"
 
         switch (${__Command__}) {
+            "checkpoint" {
+                # $isAllWrite = $false
+
+                if ($isAllWrite) {
+                    # $feature = Get-PitActiveFeature
+                    # $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
+                    #
+                    # if ($null -eq $lastFeatureChange) {
+                    #     p4 shelve -f -c $cl | Out-Null
+                    #     p4 revert -k -c $cl //... | Out-Null
+                    # }
+                    # else {
+                    #     $previous = Get-FilesInChange $lastFeatureChange | Select-Object -ExpandProperty path
+                    #     $files = Invoke-Perforce reconcile -m -c $cl $previous | Where-Object data -eq $null
+                    #
+                    #     p4 shelve -f -c $cl | Out-Null
+                    #     p4 revert -k -c $cl //... | Out-Null
+                    #
+                    # }
+
+                    # Todo: check against previous to see if any have changed, and use that 
+                    # as the count, not just that there are unopened files
+                    $unopened = Find-UnopenFiles ...
+                    $count = $unopened | Measure-Object | Select-Object -ExpandProperty count
+
+                    if ($count -eq 0) {
+                        # Note: git just does a git status and exits
+                        Write-Host "nothing to submit, workspace clean"
+                        return
+                    }
+                    else {
+                        $files = Invoke-Perforce reconcile -m ... | Where-Object data -eq $null
+                    }
+                }
+                else {
+                    $opened = Get-FilesInChange default
+                    $count = $opened | Measure-Object | Select-Object -ExpandProperty count
+
+                    if ($count -eq 0) {
+                        # Note: git just does a git status and exits
+                        Write-Host "nothing to submit, default changelist empty"
+                        return
+                    }
+                }
+
+                $message = ${__Remaining__}[0]
+                $cl = New-Changelist -Reopen $message
+
+                p4 reopen -c $cl ...
+                p4 shelve -f -c $cl | Out-Null
+                p4 revert -k -c $cl //... | Out-Null
+
+                # todo: should Add-PitFeatureChange just always use the current feature?
+                Add-PitFeatureChange -Name $feature -Change $cl
+
+                Write-Host "[$feature $cl] $message"
+                #Todo: Write-Host " $countChanged file(s) changed..."
+                $swarm = Invoke-Perforce property -l -n P4.Swarm.CommitURL | Select-Object -ExpandProperty value
+                Write-Host "Start a review: $swarm$cl"
+
+                if ($isAllWrite) {
+                    p4 revert -k -c $cl //... | Out-Null
+                }
+                else {
+                    p4 reopen -c default ...
+                }
+            }
             "clsync" { # Changelist-based syncing. Seems to be really slow (Perforce seems to have a 6 sec overhead for each cl)
 
                 Write-Host "Gathering Changelists to sync..."
@@ -995,63 +1062,10 @@ function Invoke-Pit {
                 }
 
             }
-            "checkpoint" {
-                $isAllWrite = $false
-
-                if ($isAllWrite) {
-                    # $feature = Get-PitActiveFeature
-                    # $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
-                    #
-                    # if ($null -eq $lastFeatureChange) {
-                    #     p4 shelve -f -c $cl | Out-Null
-                    #     p4 revert -k -c $cl //... | Out-Null
-                    # }
-                    # else {
-                    #     $previous = Get-FilesInChange $lastFeatureChange | Select-Object -ExpandProperty path
-                    #     $files = Invoke-Perforce reconcile -m -c $cl $previous | Where-Object data -eq $null
-                    #
-                    #     p4 shelve -f -c $cl | Out-Null
-                    #     p4 revert -k -c $cl //... | Out-Null
-                    #
-                    # }
-
-                    # Todo: check against previous to see if any have changed, and use that 
-                    # as the count, not just that there are unopened files
-                    $unopened = Find-UnopenFiles ...
-                    $count = $unopened | Measure-Object | Select-Object -ExpandProperty count
-
-                    if ($count -eq 0) {
-                        # Note: git just does a git status and exits
-                        Write-Host "nothing to submit, workspace clean"
-                        return
-                    }
-                    else {
-                        $files = Invoke-Perforce reconcile -m ... | Where-Object data -eq $null
-                    }
-                }
-                else {
-                    $opened = Get-FilesInChange default
-                    $count = $opened | Measure-Object | Select-Object -ExpandProperty count
-
-                    if ($count -eq 0) {
-                        # Note: git just does a git status and exits
-                        Write-Host "nothing to submit, default changelist empty"
-                        return
-                    }
-                }
-
-                $message = ${__Remaining__}[0]
-                $cl = New-Changelist -Reopen $message
-                
-                p4 shelve -f -c $cl | Out-Null
-                p4 revert -k -c $cl //... | Out-Null
-                # todo: should Add-PitFeatureChange just always use the current feature?
-                Add-PitFeatureChange -Name $feature -Change $cl
-
-                Write-Host "[$feature $cl] $message"
-                #Todo: Write-Host " $countChanged file(s) changed..."
-                $swarm = Invoke-Perforce property -l -n P4.Swarm.CommitURL | Select-Object -ExpandProperty value
-                Write-Host "Start a review: $swarm$cl"
+            "submit" {
+                $feature = Get-PitActiveFeature
+                $cl = Get-PitFeatureChanges $feature | Select-Object -Last 1
+                p4 submit -c $cl
             }
             "switch" {
                 Set-PitActiveFeature ${__Remaining__}
@@ -1087,6 +1101,52 @@ function Invoke-Pit {
                     $delete = $files | Where-Object action -eq "deleted" | Measure-Object | Select-Object -ExpandProperty count
                     $edit = $files | Where-Object action -eq "updated" | Measure-Object | Select-Object -ExpandProperty count
                     Write-Host "$edit edits, $add adds, and $delete deletes"
+                }
+            }
+            "update-review" { # Todo: think of a better name for this
+                if ($isAllWrite) {
+                    # Todo: check against previous to see if any have changed, and use that 
+                    # as the count, not just that there are unopened files
+                    $unopened = Find-UnopenFiles ...
+                    $count = $unopened | Measure-Object | Select-Object -ExpandProperty count
+
+                    if ($count -eq 0) {
+                        # Note: git just does a git status and exits
+                        Write-Host "nothing to shelve, workspace clean"
+                        return
+                    }
+                    else {
+                        # Invoke-Perforce reconcile -m ... | Where-Object data -eq $null
+                        Invoke-Perforce reconcile -m ... | Out-Null
+                    }
+                }
+                else {
+                    $opened = Get-FilesInChange default
+                    $count = $opened | Measure-Object | Select-Object -ExpandProperty count
+
+                    if ($count -eq 0) {
+                        # Note: git just does a git status and exits
+                        Write-Host "nothing to submit, default changelist empty"
+                        return
+                    }
+                }
+
+                $feature = Get-PitActiveFeature
+                $cl = Get-PitFeatureChanges $feature | Select-Object -Last 1
+                
+                p4 reopen -c $cl ...
+                p4 shelve -f -c $cl | Out-Null
+                # todo: should Add-PitFeatureChange just always use the current feature?
+                Add-PitFeatureChange -Name $feature -Change $cl
+
+                Write-Host "[$feature $cl] updated"
+                #Todo: Write-Host " $countChanged file(s) changed..."
+
+                if ($isAllWrite) {
+                    p4 revert -k -c $cl //... | Out-Null
+                }
+                else {
+                    p4 reopen -c default ... | Out-Null
                 }
             }
             default {
