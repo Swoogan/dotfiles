@@ -110,7 +110,7 @@ function Set-PitActiveFeature {
             $openChanged = $openedDelta | Measure-Object | Select-Object -ExpandProperty count
 
             if ($openChanged -gt 0) {
-                Write-Host -ForegroundColor Red "Your workspace has modified files, submit or revert`n"
+                Write-Host -ForegroundColor Red "Your workspace has modified files, submit, checkpoint or revert`n"
                 Write-Modifications -Indent $openedDelta
                 return
             }
@@ -129,7 +129,7 @@ function Set-PitActiveFeature {
             $unopenChanged = $unopenedDelta | Measure-Object | Select-Object -ExpandProperty count
 
             if ($unopenChanged -gt 0) {
-                Write-Host -ForegroundColor Red "Your workspace has modified files, submit or revert`n"
+                Write-Host -ForegroundColor Red "Your workspace has modified files, submit, checkpoint or revert`n"
                 Write-Modifications -Indent $unopenedDelta
                 return
             }
@@ -959,7 +959,7 @@ function Invoke-Pit {
                         $countChanged = $changes | Measure-Object | Select-Object -ExpandProperty count
 
                         if ($countChanged -gt 0) {
-                            Write-Host "Changes to be check-pointed or submitted:"
+                            Write-Host "Changes to submit, checkpoint or revert:"
                             Write-Host "  (use `"pit revert <file>...`" to discard changes in workspace)"
                             Write-Modifications -Indent -Files $changes
                         }
@@ -972,7 +972,7 @@ function Invoke-Pit {
                         $countUnopened = $unopened | Measure-Object | Select-Object -ExpandProperty count
 
                         if ($countUnopened -gt 0) {
-                            Write-Host "Changes to be check-pointed or submitted:"
+                            Write-Host "Changes to submit, checkpoint or revert:"
                             Write-Host "  (use `"pit revert <file>...`" to discard changes in workspace)"
                             Write-Modifications -Indent -Files $unopened
                         }
@@ -985,7 +985,7 @@ function Invoke-Pit {
                     $opened = Get-FilesInChange default
                     $countOpened = $opened | Measure-Object | Select-Object -ExpandProperty count
                     if ($countOpened -gt 0) {
-                        Write-Host "Changes to be check-pointed or submitted:"
+                        Write-Host "Changes to submit, checkpoint or revert:"
                         Write-Host "  (use `"pit revert <file>...`" to discard changes in workspace)"
                         Write-Modifications -Indent -Files $opened
                     }
@@ -995,7 +995,7 @@ function Invoke-Pit {
                 }
 
             }
-            "submit" {
+            "checkpoint" {
                 $isAllWrite = $false
 
                 if ($isAllWrite) {
