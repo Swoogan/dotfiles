@@ -1065,7 +1065,20 @@ function Invoke-Pit {
             "submit" {
                 $feature = Get-PitActiveFeature
                 $cl = Get-PitFeatureChanges $feature | Select-Object -Last 1
+
+                # Note: if we just want to submit the shelve:
+                #p4 submit -e $cl
+
+                p4 unshelve -s $cl -c $cl | Out-Null
+                p4 shelve -d -c $cl | Out-Null
                 p4 submit -c $cl
+
+                # NOTE: At this point the `Get-PitFeatureChanges` data is wrong. The last changelist is gone.
+                # I think that we should add a separate changelist just for reviewing, or remove the feature 
+                # after submitting. It doesn't really make sense to come back to a feature after it's subitted.
+
+                # delete the feature?
+                # Remove-PitFeature
             }
             "switch" {
                 Set-PitActiveFeature ${__Remaining__}
@@ -1103,7 +1116,7 @@ function Invoke-Pit {
                     Write-Host "$edit edits, $add adds, and $delete deletes"
                 }
             }
-            "update-review" { # Todo: think of a better name for this
+            "update-review" { # Todo: think of a better name for this (rerev?)
                 if ($isAllWrite) {
                     # Todo: check against previous to see if any have changed, and use that 
                     # as the count, not just that there are unopened files
