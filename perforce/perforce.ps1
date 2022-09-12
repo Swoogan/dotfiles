@@ -1053,27 +1053,6 @@ function Invoke-Pit {
                 $swarm = Invoke-Perforce property -l -n P4.Swarm.CommitURL | Select-Object -ExpandProperty value
                 Write-Host "Start a review: $swarm$cl"
             }
-            "su" { # simple update (aka old/original update, aka deprecated)
-                Write-Host "Gathering Changelists to sync..."
-
-                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
-                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
-                #$changes = p4 -ztag -Mj changes -e $latest -s submitted "@$client" | ConvertFrom-Json | `
-                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
-                    Select-Object -ExpandProperty change -SkipLast 1 | Sort-Object
-                $count = $changes | Measure-Object | Select-Object -ExpandProperty count
-
-                if ($count -eq 0) {
-                    # Note: this short circuit makes no-ops faster, but everything else slower
-                    Write-Host "Already up to date."
-                }
-                else {
-                    Write-Host ("Updating {0}..{1}" -f $changes[0], $changes[-1])
-                    Invoke-Perforce update | Select-Object action, `
-                        @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
-                        Out-Host -Paging
-                }
-            }
             "switch" {
                 Set-PitActiveFeature ${__Remaining__}
             }
