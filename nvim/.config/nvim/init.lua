@@ -71,6 +71,9 @@ local opts = { noremap = true, silent = true }
 -- not sure why I do this?
 vim.keymap.set('', '<Space>', '<Nop>', opts)
 
+-- map gp to re-select the thing you just pasted
+vim.keymap.set('n', 'gp', '`[v`]', opts)
+
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 
