@@ -17,7 +17,7 @@ M.spec = {
   { "nvim-treesitter/nvim-treesitter-textobjects" }, -- Additional textobjects for treesitter
   -- { "nvim-treesitter/playground" },
 
-  -- { "Hoffs/omnisharp-extended-lsp.nvim" },
+  { "Hoffs/omnisharp-extended-lsp.nvim" },
   -- { "theHamsta/nvim-dap-virtual-text" },
   -- { "mfussenegger/nvim-dap" },
 

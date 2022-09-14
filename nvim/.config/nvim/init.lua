@@ -4,7 +4,7 @@ plugins.load() -- Load packer with the packer spec
 
 require('config.plugins').setup()
 require('config.lang').setup()
-require('config.debuggers').setup()
+-- require('config.debuggers').setup()
 require('config.snippets').setup()
 
 -- *** CONFIG *** --
@@ -110,13 +110,14 @@ vim.keymap.set('n', '<leader>bd', '<cmd>bd<CR>', opts)
 vim.keymap.set('n', '<leader>bq', '<cmd>b#|bd#<CR>', opts)
 
 -- dap hotkeys
-vim.keymap.set('n', '<leader>db', require('dap').toggle_breakpoint, opts)
-vim.keymap.set('n', '<leader>dc', require('dap').continue, opts)
-vim.keymap.set('n', '<leader>do', require('dap').step_over, opts)
-vim.keymap.set('n', '<leader>di', require('dap').step_into, opts)
-vim.keymap.set('n', '<leader>ds', require('dap').close, opts)
-vim.keymap.set('n', '<leader>dro', require('dap').repl.open, opts)
-vim.keymap.set('n', '<leader>drc', require('dap').repl.close, opts)
+-- local dap = require('dap')
+-- vim.keymap.set('n', '<leader>db', dap.toggle_breakpoint, opts)
+-- vim.keymap.set('n', '<leader>dc', dap.continue, opts)
+-- vim.keymap.set('n', '<leader>do', dap.step_over, opts)
+-- vim.keymap.set('n', '<leader>di', dap.step_into, opts)
+-- vim.keymap.set('n', '<leader>ds', dap.close, opts)
+-- vim.keymap.set('n', '<leader>dro', dap.repl.open, opts)
+-- vim.keymap.set('n', '<leader>drc', dap.repl.close, opts)
 
 -- quickfix hotkeys
 vim.keymap.set('n', '<leader>qc', '<cmd>cclose<CR>', opts)
