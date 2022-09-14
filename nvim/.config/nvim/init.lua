@@ -233,6 +233,11 @@ vim.api.nvim_create_autocmd("FileType", {
     callback = function() vim.cmd([[setlocal shiftwidth=2 softtabstop=2 expandtab]]) end,
 })
 
+vim.api.nvim_create_autocmd("TermClose", {
+    pattern = "*",
+    callback = function() vim.cmd([[if !v:event.status | exe 'bdelete! '..expand('<abuf>') | endif]]) end,
+})
+
 -- *** MISCELLANEOUS *** --
 
 local is_windows = vim.loop.os_uname().sysname == "Windows_NT"
