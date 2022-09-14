@@ -15,11 +15,11 @@ M.spec = {
   { "neovim/nvim-lspconfig" }, -- Easy configuration of LSP
   { "nvim-treesitter/nvim-treesitter", run = ":TSUpdate" }, -- incremental language parser
   { "nvim-treesitter/nvim-treesitter-textobjects" }, -- Additional textobjects for treesitter
-  { "nvim-treesitter/playground" },
+  -- { "nvim-treesitter/playground" },
 
-  { "Hoffs/omnisharp-extended-lsp.nvim" },
-  { "theHamsta/nvim-dap-virtual-text" },
-  { "mfussenegger/nvim-dap" },
+  -- { "Hoffs/omnisharp-extended-lsp.nvim" },
+  -- { "theHamsta/nvim-dap-virtual-text" },
+  -- { "mfussenegger/nvim-dap" },
 
   { "hrsh7th/cmp-nvim-lsp" },
   { "hrsh7th/cmp-buffer" },
@@ -28,7 +28,7 @@ M.spec = {
   { "hrsh7th/nvim-cmp" }, -- Autocomplete
 
   { "nvim-telescope/telescope.nvim", requires = { "nvim-lua/plenary.nvim" } }, -- Fuzzy finder
-  { "prettier/vim-prettier" }, -- Run prettier formatting for javascript/typescript
+  -- { "prettier/vim-prettier" }, -- Run prettier formatting for javascript/typescript
   {
     "kyazdani42/nvim-tree.lua",
     requires = { "kyazdani42/nvim-web-devicons" },
@@ -50,11 +50,11 @@ M.spec = {
   { "nvim-lualine/lualine.nvim" }, -- Fancier statusline
 
   --  'tpope/vim-unimpaired'
-  { "tpope/vim-dispatch" }, -- Async task runner
+  -- { "tpope/vim-dispatch" }, -- Async task runner
   { "L3MON4D3/LuaSnip" }, -- Snippets plugin
   { "saadparwaiz1/cmp_luasnip" }, -- luasnip to nvim-cmp integration
   { "rafamadriz/friendly-snippets" }, -- Premade snippets
-  { "AndrewRadev/tagalong.vim" },
+  -- { "AndrewRadev/tagalong.vim" },
 }
 
 function M.init()
