@@ -279,7 +279,7 @@ function Copy-ShelveToTemp {
 function Remove-Shelf {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true, Position=0)]
+        [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true)]
         [int]$Change
     )
 
@@ -348,12 +348,15 @@ function Find-UnopenFiles {
 
 function Find-OpenFiles {
     [CmdletBinding()]
-    param ()
+    param (
+        [Parameter(Mandatory=$false, Position=0)]
+        [string]$Path
+    )
 
     $state = @{name="state"; expression={"op"}}
     $outPath = @{name="path"; expression={$_.clientFile}}
 
-    Invoke-Perforce opened | `
+    Invoke-Perforce opened $Path | `
         Where-Object data -eq $null | `
         Select-Object $outPath, $state, action
 }
@@ -484,7 +487,7 @@ function Compare-WorkspaceToPrevious {
     param (
         [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true)]
         # Todo: make this a class
-        [object[]]$File
+        [pscustomobject[]]$File
     )
 
     begin {
@@ -869,21 +872,43 @@ function Invoke-Pit {
                 Write-Modifications $desc.Files
             }
             "diff" {
-                if ($null -eq ${__Remaining__}) {
-                    Find-UnopenFiles ... | Compare-WorkspaceToPrevious
+                $isAllWrite = $false
+
+                if ($isAllWrite) {
+                    if ($null -eq ${__Remaining__}) {
+                        Find-UnopenFiles ... | Compare-WorkspaceToPrevious
+                    }
+                    else {
+                        $files = ${__Remaining__}
+
+                        $changed = @()
+                        foreach ($f in $files) {
+                            # Todo: handle errors
+                            $fullPath = Invoke-Perforce where $f | Select-Object -ExpandProperty path
+                            $delta = Find-UnopenFiles $fullPath
+                            if ($delta) { $changed += $delta }
+                        }
+
+                        $changed | Compare-WorkspaceToPrevious
+                    }
                 }
                 else {
-                    $files = ${__Remaining__}
-
-                    $changed = @()
-                    foreach ($f in $files) {
-                        # Todo: handle errors
-                        $fullPath = Invoke-Perforce where $f | Select-Object -ExpandProperty path
-                        $delta = Find-UnopenFiles $fullPath
-                        if ($delta) { $changed += $delta }
+                    if ($null -eq ${__Remaining__}) {
+                        Find-OpenFiles | Compare-WorkspaceToPrevious
                     }
+                    else {
+                        $files = ${__Remaining__}
 
-                    $changed | Compare-WorkspaceToPrevious
+                        $changed = @()
+                        foreach ($f in $files) {
+                            # Todo: handle errors
+                            $fullPath = Invoke-Perforce where $f | Select-Object -ExpandProperty path
+                            $delta = Find-OpenFiles $fullPath
+                            if ($delta) { $changed += $delta }
+                        }
+
+                        $changed | Compare-WorkspaceToPrevious
+                    }
                 }
             }
             "feat" {
