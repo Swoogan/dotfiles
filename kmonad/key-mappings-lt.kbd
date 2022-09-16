@@ -29,6 +29,16 @@
                                                  left down rght
 )
 
+;; common
+(defalias
+    shi (tap-next (layer-next shift) (layer-toggle shift))
+
+    nav (tap-hold-next-release 200 esc (layer-toggle numnav))
+    num (tap-hold-next-release 200 bspc (layer-toggle numnav))
+    sym (tap-hold-next-release 200 spc (layer-toggle symbols))
+)
+
+;; colemak
 (defalias
     alr (tap-hold-next-release 210 r lalt)
     cts (tap-hold-next-release 180 s lctl)
@@ -39,22 +49,14 @@
     ali (tap-hold-next-release 210 i lalt)
 
     qrt (tap-hold-next-release 500 F1 (layer-switch qwerty))
-
-    lpg (tap-hold-next-release 200 f (layer-toggle symbols))
-    rpg (tap-hold-next-release 200 u (layer-toggle symbols))
-    shi (tap-next (layer-next shift) (layer-toggle shift))
-
-    nav (tap-hold-next-release 200 esc (layer-toggle navigation))
-    num (tap-hold-next-release 200 bspc (layer-toggle number))
-    sym (tap-hold-next-release 200 spc (layer-toggle symbols))
 )
 
 (deflayer colemak
     _    @qrt _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     caps _    _    _    _    _    _    _    _    _    _    _    _    _  
-    _    q    w    @lpg p    g    j    l    @rpg y    ;    _    _    _ 
-    @nav a    @alr @cts @sft d    h    @sfn @cte @ali o    ent  _
-    @shi z    x    c    v    b    k    m    _    _    '    @shi  
+    _    q    w    f    p    g    j    l    u    y    ;    ent  _    _ 
+    @shi a    @alr @cts @sft d    h    @sfn @cte @ali o    @shi _
+    _    z    x    c    v    b    k    m    _    _    '    _
     _    _    @nav      @sym           @num _    _    _    _
                                                  _    _    _
 )
@@ -69,66 +71,45 @@
     all (tap-hold-next-release 200 l lalt)
 
     col (tap-hold-next-release 500 F1 (layer-switch colemak))
-
-    low (tap-hold-next-release 200 esc (layer-toggle navigation))
-    ras (tap-hold-next-release 200 bspc (layer-toggle number))
-    lqp (tap-hold-next-release 200 e (layer-toggle symbols))
-    rqp (tap-hold-next-release 200 i (layer-toggle symbols))
 )
 
 
 (deflayer qwerty
     _    @col _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
-    caps _    _    _    _    _    _    _    _    _    _    _    _    XX 
-    _    q    w    @lqp r    t    y    u    @rqp o    p    XX   XX   XX
-    @nav a    @als @ctd @sff g    h    @sfj @ctk @all ;    ent  XX
-    del  z    x    c    v    b    n    m    _    _    _    _ 
-    _    _    @low           _         @ras _    _    _    _ 
+    caps _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    q    w    e    r    t    y    u    i    o    p    _    _    _ 
+    esc  a    @als @ctd @sff g    h    @sfj @ctk @all ;    ent  XX
+    @shi z    x    c    v    b    n    m    _    _    _    @shi
+    _    _    @nav           _         @num _    _    _    _ 
                                        _    _    _ 
-)
-
-(defalias
-    alf A-left
-    arg A-rght
 )
 
 (deflayer shift
     _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    _  
-    _    Q    W    F    P    G    J    L    U    Y    ;    _    _    _ 
+    _    Q    W    F    P    G    J    L    U    Y    %    _    _    _ 
     _    A    R    S    T    D    H    N    E    I    O    _    _
     _    Z    X    C    V    B    K    M    !    ?    "    _  
     _    _    _         _              del  _    _    _    _
                                                  _    _    _
 )
 
-(deflayer navigation
-    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
-    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
-    _    _    _    @alf @arg _    pgup home up   end  _    _    _    _
-    _    C-a  lalt lctl lsft _    pgdn left down rght _    _    _
-    _    C-z  C-x  C-c  C-v  _    _    _    _    _    _    _
-    _    _    _              _         _    _    _    _    _   
-                                                 _    _    _
-)
-
-(deflayer number
+(deflayer numnav
     _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12  _
-    _    ä    ö    ü    _    _    _    7    8    9    _    _    _    _ 
-    _    _    _    _    _    _    _    1    0    2    3    _    _ 
-    _    _    _    _    _    _    _    4    5    6    _    _ 
-    _    _    _              _         _    _    _    _    _ 
+    _    *    7    8    9    =    pgup home up   end  _    _    _    _
+    _    +    4    5    6    0    pgdn left down rght _    _    _
+    _    -    3    2    1    /    _    _    _    _    _    _
+    _    _    _              _         _    _    _    _    _   
                                                  _    _    _
 )
 
 (deflayer symbols
     _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
-    _    _    @    ^    $    _    _    #    *    !    _    _    _    _ 
-    _    +    =    \(   \)   |    \\   {    }    "    :    _    _ 
-    _    _    ~    S--  %    _    &    `    [    ]    _    _ 
-    _    _    '              _         -    _    _    _    _ 
+    _    _    @    ^    $    `    _    #    *    &    _    _    _    _ 
+    _    |    S--  \(   \)   /    \\   {    }    -    :    _    _ 
+    _    _    ~    <    >    _    _    [    ]    +    =    _ 
+    _    _    _              _         _    _    _    _    _ 
                                                  _    _    _
 )
-
