@@ -31,6 +31,7 @@
 
 ;; common
 (defalias
+    ;; shi (tap-hold 200 (layer-next shift) (layer-toggle shift))
     shi (tap-next (layer-next shift) (layer-toggle shift))
 
     nav (tap-hold-next-release 200 esc (layer-toggle numnav))
@@ -42,9 +43,11 @@
 (defalias
     alr (tap-hold-next-release 210 r lalt)
     cts (tap-hold-next-release 180 s lctl)
-    sft (tap-hold-next-release 400 t lsft)
+    ;; sft (tap-hold-next-release 1200 t lsft)
+    sft (tap-hold 800 t lsft)
 
-    sfn (tap-hold-next-release 400 n rsft)
+    sfn (tap-hold 800 n rsft)
+    ;; sfn (tap-hold-next-release 1200 n rsft)
     cte (tap-hold-next-release 180 e rctl)
     ali (tap-hold-next-release 210 i lalt)
 
@@ -54,9 +57,9 @@
 (deflayer colemak
     _    @qrt _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     caps _    _    _    _    _    _    _    _    _    _    _    _    _  
-    _    q    w    f    p    g    j    l    u    y    ;    ent  _    _ 
-    @shi a    @alr @cts @sft d    h    @sfn @cte @ali o    @shi _
-    _    z    x    c    v    b    k    m    _    _    '    _
+    _    q    w    f    p    g    j    l    u    y    ;    _    _    _ 
+    esc  a    @alr @cts @sft d    h    @sfn @cte @ali o    ent  _
+    @shi z    x    c    v    b    k    m    _    _    '    @shi
     _    _    @nav      @sym           @num _    _    _    _
                                                  _    _    _
 )
@@ -100,7 +103,7 @@
     _    *    7    8    9    =    pgup home up   end  _    _    _    _
     _    +    4    5    6    0    pgdn left down rght _    _    _
     _    -    3    2    1    /    _    _    _    _    _    _
-    _    _    _              _         _    _    _    _    _   
+    _    _    _              bspc      _    _    _    _    _   
                                                  _    _    _
 )
 
@@ -110,6 +113,6 @@
     _    _    @    ^    $    `    _    #    *    &    _    _    _    _ 
     _    |    S--  \(   \)   /    \\   {    }    -    :    _    _ 
     _    _    ~    <    >    _    _    [    ]    +    =    _ 
-    _    _    _              _         _    _    _    _    _ 
+    _    _    _              _         spc  _    _    _    _ 
                                                  _    _    _
 )
