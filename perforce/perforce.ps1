@@ -768,7 +768,6 @@ function Invoke-Pit {
                 # $isAllWrite = $false
 
                 if ($isAllWrite) {
-                    # $feature = Get-PitActiveFeature
                     # $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
                     #
                     # if ($null -eq $lastFeatureChange) {
@@ -817,6 +816,7 @@ function Invoke-Pit {
                 p4 revert -k -c $cl //... | Out-Null
 
                 # todo: should Add-PitFeatureChange just always use the current feature?
+                $feature = Get-PitActiveFeature
                 Add-PitFeatureChange -Name $feature -Change $cl
 
                 Write-Host "[$feature $cl] $message"
