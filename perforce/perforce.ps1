@@ -2,6 +2,7 @@
 # . "$HOME\p5\p6.ps1"
 
 $PIT_CONFIG = Join-Path $env:USERPROFILE .pit
+$DEFAULT_FEATURE = "depot"
 
 <#
 1..20 | foreach -Begin { Write-Host "$e[s" -NoNewline} -Process {
@@ -50,7 +51,9 @@ function Add-PitFeature {
             Write-Error "Feature $Name already exists.`n"
         }
         else {
-            New-Item -Path $path
+            $data = [pscustomobject]@{changes = @(); review = $null }
+            $json = ConvertTo-Json $data
+            Set-Content -Path $path -Value $json
         }
 
         if ($Switch) {
@@ -188,15 +191,13 @@ function Add-PitFeatureChange {
         $file = Join-Path $PIT_CONFIG "$Name.feat"
         if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
 
-        [string[]]$content = Get-Content $file
-        if ($null -eq $content) {
-            $changes = @($Change)
-        }
-        else {
-            $changes = $content
-            $changes += $Change
-        }
-        Set-Content -Path $file -Value $changes
+        $json = Get-Content -Raw $file
+        $data = ConvertFrom-Json $json
+
+        $data.changes += $Change
+
+        $json = ConvertTo-Json $data
+        Set-Content -Path $file -Value $json
     }
 }
 
@@ -212,16 +213,10 @@ function Get-PitFeatureChanges {
         $file = Join-Path $PIT_CONFIG "$Name.feat"
         if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
 
-        $content = Get-Content $file
-        if ($null -eq $content) {
-            $changes = @($Change)
-        }
-        else {
-            $changes = $content
-            $changes += $Change
-        }
+        $json = Get-Content -Raw $file
+        $data = ConvertFrom-Json $json
 
-        Write-Output $changes
+        Write-Output $data.changes
     }
 }
 
@@ -492,9 +487,11 @@ function Compare-WorkspaceToPrevious {
 
     begin {
         $feature = Get-PitActiveFeature
-        $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
-        if ($null -ne $lastFeatureChange) {
-            $previous = Get-FilesInChange $lastFeatureChange
+        if ($feature -ne $DEFAULT_FEATURE) {
+            $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
+            if ($null -ne $lastFeatureChange) {
+                $previous = Get-FilesInChange $lastFeatureChange
+            }
         }
 
         $tmp = Join-Path $env:temp pit
@@ -704,25 +701,88 @@ function Compare-UnopenedToDepot {
     }
 }
 
-# Todo: pit switch that unshelves from other feature and aborts on data loss
-# Todo: implement no-allwrite workflow
-# Todo: decide if workflow ends at review or not
+
+function Add-PitCheckpoint {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Message,
+        [Parameter()]
+        [switch]$IsAllWrite
+    )
+
+    process {
+        if ($IsAllWrite) {
+            # Todo: check against previous to see if any have changed, and use that 
+            # as the count, not just that there are unopened files
+            $unopened = Find-UnopenFiles ...
+            $count = $unopened | Measure-Object | Select-Object -ExpandProperty count
+
+            if ($count -eq 0) {
+                # Note: git just does a git status and exits
+                Write-Host "nothing to submit, workspace clean"
+                return
+            }
+            else {
+                $files = Invoke-Perforce reconcile -m ... | Where-Object data -eq $null
+            }
+        }
+        else {
+            $opened = Get-FilesInChange default
+            $count = $opened | Measure-Object | Select-Object -ExpandProperty count
+
+            if ($count -eq 0) {
+                # Note: git just does a git status and exits
+                Write-Host "nothing to submit, default changelist empty"
+                return
+            }
+        }
+
+        $cl = New-Changelist -Reopen $Message
+
+        p4 reopen -c $cl ...
+        p4 shelve -f -c $cl | Out-Null
+        p4 revert -k -c $cl //... | Out-Null
+
+        # todo: should Add-PitFeatureChange just always use the current feature?
+        $feature = Get-PitActiveFeature
+        Add-PitFeatureChange -Name $feature -Change $cl
+
+        Write-Host "[$feature $cl] $message"
+        #Todo: Write-Host " $countChanged file(s) changed..."
+        Write-Host "Start a review with `"pit review...`""
+
+        if ($IsAllWrite) {
+            p4 revert -k -c $cl //... | Out-Null
+        }
+        else {
+            p4 reopen -c default ...
+        }
+    }
+}
+
+<#-- MVP --#>
+# Todo: Add the concept of being on "main" 
+# Todo: when setting up a review, check for out of date files and support merging
 #   - If not, figure out how to work with updates
-# Todo: Final submit
-#   - submit head cl
-#   - revert all files to main/depot? How git-like should this workflow be?
-#       - remember perforce works on file revisions, not atomic commits. Workspaces can be in 
-#       a state that doesn't reflect any sequence of changelists
-#   - delete feature branch? or is that a manual step?
-#       - delete shelved files
-# Todo: Support creating review and adding reviewers?
+# Todo: Review command needs somehow start the review process
+#   - Support creating review and adding reviewers?
 #   - Use swarm api or changelist comments?
-# Todo: Move PIT_CONFIG directory to %APPDATA%
+# Todo: Remove-feature command (delete all shelves, delete feature, change to "depot" feature)
+#   - delete feature branch? or is that a manual step? manual step - it's destructive
+# Todo: pit switch that unshelves from other feature and aborts on data loss
+# Todo: implement no-allwrite workflow (what's left to do?)
+# Todo: Final submit
+#   - submit review cl
 # Todo: Move feature tracking into a json file instead of file-based
-# Todo: Add the concept of being on "main" (called "depot"?)
+#   - This is only mvp because changing file formats would be a breaking change (or require migration)
+
+<#-- Next --#>
+# Todo: Move PIT_CONFIG directory to %APPDATA%
 # Todo: reset --hard HEAD~n
 # Todo: reset --soft HEAD~n
 # Todo: checkout HEAD~n
+#   - This will make it so you can have symbols in the feature name that aren't invalid for files
 # todo: stash, stash list, stash pop?
 # Todo: what to do about features that build on other features?
 #   - usecase: my feature is in review, I want to start on another feature that depends on the first
@@ -766,70 +826,8 @@ function Invoke-Pit {
         switch (${__Command__}) {
             "checkpoint" {
                 # $isAllWrite = $false
-
-                if ($isAllWrite) {
-                    # $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
-                    #
-                    # if ($null -eq $lastFeatureChange) {
-                    #     p4 shelve -f -c $cl | Out-Null
-                    #     p4 revert -k -c $cl //... | Out-Null
-                    # }
-                    # else {
-                    #     $previous = Get-FilesInChange $lastFeatureChange | Select-Object -ExpandProperty path
-                    #     $files = Invoke-Perforce reconcile -m -c $cl $previous | Where-Object data -eq $null
-                    #
-                    #     p4 shelve -f -c $cl | Out-Null
-                    #     p4 revert -k -c $cl //... | Out-Null
-                    #
-                    # }
-
-                    # Todo: check against previous to see if any have changed, and use that 
-                    # as the count, not just that there are unopened files
-                    $unopened = Find-UnopenFiles ...
-                    $count = $unopened | Measure-Object | Select-Object -ExpandProperty count
-
-                    if ($count -eq 0) {
-                        # Note: git just does a git status and exits
-                        Write-Host "nothing to submit, workspace clean"
-                        return
-                    }
-                    else {
-                        $files = Invoke-Perforce reconcile -m ... | Where-Object data -eq $null
-                    }
-                }
-                else {
-                    $opened = Get-FilesInChange default
-                    $count = $opened | Measure-Object | Select-Object -ExpandProperty count
-
-                    if ($count -eq 0) {
-                        # Note: git just does a git status and exits
-                        Write-Host "nothing to submit, default changelist empty"
-                        return
-                    }
-                }
-
                 $message = ${__Remaining__}[0]
-                $cl = New-Changelist -Reopen $message
-
-                p4 reopen -c $cl ...
-                p4 shelve -f -c $cl | Out-Null
-                p4 revert -k -c $cl //... | Out-Null
-
-                # todo: should Add-PitFeatureChange just always use the current feature?
-                $feature = Get-PitActiveFeature
-                Add-PitFeatureChange -Name $feature -Change $cl
-
-                Write-Host "[$feature $cl] $message"
-                #Todo: Write-Host " $countChanged file(s) changed..."
-                $swarm = Invoke-Perforce property -l -n P4.Swarm.CommitURL | Select-Object -ExpandProperty value
-                Write-Host "Start a review: $swarm$cl"
-
-                if ($isAllWrite) {
-                    p4 revert -k -c $cl //... | Out-Null
-                }
-                else {
-                    p4 reopen -c default ...
-                }
+                Add-PitCheckpoint -Message $message -IsAllWrite:$isAllWrite
             }
             "clsync" { # Changelist-based syncing. Seems to be really slow (Perforce seems to have a 6 sec overhead for each cl)
 
@@ -872,7 +870,7 @@ function Invoke-Pit {
                 Write-Modifications $desc.Files
             }
             "diff" {
-                $isAllWrite = $false
+                # $isAllWrite = $false
 
                 if ($isAllWrite) {
                     if ($null -eq ${__Remaining__}) {
@@ -941,7 +939,7 @@ function Invoke-Pit {
 
                         Write-Host "Syncing $fileCount files..."
 
-                        $files | ForEach-Object { "{0}@{1}" -f $_.depotFile, $change } | p4 -ztag -Mj -x - sync | `
+                        $files | ForEach-Object { "{0}@{1}" -f $_.depotFile, $change } | p4 -ztag -Mj -x- sync | `
                             ConvertFrom-Json | Out-Host -Paging
                     }
                 }
@@ -955,8 +953,10 @@ function Invoke-Pit {
                 $limit = "" 
 
                 $feature = Get-PitActiveFeature
-                $shelved = Get-PitFeatureChanges $feature
-                $countShelved = $shelved | Measure-Object | Select-Object -ExpandProperty count
+                if ($feature -ne $DEFAULT_FEATURE) {
+                    $shelved = Get-PitFeatureChanges $feature
+                    $countShelved = $shelved | Measure-Object | Select-Object -ExpandProperty count
+                }
                 $currentPageSize = $pageSize - $countShelved
 
                 $date = @{name='date';expression={ConvertFrom-UnixTime $_.time}}
@@ -997,11 +997,66 @@ function Invoke-Pit {
                 $env:PIT_CHANGE = $cl
                 Write-Output $cl
             }
+            "rerev" { # does this need a better name?
+                # Todo: validate we're on a valid feature
+                if ($isAllWrite) {
+                    # Todo: check against previous to see if any have changed, and use that 
+                    # as the count, not just that there are unopened files
+                    $unopened = Find-UnopenFiles ...
+                    $count = $unopened | Measure-Object | Select-Object -ExpandProperty count
+
+                    if ($count -eq 0) {
+                        # Note: git just does a git status and exits
+                        Write-Host "nothing to shelve, workspace clean"
+                        return
+                    }
+                    else {
+                        # Invoke-Perforce reconcile -m ... | Where-Object data -eq $null
+                        Invoke-Perforce reconcile -m ... | Out-Null
+                    }
+                }
+                else {
+                    $opened = Get-FilesInChange default
+                    $count = $opened | Measure-Object | Select-Object -ExpandProperty count
+
+                    if ($count -eq 0) {
+                        # Note: git just does a git status and exits
+                        Write-Host "nothing to submit, default changelist empty"
+                        return
+                    }
+                }
+
+                $feature = Get-PitActiveFeature
+                $cl = Get-PitFeatureChanges $feature | Select-Object -Last 1
+                
+                p4 reopen -c $cl ...
+                p4 shelve -f -c $cl | Out-Null
+                Add-PitFeatureChange -Name $feature -Change $cl
+
+                Write-Host "[$feature $cl] updated"
+                #Todo: Write-Host " $countChanged file(s) changed..."
+
+                if ($isAllWrite) {
+                    p4 revert -k -c $cl //... | Out-Null
+                }
+                else {
+                    p4 reopen -c default ... | Out-Null
+                }
+            }
             "restore" {
                 # Todo: work with multiple/all files
                 $file = ${__Remaining__}
                 $local = Invoke-Perforce where $file | Select-Object -ExpandProperty path
                 Invoke-Perforce clean -m $file | Where-Object data -eq $null | Out-Null
+            }
+            "review" {
+                # Todo: ensure we are on a valid feature and we have work to submit
+                #   - ensure there are submits prior to review? or can we just review?
+                $message = ${__Remaining__}[0]
+                Add-PitCheckpoint -Message $message -IsAllWrite:$isAllWrite
+
+                $swarm = Invoke-Perforce property -l -n P4.Swarm.URL | Select-Object -ExpandProperty value
+                Write-Host "Start a review: $swarm$cl"
             }
             "state" {
                 Write-Host "`n[default]`n"
@@ -1045,21 +1100,7 @@ function Invoke-Pit {
                         Write-Modifications -Indent $opened
                     }
 
-                    $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
-                    if ($null -ne $lastFeatureChange) {
-                        $changes = Find-DeltaToShelve $lastFeatureChange
-                        $countChanged = $changes | Measure-Object | Select-Object -ExpandProperty count
-
-                        if ($countChanged -gt 0) {
-                            Write-Host "Changes to submit, checkpoint or revert:"
-                            Write-Host "  (use `"pit revert <file>...`" to discard changes in workspace)"
-                            Write-Modifications -Indent -Files $changes
-                        }
-                        else {
-                            Write-Host "nothing to submit, workspace clean"
-                        }
-                    }
-                    else {
+                    if ($feature -eq $DEFAULT_FEATURE) {
                         $unopened = Find-UnopenFiles "..." 
                         $countUnopened = $unopened | Measure-Object | Select-Object -ExpandProperty count
 
@@ -1070,6 +1111,35 @@ function Invoke-Pit {
                         }
                         else {
                             Write-Host "nothing to submit, workspace clean"
+                        }
+                    }
+                    else {
+                        $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
+                        if ($null -ne $lastFeatureChange) {
+                            $changes = Find-DeltaToShelve $lastFeatureChange
+                            $countChanged = $changes | Measure-Object | Select-Object -ExpandProperty count
+
+                            if ($countChanged -gt 0) {
+                                Write-Host "Changes to submit, checkpoint or revert:"
+                                Write-Host "  (use `"pit revert <file>...`" to discard changes in workspace)"
+                                Write-Modifications -Indent -Files $changes
+                            }
+                            else {
+                                Write-Host "nothing to submit, workspace clean"
+                            }
+                        }
+                        else {
+                            $unopened = Find-UnopenFiles "..." 
+                            $countUnopened = $unopened | Measure-Object | Select-Object -ExpandProperty count
+
+                            if ($countUnopened -gt 0) {
+                                Write-Host "Changes to submit, checkpoint or revert:"
+                                Write-Host "  (use `"pit revert <file>...`" to discard changes in workspace)"
+                                Write-Modifications -Indent -Files $unopened
+                            }
+                            else {
+                                Write-Host "nothing to submit, workspace clean"
+                            }
                         }
                     }
                 }
@@ -1088,6 +1158,8 @@ function Invoke-Pit {
 
             }
             "submit" {
+                # Todo: ensure we are on a valid feature and we have work to submit
+                #   - ensure there are submits prior to review? or can we just review?
                 $feature = Get-PitActiveFeature
                 $cl = Get-PitFeatureChanges $feature | Select-Object -Last 1
 
@@ -1139,52 +1211,6 @@ function Invoke-Pit {
                     $delete = $files | Where-Object action -eq "deleted" | Measure-Object | Select-Object -ExpandProperty count
                     $edit = $files | Where-Object action -eq "updated" | Measure-Object | Select-Object -ExpandProperty count
                     Write-Host "$edit edits, $add adds, and $delete deletes"
-                }
-            }
-            "update-review" { # Todo: think of a better name for this (rerev?)
-                if ($isAllWrite) {
-                    # Todo: check against previous to see if any have changed, and use that 
-                    # as the count, not just that there are unopened files
-                    $unopened = Find-UnopenFiles ...
-                    $count = $unopened | Measure-Object | Select-Object -ExpandProperty count
-
-                    if ($count -eq 0) {
-                        # Note: git just does a git status and exits
-                        Write-Host "nothing to shelve, workspace clean"
-                        return
-                    }
-                    else {
-                        # Invoke-Perforce reconcile -m ... | Where-Object data -eq $null
-                        Invoke-Perforce reconcile -m ... | Out-Null
-                    }
-                }
-                else {
-                    $opened = Get-FilesInChange default
-                    $count = $opened | Measure-Object | Select-Object -ExpandProperty count
-
-                    if ($count -eq 0) {
-                        # Note: git just does a git status and exits
-                        Write-Host "nothing to submit, default changelist empty"
-                        return
-                    }
-                }
-
-                $feature = Get-PitActiveFeature
-                $cl = Get-PitFeatureChanges $feature | Select-Object -Last 1
-                
-                p4 reopen -c $cl ...
-                p4 shelve -f -c $cl | Out-Null
-                # todo: should Add-PitFeatureChange just always use the current feature?
-                Add-PitFeatureChange -Name $feature -Change $cl
-
-                Write-Host "[$feature $cl] updated"
-                #Todo: Write-Host " $countChanged file(s) changed..."
-
-                if ($isAllWrite) {
-                    p4 revert -k -c $cl //... | Out-Null
-                }
-                else {
-                    p4 reopen -c default ... | Out-Null
                 }
             }
             default {
