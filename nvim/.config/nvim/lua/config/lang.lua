@@ -49,13 +49,24 @@ M.setup = function()
   -- Use a loop to conveniently call 'setup' on multiple servers and
   -- map buffer local keybindings when the language server attaches
 
-  local servers = { "pyright", "rust_analyzer", "tsserver" }
+  local servers = { "pyright", "tsserver", "clangd" }
   for _, lsp in ipairs(servers) do
     nvim_lsp[lsp].setup {
       capabilities = capabilities,
       on_attach = on_attach,
     }
   end
+
+  local rust_analyzer = 'rust-analyzer'
+  if vim.fn.executable('rust-analyzer-x86_64-pc-windows-msvc') == 1 then
+    rust_analyzer = 'rust-analyzer-x86_64-pc-windows-msvc'
+  end
+
+  nvim_lsp[ "rust_analyzer"].setup {
+    capabilities = capabilities,
+    on_attach = on_attach,
+    cmd = { rust_analyzer },
+  }
 
   -- Setup PowerShell Editor Extensions
   local bundle_path = vim.env.DEV_HOME .. '/.ls/PowerShellEditorServices'
@@ -114,11 +125,6 @@ M.setup = function()
       "formattingOptions:EnableEditorConfigSupport=true" }
   }
 
-  nvim_lsp['clangd'].setup {
-    capabilities = capabilities,
-    on_attach = on_attach,
-    cmd = { 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/x64/bin/clangd.exe' }
-  }
 end
 
 return M
