@@ -95,7 +95,7 @@ function Set-PitActiveFeature {
         if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
 
         $feat = Join-Path $PIT_CONFIG "$Name.feat"
-        if (-not (Test-Path $feat)) { throw "Feature $Name does not exist" }
+        if (($Name -ne $DEFAULT_FEATURE) -and (-not (Test-Path $feat))) { throw "Feature $Name does not exist" }
 
         $active = Get-PitActiveFeature
 
@@ -217,6 +217,25 @@ function Get-PitFeatureChanges {
         $data = ConvertFrom-Json $json
 
         Write-Output $data.changes
+    }
+}
+
+function Get-PitFeatureReview {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Name
+    )
+
+    process {
+        if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
+        $file = Join-Path $PIT_CONFIG "$Name.feat"
+        if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
+
+        $json = Get-Content -Raw $file
+        $data = ConvertFrom-Json $json
+
+        Write-Output $data.review
     }
 }
 
@@ -712,6 +731,13 @@ function Add-PitCheckpoint {
     )
 
     process {
+        $feature = Get-PitActiveFeature
+
+        if ($feature -eq $DEFAULT_FEATURE) {
+            Write-Host -ForegroundColor Red "Cannot checkpoint against the depot. Create a feature with `"pit feature <name>`""
+            return
+        }
+
         if ($IsAllWrite) {
             # Todo: check against previous to see if any have changed, and use that 
             # as the count, not just that there are unopened files
@@ -745,7 +771,6 @@ function Add-PitCheckpoint {
         p4 revert -k -c $cl //... | Out-Null
 
         # todo: should Add-PitFeatureChange just always use the current feature?
-        $feature = Get-PitActiveFeature
         Add-PitFeatureChange -Name $feature -Change $cl
 
         Write-Host "[$feature $cl] $message"
@@ -834,8 +859,7 @@ function Invoke-Pit {
                 Write-Host "Gathering Changelists to sync..."
 
                 $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
-                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
-                [string[]]$changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
+                [string[]]$changes = Invoke-Perforce changes "-e" $latest -s submitted | `
                     Select-Object -ExpandProperty change -SkipLast 1 | Sort-Object
                 $count = $changes.Length
 
@@ -916,8 +940,7 @@ function Invoke-Pit {
 
                 Write-Host "Gathering Changelists to sync..."
                 $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
-                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
-                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
+                $changes = Invoke-Perforce changes "-e" $latest -s submitted | `
                     Select-Object -ExpandProperty change -SkipLast 1 | Sort-Object
                 $count = $changes | Measure-Object | Select-Object -ExpandProperty count
 
@@ -998,6 +1021,11 @@ function Invoke-Pit {
                 Write-Output $cl
             }
             "rerev" { # does this need a better name?
+                if ($feature -eq $DEFAULT_FEATURE) {
+                    Write-Host -ForegroundColor Red "Cannot review against the depot. Create a feature with `"pit feature <name>`""
+                    return
+                }
+
                 # Todo: validate we're on a valid feature
                 if ($isAllWrite) {
                     # Todo: check against previous to see if any have changed, and use that 
@@ -1027,13 +1055,16 @@ function Invoke-Pit {
                 }
 
                 $feature = Get-PitActiveFeature
-                $cl = Get-PitFeatureChanges $feature | Select-Object -Last 1
+                $cl = Get-PitFeatureReview
+
+                if ($null -eq $cl) {
+                    Write-Host -ForegroundColor Red "This feature does not have a review. Creat one with `"pit review`""
+                }
                 
                 p4 reopen -c $cl ...
                 p4 shelve -f -c $cl | Out-Null
-                Add-PitFeatureChange -Name $feature -Change $cl
 
-                Write-Host "[$feature $cl] updated"
+                Write-Host "[$feature $cl] review updated"
                 #Todo: Write-Host " $countChanged file(s) changed..."
 
                 if ($isAllWrite) {
@@ -1050,6 +1081,11 @@ function Invoke-Pit {
                 Invoke-Perforce clean -m $file | Where-Object data -eq $null | Out-Null
             }
             "review" {
+                if ($feature -eq $DEFAULT_FEATURE) {
+                    Write-Host -ForegroundColor Red "Cannot create review against the depot. Create a feature with `"pit feature <name>`""
+                    return
+                }
+
                 # Todo: ensure we are on a valid feature and we have work to submit
                 #   - ensure there are submits prior to review? or can we just review?
                 $message = ${__Remaining__}[0]
@@ -1074,8 +1110,7 @@ function Invoke-Pit {
                 
                 # Find new New-Changelists
                 $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
-                # Note, using p4 instead of Invoke-Perforce because of issue with `-e` being ambiguous
-                $changes = p4 -ztag -Mj changes -e $latest -s submitted | ConvertFrom-Json | `
+                $changes = Invoke-Perforce changes "-e" $latest -s submitted | `
                     Select-Object -ExpandProperty change -SkipLast 1
                 $count = $changes | Measure-Object | Select-Object -ExpandProperty count
 
@@ -1158,10 +1193,20 @@ function Invoke-Pit {
 
             }
             "submit" {
+                if ($feature -eq $DEFAULT_FEATURE) {
+                    Write-Host -ForegroundColor Red "Cannot submit against the depot. Create a feature with `"pit feature <name>`""
+                    return
+                }
+
                 # Todo: ensure we are on a valid feature and we have work to submit
-                #   - ensure there are submits prior to review? or can we just review?
+                #   - ensure there is a review prior to submit? or can we just submit?
+                
                 $feature = Get-PitActiveFeature
-                $cl = Get-PitFeatureChanges $feature | Select-Object -Last 1
+                $cl = Get-PitFeatureReview
+
+                if ($null -eq $cl) {
+                    Write-Host -ForegroundColor Red "This feature does not have a review. Creat one with `"pit review`""
+                }
 
                 # Note: if we just want to submit the shelve:
                 #p4 submit -e $cl
@@ -1170,12 +1215,8 @@ function Invoke-Pit {
                 p4 shelve -d -c $cl | Out-Null
                 p4 submit -c $cl
 
-                # NOTE: At this point the `Get-PitFeatureChanges` data is wrong. The last changelist is gone.
-                # I think that we should add a separate changelist just for reviewing, or remove the feature 
-                # after submitting. It doesn't really make sense to come back to a feature after it's subitted.
-
-                # delete the feature?
-                # Remove-PitFeature
+                # NOTE: At this point the `Get-PitFeatureReview` cl is gone. It will have been re-numbered. 
+                # Todo: Update the data with the submitted cl number?
             }
             "switch" {
                 Set-PitActiveFeature ${__Remaining__}
