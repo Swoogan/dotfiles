@@ -34,6 +34,15 @@ function Invoke-Perforce {
     }
 }
 
+function Get-PerforceTicket {
+    [CmdletBinding()]
+    param ()
+
+    process {
+        (p4 tickets) -split " " | Select-Object -last 1
+    }
+}
+
 function Add-PitFeature {
     [CmdletBinding()]
     param (
@@ -823,19 +832,41 @@ function Add-PitCheckpoint {
     }
 }
 
+function Start-SwarmReview {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [int]$Change
+    )
+    $info = Invoke-Perforce info
+    $user = $info.userName
+    $ticket = Get-PerforceTicket
+
+    $auth = "{0}:{1}" -f $user, $ticket
+    
+    $swarm = Invoke-Perforce property -l -n P4.Swarm.URL | Select-Object -ExpandProperty value
+    $api = "api/v9/reviews"
+    $url = "$swarm$api"
+
+    $result = curl -u $auth -X POST -d "change=$Change" $url | ConvertFrom-Json
+    $result | Select-Object -ExpandProperty review | Select-Object -ExpandProperty id
+}
+
 <#-- MVP --#>
-# Todo: Add the concept of being on "main" 
+# Todo: remove pit feature requires "-d" 
+# Todo: Remove-feature command (delete all shelves, delete feature, change to "depot" feature)
+#   - remove pit feature leaves you on the feature
+#   - deletes shelves: done
+#   - delete feature: done
+# Todo: switching to depot almost always fails
 # Todo: when setting up a review, check for out of date files and support merging
 #   - If not, figure out how to work with updates
 # Todo: Review command needs somehow start the review process
 #   - Support creating review and adding reviewers?
 #   - Use swarm api or changelist comments?
-# Todo: Remove-feature command (delete all shelves, delete feature, change to "depot" feature)
 #   - delete feature branch? or is that a manual step? manual step - it's destructive
 # Todo: pit switch that unshelves from other feature and aborts on data loss
 # Todo: implement no-allwrite workflow (what's left to do?)
-# Todo: Final submit
-#   - submit review cl
 # Todo: Move feature tracking into a json file instead of file-based
 #   - This is only mvp because changing file formats would be a breaking change (or require migration)
 
@@ -851,7 +882,18 @@ function Add-PitCheckpoint {
 #       - in git, branch from the existing branch, rebase on main once feat1 is merged.
 
 # start a swarm review: https://stackoverflow.com/a/42176705/140377
+#  $json = curl  -u "$user:$ticket" "https://swarm.url/api/v9/reviews/?fields=id,changes,stateLabel&change[]=46595"
 
+# curl -u "username:password" \
+#      -X POST \
+#      -d "change=122" \
+#      -d "reviewerGroups[0][name]=group1" \
+#      -d "reviewerGroups[1][name]=group2" \
+#      -d "reviewerGroups[1][required]=true" \
+#      -d "reviewerGroups[2][name]=group3" \
+#      -d "reviewerGroups[2][required]=true" \
+#      -d "reviewerGroups[2][quorum]=1" \
+#      "https://my-swarm-host/api/v9/reviews/"
 
 # Todo: ??? Swarm updates (these need to go to the same changelist)
 # FOR NOW, THIS WORKFLOW ENDS AT THE REVIEW
@@ -859,7 +901,7 @@ function Add-PitCheckpoint {
 #   - see: p4 reshelve
 #   - should this always be the flow for the sake of simplicity/consistency?
 #   - omg, this is what swarm does under the hood. Could I cheat and use swarm?
-#       - swarm/api/v9/reviews/?fields=id,changes,stateLabel&change[]=123
+#       - swarm.url/api/v9/reviews/?fields=id,changes,stateLabel&change[]=123
 
 function Invoke-Pit {
     [CmdletBinding()]
