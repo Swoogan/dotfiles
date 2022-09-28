@@ -39,7 +39,12 @@ function Get-PerforceTicket {
     param ()
 
     process {
-        (p4 tickets) -split " " | Select-Object -last 1
+        $tickets = p4 tickets
+        $tickets | ForEach-Object { 
+            $record = $_ -split " "; 
+            $name = $record[1].SubString(1,$record[1].Length-2); 
+            [pscustomobject]@{ user = $name; ticket = $record[2] } 
+        }
     }
 }
 
@@ -840,7 +845,7 @@ function Start-SwarmReview {
     )
     $info = Invoke-Perforce info
     $user = $info.userName
-    $ticket = Get-PerforceTicket
+    $ticket = Get-PerforceTicket | Where-Object user -eq $user | Select-Object -ExpandProperty ticket
 
     $auth = "{0}:{1}" -f $user, $ticket
     
