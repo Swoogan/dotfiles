@@ -48,7 +48,7 @@ function Add-PitFeature {
 
         $path = Join-Path $PIT_CONFIG "$Name.feat"
         if (Test-Path $path) {
-            Write-Error "Feature $Name already exists.`n"
+            Write-Error "Feature '$Name' already exists.`n"
         }
         else {
             $data = [pscustomobject]@{changes = @(); review = $null }
@@ -95,12 +95,12 @@ function Set-PitActiveFeature {
         if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
 
         $feat = Join-Path $PIT_CONFIG "$Name.feat"
-        if (($Name -ne $DEFAULT_FEATURE) -and (-not (Test-Path $feat))) { throw "Feature $Name does not exist" }
+        if (($Name -ne $DEFAULT_FEATURE) -and (-not (Test-Path $feat))) { throw "Feature '$Name' does not exist" }
 
         $active = Get-PitActiveFeature
 
         if ($active -eq $Name) {
-            Write-Warning "Feature $Name is already the active feature."
+            Write-Warning "Feature '$Name' is already the active feature."
         }
         else {
             # Todo: this command should only abort when data loss would occur.
@@ -118,7 +118,13 @@ function Set-PitActiveFeature {
                 return
             }
 
-            $lastFeatureChange = Get-PitFeatureChanges $active | Select-Object -Last 1
+            if ($active -ne $DEFAULT_FEATURE) {
+                $lastFeatureChange = Get-PitFeatureChanges $active | Select-Object -Last 1
+            }
+            else {
+                $lastFeatureChange = $null
+            }
+
             $unopened = Find-UnopenFiles ... 
         
             if ($null -ne $lastFeatureChange) {
@@ -189,7 +195,7 @@ function Add-PitFeatureChange {
     process {
         if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
         $file = Join-Path $PIT_CONFIG "$Name.feat"
-        if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
+        if (-not (Test-Path $file)) { throw "Feature '$Name' does not exist" }
 
         $json = Get-Content -Raw $file
         $data = ConvertFrom-Json $json
@@ -211,12 +217,33 @@ function Get-PitFeatureChanges {
     process {
         if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
         $file = Join-Path $PIT_CONFIG "$Name.feat"
-        if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
+        if (-not (Test-Path $file)) { throw "Feature '$Name' does not exist" }
 
         $json = Get-Content -Raw $file
         $data = ConvertFrom-Json $json
 
         Write-Output $data.changes
+    }
+}
+
+function Set-PitFeatureReview {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Name,
+        [Parameter(Mandatory=$true, Position=1)]
+        [int]$Review
+    )
+
+    process {
+        if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
+        $file = Join-Path $PIT_CONFIG "$Name.feat"
+        if (-not (Test-Path $file)) { throw "Feature '$Name' does not exist" }
+
+        $json = Get-Content -Raw $file
+        $data = ConvertFrom-Json $json
+        $data.review = $Review
+        Set-Content -Path $file -Value $data
     }
 }
 
@@ -230,7 +257,7 @@ function Get-PitFeatureReview {
     process {
         if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
         $file = Join-Path $PIT_CONFIG "$Name.feat"
-        if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
+        if (-not (Test-Path $file)) { throw "Feature '$Name' does not exist" }
 
         $json = Get-Content -Raw $file
         $data = ConvertFrom-Json $json
@@ -250,10 +277,19 @@ function Remove-PitFeature {
         if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
         $file = Join-Path $PIT_CONFIG "$Name.feat"
 
-        if (-not (Test-Path $file)) { throw "Feature $Name does not exist" }
+        if (-not (Test-Path $file)) { throw "Feature '$Name' does not exist" }
 
-        # Todo: check for open files, submit state and remove old changelists
-        Remove-Item $file
+        $current = Get-PitActiveFeature
+        $changes = Get-PitFeatureChanges -Name $current
+
+        Write-Host "This command will delete the following changelists:", $changes
+
+        $confirm = Read-Host "`nWould you like to proceed? (yes/no)"
+        if ($confirm -ieq "yes") {
+            # Todo: check for open files, submit state 
+            $changes | Remove-Shelf
+            Remove-Item $file
+        }
     }
 }
 
@@ -633,7 +669,7 @@ function Select-DiffersFromDepot {
     )
 
     process {
-        foreach ($file in $Files) {
+        foreach ($file in $File) {
             if ($file.action -eq "add" -or $file.action -eq "delete") {
                 Write-Output $file
             }
@@ -775,7 +811,6 @@ function Add-PitCheckpoint {
 
         Write-Host "[$feature $cl] $message"
         #Todo: Write-Host " $countChanged file(s) changed..."
-        Write-Host "Start a review with `"pit review...`""
 
         if ($IsAllWrite) {
             p4 revert -k -c $cl //... | Out-Null
@@ -783,6 +818,8 @@ function Add-PitCheckpoint {
         else {
             p4 reopen -c default ...
         }
+
+        Write-Output $cl
     }
 }
 
@@ -852,7 +889,8 @@ function Invoke-Pit {
             "checkpoint" {
                 # $isAllWrite = $false
                 $message = ${__Remaining__}[0]
-                Add-PitCheckpoint -Message $message -IsAllWrite:$isAllWrite
+                Add-PitCheckpoint -Message $message -IsAllWrite:$isAllWrite | Out-Null
+                Write-Host "Start a review with `"pit review...`""
             }
             "clsync" { # Changelist-based syncing. Seems to be really slow (Perforce seems to have a 6 sec overhead for each cl)
 
@@ -934,7 +972,13 @@ function Invoke-Pit {
                 }
             }
             "feat" {
-                Add-PitFeature ${__Remaining__}
+                Write-Host ${__Remaining__}[0]
+                if (@("-d", "--delete").Contains(${__Remaining__}[0])) {
+                    Remove-PitFeature ${__Remaining__}[1]
+                }
+                else {
+                    Add-PitFeature ${__Remaining__}[0]
+                }
             }
             "filesync" { # File-based syncing (might be faster in some instances, needs more testing)
 
@@ -1081,18 +1125,22 @@ function Invoke-Pit {
                 Invoke-Perforce clean -m $file | Where-Object data -eq $null | Out-Null
             }
             "review" {
+                $feature = Get-PitActiveFeature
                 if ($feature -eq $DEFAULT_FEATURE) {
                     Write-Host -ForegroundColor Red "Cannot create review against the depot. Create a feature with `"pit feature <name>`""
                     return
                 }
 
-                # Todo: ensure we are on a valid feature and we have work to submit
+                # Todo: ensure we have work to submit
                 #   - ensure there are submits prior to review? or can we just review?
+                #       - just review. I found with simple changes, don't need more than the review shelve
                 $message = ${__Remaining__}[0]
-                Add-PitCheckpoint -Message $message -IsAllWrite:$isAllWrite
-
+                $cl = Add-PitCheckpoint -Message $message -IsAllWrite:$isAllWrite
+                Set-PitFeatureReview -Name $feature -Review $cl
+                
                 $swarm = Invoke-Perforce property -l -n P4.Swarm.URL | Select-Object -ExpandProperty value
-                Write-Host "Start a review: $swarm$cl"
+                Write-Host "Starting the review: $swarm$cl"
+                Start-Process "$swarm$cl"
             }
             "state" {
                 Write-Host "`n[default]`n"
@@ -1202,7 +1250,7 @@ function Invoke-Pit {
                 #   - ensure there is a review prior to submit? or can we just submit?
                 
                 $feature = Get-PitActiveFeature
-                $cl = Get-PitFeatureReview
+                $cl = Get-PitFeatureReview -Name $feature
 
                 if ($null -eq $cl) {
                     Write-Host -ForegroundColor Red "This feature does not have a review. Creat one with `"pit review`""
