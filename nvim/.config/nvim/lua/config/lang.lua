@@ -1,10 +1,14 @@
+-- local util = require 'lspconfig/util'
+
 local M = {
 }
 
 M.setup = function()
+  -- vim.lsp.set_log_level("debug")
 
   -- Setup Language sever protocol
   local nvim_lsp = require('lspconfig')
+  local pid = vim.fn.getpid()
 
   local on_attach = function(_, bufnr)
     --Enable completion triggered by <c-x><c-o>
@@ -70,13 +74,19 @@ M.setup = function()
 
   -- Setup PowerShell Editor Extensions
   local bundle_path = vim.env.DEV_HOME .. '/.ls/PowerShellEditorServices'
+  -- local session_path = vim.env.TMP .. '/psls'
+  -- local session_path = vim.env.TMP
 
   nvim_lsp['powershell_es'].setup {
-    bundle_path = bundle_path,
-    -- pwsh, the default, does not work for some reason
-    shell = 'powershell.exe',
     capabilities = capabilities,
     on_attach = on_attach,
+    bundle_path = bundle_path,
+    -- pwsh, the default, does not work for some reason
+    shell = "powershell.exe",
+    -- cmd = { "pwsh", "-NoLogo", "-NoProfile", "-Command", bundle_path .. "/PowerShellEditorServices/Start-EditorServices.ps1 -BundledModulesPath " .. bundle_path .. " -LogPath " .. session_path .. "/powershell_es.log -SessionDetailsPath " .. session_path .. "/powershell_es.session.json -FeatureFlags @() -AdditionalModules @() -HostName 'neovim' -HostProfileId " .. pid .. " -HostVersion 1.0.0 -Stdio -LogLevel Verbose"},
+    -- root_dir = function(fname)
+    --   return util.find_git_ancestor(fname) or vim.fn.getcwd()
+    -- end;
   }
 
   nvim_lsp['sumneko_lua'].setup {
@@ -112,7 +122,6 @@ M.setup = function()
   }
 
   -- Setup OmniSharp
-  local pid = vim.fn.getpid()
   local omnisharp = vim.env.DEV_HOME .. '/.ls/omnisharp/OmniSharp.exe'
 
   nvim_lsp['omnisharp'].setup {
