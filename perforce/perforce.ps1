@@ -843,18 +843,21 @@ function Start-SwarmReview {
         [Parameter(Mandatory=$true, Position=0)]
         [int]$Change
     )
-    $info = Invoke-Perforce info
-    $user = $info.userName
-    $ticket = Get-PerforceTicket | Where-Object user -eq $user | Select-Object -ExpandProperty ticket
 
-    $auth = "{0}:{1}" -f $user, $ticket
-    
-    $swarm = Invoke-Perforce property -l -n P4.Swarm.URL | Select-Object -ExpandProperty value
-    $api = "api/v9/reviews"
-    $url = "$swarm$api"
+    process {
+        $info = Invoke-Perforce info
+        $user = $info.userName
+        $ticket = Get-PerforceTicket | Where-Object user -eq $user | Select-Object -ExpandProperty ticket
 
-    $result = curl -u $auth -X POST -d "change=$Change" $url | ConvertFrom-Json
-    $result | Select-Object -ExpandProperty review | Select-Object -ExpandProperty id
+        $auth = "{0}:{1}" -f $user, $ticket
+        
+        $swarm = Invoke-Perforce property -l -n P4.Swarm.URL | Select-Object -ExpandProperty value
+        $api = "api/v9/reviews"
+        $url = "$swarm$api"
+
+        $result = curl -u $auth -X POST -d "change=$Change" $url | ConvertFrom-Json
+        $result | Select-Object -ExpandProperty review | Select-Object -ExpandProperty id
+    }
 }
 
 <#-- MVP --#>
@@ -885,20 +888,6 @@ function Start-SwarmReview {
 # Todo: what to do about features that build on other features?
 #   - usecase: my feature is in review, I want to start on another feature that depends on the first
 #       - in git, branch from the existing branch, rebase on main once feat1 is merged.
-
-# start a swarm review: https://stackoverflow.com/a/42176705/140377
-#  $json = curl  -u "$user:$ticket" "https://swarm.url/api/v9/reviews/?fields=id,changes,stateLabel&change[]=46595"
-
-# curl -u "username:password" \
-#      -X POST \
-#      -d "change=122" \
-#      -d "reviewerGroups[0][name]=group1" \
-#      -d "reviewerGroups[1][name]=group2" \
-#      -d "reviewerGroups[1][required]=true" \
-#      -d "reviewerGroups[2][name]=group3" \
-#      -d "reviewerGroups[2][required]=true" \
-#      -d "reviewerGroups[2][quorum]=1" \
-#      "https://my-swarm-host/api/v9/reviews/"
 
 # Todo: ??? Swarm updates (these need to go to the same changelist)
 # FOR NOW, THIS WORKFLOW ENDS AT THE REVIEW
