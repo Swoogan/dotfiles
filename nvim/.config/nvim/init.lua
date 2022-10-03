@@ -55,9 +55,11 @@ vim.api.nvim_exec([[ set iskeyword+=_ ]], false)
 -- *** THEME *** --
 
 require('nightfox').setup({
+  options = {
     styles = {
         comments = "italic"
     }
+  }
 })
 
 vim.cmd("colorscheme nightfox")
