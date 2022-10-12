@@ -157,6 +157,21 @@ function Set-PitActiveFeature {
                 return
             }
 
+            # Workspace is clean, proceed with syncing
+
+            Invoke-Perforce clean ...
+            if ($Name -ne $DEFAULT_FEATURE) {
+                $changes = Get-PitFeatureChanges $Name
+                $change = $changes | Select-Object -First 1
+                if ($change) {
+                    p4 unshelve -s $change
+                }
+            }
+
+            Set-Content -Path (Get-PitActiveFeatureFile) -Value $Name
+            Write-Host "On feature " -NoNewline
+            Write-Host -ForegroundColor Blue "$Name`n"
+<#
             Write-Warning "Dry run. Following files would be reverted...`n"
             ($opened | Select-Object -ExpandProperty depotFile) | p4 -x- revert -w -n
             ($unopened | Select-Object -ExpandProperty path) | p4 -x- revert -w -n
@@ -169,6 +184,7 @@ function Set-PitActiveFeature {
                 # Revert unopened
                 ($unopened | Select-Object -ExpandProperty path) | p4 -x- revert -w
             }
+#>            
         }
     }
 }
@@ -293,9 +309,7 @@ function Remove-PitFeature {
 
         if (-not (Test-Path $file)) { throw "Feature '$Name' does not exist" }
 
-        $current = Get-PitActiveFeature
-        $changes = Get-PitFeatureChanges -Name $current
-
+        $changes = Get-PitFeatureChanges -Name $Name
         Write-Host "This command will delete the following changelists:", $changes
 
         $confirm = Read-Host "`nWould you like to proceed? (yes/no)"
