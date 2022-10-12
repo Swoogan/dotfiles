@@ -164,7 +164,8 @@ function Set-PitActiveFeature {
                 $changes = Get-PitFeatureChanges $Name
                 $change = $changes | Select-Object -First 1
                 if ($change) {
-                    p4 unshelve -s $change
+                    p4 unshelve -s $change -c $change
+                    p4 revert -k -c $change //... 
                 }
             }
 
