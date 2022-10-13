@@ -6,6 +6,22 @@ $DEFAULT_FEATURE = "depot"
     Write-Host "$e[u$("▉"*$_)" -NoNewLine; Start-Sleep -MilliSeconds 100
 }
 #>
+enum FileState {
+    Open
+    Unopen
+    Shelved
+    Submitted
+}
+
+class PitFile {
+    [string]$Path
+    [string]$DepotFile
+    # todo: make this an enum
+    [string]$Action
+    [FileState]$State
+}
+
+# $file = [PitFile]::new()
 
 function ConvertFrom-UnixTime {
     [CmdletBinding()]
@@ -216,15 +232,18 @@ function Add-PitFeatureChange {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true, Position=0)]
-        [string]$Name,
-        [Parameter(Mandatory=$true, Position=1)]
-        [int]$Change
+        [int]$Change,
+        [Parameter(Mandatory=$false, Position=1)]
+        [string]$Feature
     )
 
     process {
         if (-not (Test-Path $PIT_CONFIG)) { mkdir $PIT_CONFIG | Out-Null }
-        $file = Join-Path $PIT_CONFIG "$Name.feat"
-        if (-not (Test-Path $file)) { throw "Feature '$Name' does not exist" }
+
+        if ($Feature -eq $null) { $Feature = Get-PitActiveFeature }
+
+        $file = Join-Path $PIT_CONFIG "$Feature.feat"
+        if (-not (Test-Path $file)) { throw "Feature '$Feature' does not exist" }
 
         $json = Get-Content -Raw $file
         $data = ConvertFrom-Json $json
@@ -524,7 +543,6 @@ function Write-Modifications {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true, Position=0, ValueFromPipeline)]
-        # Todo: make this a class
         [object[]]$Files,
         [Parameter(Mandatory=$false)]
         [switch]$Indent
@@ -561,7 +579,6 @@ function Compare-WorkspaceToPrevious {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true)]
-        # Todo: make this a class
         [pscustomobject[]]$File
     )
 
@@ -638,8 +655,7 @@ function Find-DeltaToShelve {
     )
 
     process {
-        # Todo: check more than CWD
-        $unopened = Find-UnopenFiles "..." 
+        $unopened = Find-UnopenFiles ...
         $previous = Get-FilesInChange $Change
 
         foreach ($file in $unopened) {
@@ -652,34 +668,6 @@ function Find-DeltaToShelve {
                 $equal = Compare-Files $file.path $local
                 if (-not $equal) {
                     Write-Output $file
-                }
-            }
-        }
-    }
-}
-
-function Compare-UnopenedToShelve {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory=$true, Position=0)]
-        [string]$Change
-    )
-
-    process {
-        # Todo: check more than CWD
-        $unopened = Find-UnopenFiles "..." 
-        $previous = Get-FilesInChange $Change
-
-        foreach ($file in $unopened) {
-            $exists = $null -ne ($previous | Where-Object path -eq $file.path)
-            if (-not $exists) { 
-                # Todo: diff against null
-            }
-            else {
-                $local = Copy-ShelveToTemp $lastFeatureChange $file.path
-                $equal = Compare-Files $file.path $local
-                if (-not $equal) {
-                    git diff --no-index $local $file.path
                 }
             }
         }
@@ -720,68 +708,6 @@ function Select-DiffersFromDepot {
     }
 }
 
-function Compare-UnopenedToDepot {
-    [CmdletBinding()]
-    param ()
-
-    process {
-        # Todo: check more than CWD
-        $unopened = Find-UnopenFiles "..." 
-
-        foreach ($file in $unopened) {
-            # $diffTemp = Join-Path $tmp "have.$(Get-Random -Maximum 10000)"
-            # mkdir $diffTemp | Out-Null
-            if ($file.action -eq "add") {
-                $tmp = Join-Path $env:temp pit
-                if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
-
-                # todo: deal with the possiblity that there are multiple files of the same name,
-                # but in different directories, within the same changelist
-                $diffTemp = Join-Path $tmp "add"
-                if (-not (Test-Path $diffTemp)) { mkdir $diffTemp | Out-Null }
-
-                $leaf = Split-Path $file.path -leaf
-                $local = Join-Path $diffTemp $leaf
-                New-Item -Type File -Path $local -Force | Out-Null
-
-                git diff --no-index $local $file.path
-            }
-            elseif ($file.action -eq "delete") {
-                $tmp = Join-Path $env:temp pit
-                if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
-
-                # todo: deal with the possiblity that there are multiple files of the same name,
-                # but in different directories, within the same changelist
-                $diffTemp = Join-Path $tmp "delete"
-                if (-not (Test-Path $diffTemp)) { mkdir $diffTemp | Out-Null }
-
-                $leaf = Split-Path $file.path -leaf
-                $local = Join-Path $diffTemp "$leaf#empty"
-                $depot = Join-Path $diffTemp "$leaf#have"
-                New-Item -Type File -Path $local -Force | Out-Null
-                p4 print -o $depot "$($file.path)#have" | Out-Null
-
-                git diff --no-index $depot $local 
-            }
-            elseif ($file.action -eq "edit") {
-                $tmp = Join-Path $env:temp pit
-                if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
-
-                # todo: deal with the possiblity that there are multiple files of the same name,
-                # but in different directories, within the same changelist
-                $diffTemp = Join-Path $tmp "edit"
-                if (-not (Test-Path $diffTemp)) { mkdir $diffTemp | Out-Null }
-
-                $leaf = Split-Path $file.path -leaf
-                $depot = Join-Path $diffTemp $leaf
-                p4 print -o $depot "$($file.path)#have" | Out-Null
-                git diff --no-index $depot $file.path
-            }
-        }
-    }
-}
-
-
 function Add-PitCheckpoint {
     [CmdletBinding()]
     param (
@@ -811,7 +737,7 @@ function Add-PitCheckpoint {
                 return
             }
             else {
-                $files = Invoke-Perforce reconcile -m ... | Where-Object data -eq $null
+                Invoke-Perforce reconcile -m ... | Where-Object data -ne $null
             }
         }
         else {
@@ -831,8 +757,7 @@ function Add-PitCheckpoint {
         p4 shelve -f -c $cl | Out-Null
         p4 revert -k -c $cl //... | Out-Null
 
-        # todo: should Add-PitFeatureChange just always use the current feature?
-        Add-PitFeatureChange -Name $feature -Change $cl
+        Add-PitFeatureChange -Feature $feature -Change $cl
 
         Write-Host "[$feature $cl] $message"
         #Todo: Write-Host " $countChanged file(s) changed..."
