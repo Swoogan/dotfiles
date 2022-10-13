@@ -115,78 +115,83 @@ function Set-PitActiveFeature {
 
         if ($active -eq $Name) {
             Write-Warning "Feature '$Name' is already the active feature."
+            return
+        }
+ 
+        # Todo: implement nowrite workflow
+
+        # Todo: find-unopened should run on the whole depot, or some well known root. However, I do not
+        # want to hard-code that root in this file. Might need some kind of pit config file that sets up
+        # sub-workspaces for large monorepos, where p4 rec //... is really expensive
+
+        $opened = Invoke-Perforce opened
+        $openedDelta = $opened | Select-DiffersFromDepot
+        $openChanged = $openedDelta | Measure-Object | Select-Object -ExpandProperty count
+
+        if ($openChanged -gt 0) {
+            Write-Host -ForegroundColor Red "Your workspace has modified files, submit, checkpoint or revert`n"
+            Write-Modifications -Indent $openedDelta
+            return
+        }
+
+        if ($active -ne $DEFAULT_FEATURE) {
+            $lastFeatureChange = Get-PitFeatureChanges $active | Select-Object -Last 1
         }
         else {
-            # Todo: this command should only abort when data loss would occur.
-            # Todo: find-unopened should run on the whole depot, or some well known root. However, I do not
-            # want to hard-code that root in this file. Might need some kind of pit config file that sets up
-            # sub-workspaces for large monorepos, where p4 rec //... is really expensive
+            $lastFeatureChange = $null
+        }
 
-            $opened = Invoke-Perforce opened
-            $openedDelta = $opened | Select-DiffersFromDepot
-            $openChanged = $openedDelta | Measure-Object | Select-Object -ExpandProperty count
+        if ($null -ne $lastFeatureChange) {
+            $previous = Get-FilesInChange $lastFeatureChange
+            $changed = @()
 
-            if ($openChanged -gt 0) {
-                Write-Host -ForegroundColor Red "Your workspace has modified files, submit, checkpoint or revert`n"
-                Write-Modifications -Indent $openedDelta
-                return
-            }
-
-            if ($active -ne $DEFAULT_FEATURE) {
-                $lastFeatureChange = Get-PitFeatureChanges $active | Select-Object -Last 1
-            }
-            else {
-                $lastFeatureChange = $null
-            }
-
-            $unopened = Find-UnopenFiles ... 
-        
-            if ($null -ne $lastFeatureChange) {
-                # Todo: reuse $unopened here
-                $unopenedDelta = Find-DeltaToShelve $lastFeatureChange
-            }
-            else {
-                $unopenedDelta = $unopened | Select-DiffersFromDepot
-            }
-
-            $unopenChanged = $unopenedDelta | Measure-Object | Select-Object -ExpandProperty count
-
-            if ($unopenChanged -gt 0) {
-                Write-Host -ForegroundColor Red "Your workspace has modified files, submit, checkpoint or revert`n"
-                Write-Modifications -Indent $unopenedDelta
-                return
-            }
-
-            # Workspace is clean, proceed with syncing
-
-            Invoke-Perforce clean ...
-            if ($Name -ne $DEFAULT_FEATURE) {
-                $changes = Get-PitFeatureChanges $Name
-                $change = $changes | Select-Object -First 1
-                if ($change) {
-                    p4 unshelve -s $change -c $change
-                    p4 revert -k -c $change //... 
+            foreach ($file in $previous) {
+                $local = Copy-ShelveToTemp $lastFeatureChange $file.path
+                $equal = Compare-Files $file.path $local
+                if (-not $equal) {
+                    $changed += $file
                 }
             }
 
-            Set-Content -Path (Get-PitActiveFeatureFile) -Value $Name
-            Write-Host "On feature " -NoNewline
-            Write-Host -ForegroundColor Blue "$Name`n"
-<#
-            Write-Warning "Dry run. Following files would be reverted...`n"
-            ($opened | Select-Object -ExpandProperty depotFile) | p4 -x- revert -w -n
-            ($unopened | Select-Object -ExpandProperty path) | p4 -x- revert -w -n
+            $changedCount = $changed | Measure-Object | Select-Object -ExpandProperty count
 
-            $confirm = Read-Host "`nWould you like to proceed? (yes/no)"
-            if ($confirm -ieq "yes") {
-                Set-Content -Path (Get-PitActiveFeatureFile) -Value $Name
-                # Revert opened
-                ($opened | Select-Object -ExpandProperty depotFile) | p4 -x- revert -w
-                # Revert unopened
-                ($unopened | Select-Object -ExpandProperty path) | p4 -x- revert -w
+            if ($changedCount -gt 0) {
+                Write-Host -ForegroundColor Red "Your workspace has modified files, submit, checkpoint or revert`n"
+                Write-Modifications -Indent $changed
+                return
             }
-#>            
+
+            # Workspace is safe, can delete shelved changes now
+            $previous | Select-Object -ExpandProperty path | p4 -x- clean
         }
+
+        # If the feature has changes, unshelve the latest
+        if ($Name -ne $DEFAULT_FEATURE) {
+            $changes = Get-PitFeatureChanges $Name
+            $change = $changes | Select-Object -First 1
+            if ($change) {
+                p4 unshelve -s $change -c $change
+                p4 revert -k -c $change //... 
+            }
+        }
+
+        Set-Content -Path (Get-PitActiveFeatureFile) -Value $Name
+        Write-Host "On feature " -NoNewline
+        Write-Host -ForegroundColor Blue "$Name`n"
+<#
+        Write-Warning "Dry run. Following files would be reverted...`n"
+        ($opened | Select-Object -ExpandProperty depotFile) | p4 -x- revert -w -n
+        ($unopened | Select-Object -ExpandProperty path) | p4 -x- revert -w -n
+
+        $confirm = Read-Host "`nWould you like to proceed? (yes/no)"
+        if ($confirm -ieq "yes") {
+            Set-Content -Path (Get-PitActiveFeatureFile) -Value $Name
+            # Revert opened
+            ($opened | Select-Object -ExpandProperty depotFile) | p4 -x- revert -w
+            # Revert unopened
+            ($unopened | Select-Object -ExpandProperty path) | p4 -x- revert -w
+        }
+#>            
     }
 }
 
