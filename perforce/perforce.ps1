@@ -1,6 +1,3 @@
-#. "$HOME\p5\p5.ps1"
-# . "$HOME\p5\p6.ps1"
-
 $PIT_CONFIG = Join-Path $env:USERPROFILE .pit
 $DEFAULT_FEATURE = "depot"
 
@@ -119,10 +116,6 @@ function Set-PitActiveFeature {
         }
  
         # Todo: implement nowrite workflow
-
-        # Todo: find-unopened should run on the whole depot, or some well known root. However, I do not
-        # want to hard-code that root in this file. Might need some kind of pit config file that sets up
-        # sub-workspaces for large monorepos, where p4 rec //... is really expensive
 
         $opened = Invoke-Perforce opened
         $openedDelta = $opened | Select-DiffersFromDepot
@@ -385,8 +378,6 @@ function Compare-Files {
 
     process {
         fc.exe /B $File1 $File2 | Out-Null
-
-        # todo: do a -1,0,1 compare instead of $true/$false?
         Write-Output ($LASTEXITCODE -eq 0)
     }
 }
@@ -477,19 +468,19 @@ function Get-FilesInChange {
         }
 
         # find all the local paths for the depot paths
-        $where = $files | Select-Object -ExpandProperty depotFile | p4 -ztag -Mj -x - where | ConvertFrom-Json
+        $locations = $files | Select-Object -ExpandProperty depotFile | p4 -ztag -Mj -x - where | ConvertFrom-Json
         $count = $files | Measure-Object | Select-Object -ExpandProperty count
 
         # Zip the two lists together
         for ($i = 0; $i -lt $count; $i++) { 
             $file = $files[$i]
-            $w = $where[$i]     # todo: better variable name
-            $depotFile = $w.depotFile -ne $null ? $w.depotFile : $file.depotFile
+            $location = $locations[$i]
+            $depotFile = $null -ne $location.depotFile ? $location.depotFile : $file.depotFile
 
             $output = [pscustomobject]@{ 
                 action = $file.action; 
                 state = $file.state; 
-                path = $w.path; 
+                path = $location.path; 
                 depotFile = $depotFile; 
             }
 
@@ -915,6 +906,10 @@ function Start-SwarmReview {
 #   - should this always be the flow for the sake of simplicity/consistency?
 #   - omg, this is what swarm does under the hood. Could I cheat and use swarm?
 #       - swarm.url/api/v9/reviews/?fields=id,changes,stateLabel&change[]=123
+
+# Todo: find-unopened should run on the whole depot, or some well known root. However, I do not
+# want to hard-code that root in this file. Might need some kind of pit config file that sets up
+# sub-workspaces for large monorepos, where p4 rec //... is really expensive
 
 function Invoke-Pit {
     [CmdletBinding()]
