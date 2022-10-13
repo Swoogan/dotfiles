@@ -151,17 +151,7 @@ function Set-PitActiveFeature {
         }
 
         if ($null -ne $lastFeatureChange) {
-            $previous = Get-FilesInChange $lastFeatureChange
-            $changed = @()
-
-            foreach ($file in $previous) {
-                $local = Copy-ShelveToTemp $lastFeatureChange $file.path
-                $equal = Compare-Files $file.path $local
-                if (-not $equal) {
-                    $changed += $file
-                }
-            }
-
+            $changed = Find-FilesDifferentFromShelf $lastFeatureChange
             $changedCount = $changed | Measure-Object | Select-Object -ExpandProperty count
 
             if ($changedCount -gt 0) {
@@ -708,6 +698,26 @@ function Select-DiffersFromDepot {
     }
 }
 
+function Find-FilesDifferentFromShelf {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [int]$Change
+    )
+
+    process {
+        $previous = Get-FilesInChange $Change
+
+        foreach ($file in $previous) {
+            $local = Copy-ShelveToTemp $lastFeatureChange $file.path
+            $equal = Compare-Files $file.path $local
+            if (-not $equal) {
+                Write-Output $file
+            }
+        }
+    }
+}
+
 function Add-PitCheckpoint {
     [CmdletBinding()]
     param (
@@ -726,10 +736,16 @@ function Add-PitCheckpoint {
         }
 
         if ($IsAllWrite) {
-            # Todo: check against previous to see if any have changed, and use that 
-            # as the count, not just that there are unopened files
-            $unopened = Find-UnopenFiles ...
-            $count = $unopened | Measure-Object | Select-Object -ExpandProperty count
+            $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
+
+            if ($null -ne $lastFeatureChange) {
+                $changed = Find-DeltaToShelve $lastFeatureChange
+                $count = $changed | Measure-Object | Select-Object -ExpandProperty count
+            } 
+            else {
+                $changed = Find-UnopenFiles ...
+                $count = $changed | Measure-Object | Select-Object -ExpandProperty count
+            }
 
             if ($count -eq 0) {
                 # Note: git just does a git status and exits
