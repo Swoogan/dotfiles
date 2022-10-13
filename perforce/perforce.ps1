@@ -115,7 +115,9 @@ function Set-PitActiveFeature {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true, Position=0)]
-        [string]$Name
+        [string]$Name,
+        [Parameter()]
+        [switch]$IsAllWrite
     )
 
     process {
@@ -131,46 +133,88 @@ function Set-PitActiveFeature {
             return
         }
  
-        # Todo: implement nowrite workflow
+        if ($IsAllWrite) {
+            $opened = Invoke-Perforce opened
+            $openedDelta = $opened | Select-DiffersFromDepot
+            $openChanged = $openedDelta | Measure-Object | Select-Object -ExpandProperty count
 
-        $opened = Invoke-Perforce opened
-        $openedDelta = $opened | Select-DiffersFromDepot
-        $openChanged = $openedDelta | Measure-Object | Select-Object -ExpandProperty count
-
-        if ($openChanged -gt 0) {
-            Write-Host -ForegroundColor Red "Your workspace has modified files, submit, checkpoint or revert`n"
-            Write-Modifications -Indent $openedDelta
-            return
-        }
-
-        if ($active -ne $DEFAULT_FEATURE) {
-            $lastFeatureChange = Get-PitFeatureChanges $active | Select-Object -Last 1
-        }
-        else {
-            $lastFeatureChange = $null
-        }
-
-        if ($null -ne $lastFeatureChange) {
-            $changed = Find-FilesDifferentFromShelf $lastFeatureChange
-            $changedCount = $changed | Measure-Object | Select-Object -ExpandProperty count
-
-            if ($changedCount -gt 0) {
+            if ($openChanged -gt 0) {
                 Write-Host -ForegroundColor Red "Your workspace has modified files, submit, checkpoint or revert`n"
-                Write-Modifications -Indent $changed
+                Write-Modifications -Indent $openedDelta
                 return
             }
 
-            # Workspace is safe, can delete shelved changes now
-            $previous | Select-Object -ExpandProperty path | p4 -x- clean
-        }
+            if ($active -ne $DEFAULT_FEATURE) {
+                $lastFeatureChange = Get-PitFeatureChanges $active | Select-Object -Last 1
+            }
+            else {
+                $lastFeatureChange = $null
+            }
 
-        # If the feature has changes, unshelve the latest
-        if ($Name -ne $DEFAULT_FEATURE) {
-            $changes = Get-PitFeatureChanges $Name
-            $change = $changes | Select-Object -First 1
-            if ($change) {
-                p4 unshelve -s $change -c $change
-                p4 revert -k -c $change //... 
+            if ($null -ne $lastFeatureChange) {
+                $changed = Find-FilesDifferentFromShelf $lastFeatureChange
+                $changedCount = $changed | Measure-Object | Select-Object -ExpandProperty count
+
+                if ($changedCount -gt 0) {
+                    Write-Host -ForegroundColor Red "Your workspace has modified files, submit, checkpoint or revert`n"
+                    Write-Modifications -Indent $changed
+                    return
+                }
+
+                # Workspace is safe, can delete shelved changes now
+                $previous = Get-FilesInChange $lastFeatureChange
+                $previous | Select-Object -ExpandProperty path | p4 -x- clean
+            }
+
+            # If the feature has changes, unshelve the latest
+            if ($Name -ne $DEFAULT_FEATURE) {
+                $changes = Get-PitFeatureChanges $Name
+                $change = $changes | Select-Object -First 1
+                if ($change) {
+                    p4 unshelve -s $change -c $change
+                    p4 revert -k -c $change //... 
+                }
+            }
+        }
+        else {
+            $unopened = Find-UnopenFiles ...
+            $unopenedCount = $unopened | Measure-Object | Select-Object -ExpandProperty count
+
+            if ($unopenedCount -gt 0) {
+                Write-Host -ForegroundColor Red "Your workspace has modified files, submit, checkpoint or revert`n"
+                Write-Modifications -Indent $unopened
+                return
+            }
+
+            if ($active -ne $DEFAULT_FEATURE) {
+                $lastFeatureChange = Get-PitFeatureChanges $active | Select-Object -Last 1
+            }
+            else {
+                $lastFeatureChange = $null
+            }
+
+            if ($null -ne $lastFeatureChange) {
+                $changed = Find-FilesDifferentFromShelf $lastFeatureChange
+                $changedCount = $changed | Measure-Object | Select-Object -ExpandProperty count
+
+                if ($changedCount -gt 0) {
+                    Write-Host -ForegroundColor Red "Your workspace has modified files, submit, checkpoint or revert`n"
+                    Write-Modifications -Indent $changed
+                    return
+                }
+
+                # Workspace is safe, can delete shelved changes now
+                $previous = Get-FilesInChange $lastFeatureChange
+                $previous | Select-Object -ExpandProperty path | p4 -x- revert -w -c default
+            }
+
+            # If the feature has changes, unshelve the latest
+            if ($Name -ne $DEFAULT_FEATURE) {
+                $changes = Get-PitFeatureChanges $Name
+                $change = $changes | Select-Object -First 1
+                if ($change) {
+                    p4 unshelve -s $change -c default
+                }
             }
         }
 
@@ -845,8 +889,6 @@ function Start-SwarmReview {
 #   - Support creating review and adding reviewers?
 #   - Use swarm api or changelist comments?
 #   - delete feature branch? or is that a manual step? manual step - it's destructive
-# Todo: implement nowrite workflow 
-#   - pit switch does not work with nowrite workflow
 # Todo: Move feature tracking into a json file instead of file-based
 #   - This is only mvp because changing file formats would be a breaking change (or require migration)
 
@@ -1093,8 +1135,7 @@ function Invoke-Pit {
                         return
                     }
                     else {
-                        # Invoke-Perforce reconcile -m ... | Where-Object data -eq $null
-                        Invoke-Perforce reconcile -m ... | Out-Null
+                        Invoke-Perforce reconcile -m ... | Where-Object data -ne $null
                     }
                 }
                 else {
@@ -1277,7 +1318,8 @@ function Invoke-Pit {
                 # Todo: Update the data with the submitted cl number?
             }
             "switch" {
-                Set-PitActiveFeature ${__Remaining__}
+                $isAllWrite = $false
+                Set-PitActiveFeature ${__Remaining__} -IsAllWrite:$isAllWrite
             }
             "unstage" {
                 p4 revert -k -c default ${__Remaining__} | Out-Null
