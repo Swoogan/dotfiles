@@ -886,15 +886,14 @@ function Start-SwarmReview {
 #   - remove pit feature leaves you on the feature
 #   - deletes shelves: done
 #   - delete feature: done
-# Todo: switching to depot almost always fails
 # Todo: when setting up a review, check for out of date files and support merging
 #   - If not, figure out how to work with updates
 # Todo: Review command needs somehow start the review process
 #   - Support creating review and adding reviewers?
 #   - Use swarm api or changelist comments?
 #   - delete feature branch? or is that a manual step? manual step - it's destructive
-# Todo: pit switch that unshelves from other feature and aborts on data loss
-# Todo: implement no-allwrite workflow (what's left to do?)
+# Todo: implement nowrite workflow 
+#   - pit switch does not work with nowrite workflow
 # Todo: Move feature tracking into a json file instead of file-based
 #   - This is only mvp because changing file formats would be a breaking change (or require migration)
 
@@ -1365,23 +1364,3 @@ function Invoke-Pit {
     }
 }
 
-
-# function Find-Config {
-#     $root = $(Resolve-Path .).Drive.Root
-#     $cwd = "."
-#
-#     while ($true) {
-#         $path = Resolve-Path $cwd
-#         if (Test-Path "$path/.p5") {
-#             $config = Resolve-Path "$path/.p5"
-#             Write-Output $config
-#             break
-#         }
-#         elseif ($root -eq $path.Path) {
-#             break
-#         }
-#         else {
-#             $cwd += "/.."
-#         }
-#     }
-# }
