@@ -630,6 +630,21 @@ function Compare-WorkspaceToPrevious {
                 }
             }
         }
+
+        # previous that are different (files that don't show in a reconcile because they match the depot state)
+        foreach ($f in $previous) {
+            $exists = $null -ne ($File | Where-Object path -eq $f.path)
+            if (-not $exists) { 
+                $leaf = Split-Path $f.path -leaf
+                $local = Join-Path $diffTemp $leaf
+                p4 print -o $local "$($f.path)@=$lastFeatureChange" | Out-Null
+
+                $equal = Compare-Files $f.path $local
+                if (-not $equal) {
+                    git diff --no-index $local $f.path
+                }
+            }
+        }
     }
 
     end {
@@ -645,6 +660,7 @@ function Find-DeltaToShelve {
     )
 
     process {
+        # unopened that are different from previous checkpoint
         $unopened = Find-UnopenFiles ...
         $previous = Get-FilesInChange $Change
 
@@ -659,6 +675,14 @@ function Find-DeltaToShelve {
                 if (-not $equal) {
                     Write-Output $file
                 }
+            }
+        }
+
+        # previous that are different (files that don't show in a reconcile because they match the depot state)
+        foreach ($file in $previous) {
+            $exists = $null -ne ($unopened | Where-Object path -eq $file.path)
+            if (-not $exists) { 
+                Write-Output $file
             }
         }
     }
@@ -767,11 +791,8 @@ function Add-PitCheckpoint {
             }
         }
 
-        $cl = New-Changelist -Reopen $Message
-
-        p4 reopen -c $cl ...
-        p4 shelve -f -c $cl | Out-Null
-        p4 revert -k -c $cl //... | Out-Null
+        $cl = New-Changelist -Reopen -Message $Message
+        Invoke-Perforce shelve -f -c $cl 
 
         Add-PitFeatureChange -Feature $feature -Change $cl
 
@@ -1023,8 +1044,6 @@ function Invoke-Pit {
                 foreach ($change in $shelved) {
                     $changes += Invoke-Perforce describe $change | Select-Object change, user, $date, desc
                 }
-
-                # Todo: figure out why there is a space in the array
 
                 while ($true) {
                     $changes += Invoke-Perforce changes -L -t -s submitted -m $currentPageSize "//...$limit" ${__Remaining__} `
