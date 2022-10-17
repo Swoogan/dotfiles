@@ -609,6 +609,22 @@ function Write-Modifications {
     }
 }
 
+function Invoke-Diff {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$File1,
+        [Parameter(Mandatory=$true, Position=1)]
+        [string]$File2
+    )
+
+    process {
+        $a = $File1 -replace "\\", "/"
+        $b = $File2 -replace "\\", "/"
+        git diff --no-index $a $b
+    }
+}
+
 function Compare-WorkspaceToPrevious {
     [CmdletBinding()]
     param (
@@ -644,9 +660,7 @@ function Compare-WorkspaceToPrevious {
 
                 $equal = Compare-Files $f.path $local
                 if (-not $equal) {
-                    $a = $local -replace "\\", "/"
-                    $b = $f.path -replace "\\", "/"
-                    git diff --no-index $a $b
+                    Invoke-Diff $local $f.path
                 }
             }
             else { # compare against the have revision
@@ -658,9 +672,7 @@ function Compare-WorkspaceToPrevious {
                     $local = Join-Path $diffTemp $leaf
                     New-Item -Type File -Path $local -Force | Out-Null
 
-                    $a = $local -replace "\\", "/"
-                    $b = $f.path -replace "\\", "/"
-                    git diff --no-index $a $b
+                    Invoke-Diff $local $f.path
                 }
                 elseif ($f.action -eq "delete") {
                     $leaf = Split-Path $f.path -leaf
@@ -669,18 +681,14 @@ function Compare-WorkspaceToPrevious {
                     New-Item -Type File -Path $local -Force | Out-Null
                     p4 print -o $depot "$($f.path)#have" | Out-Null
 
-                    $a = $depot -replace "\\", "/"
-                    $b = $local -replace "\\", "/"
-                    git diff --no-index $a $b
+                    Invoke-Diff $depot $local
                 }
                 elseif ($f.action -eq "edit") {
                     $leaf = Split-Path $f.path -leaf
                     $depot = Join-Path $diffTemp $leaf
                     p4 print -o $depot "$($f.path)#have" | Out-Null
 
-                    $a = $depot -replace "\\", "/"
-                    $b = $f.path -replace "\\", "/"
-                    git diff --no-index $a $b
+                    Invoke-Diff $depot $f.path
                 }
             }
         }
@@ -696,9 +704,7 @@ function Compare-WorkspaceToPrevious {
 
                 $equal = Compare-Files $f.path $local
                 if (-not $equal) {
-                    $a = $local -replace "\\", "/"
-                    $b = $f.path -replace "\\", "/"
-                    git diff --no-index $a $b
+                    Invoke-Diff $local $f.path
                 }
             }
         }
