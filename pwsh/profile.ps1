@@ -40,7 +40,9 @@ if ($host.Name -eq 'ConsoleHost') {
     # Delete from the cursor to the end of the line
     Set-PSReadlineKeyHandler -Chord "Ctrl+k" -Function ForwardDeleteLine
     # Accepts the next suggested word
-    Set-PSReadLineKeyHandler -Chord "Ctrl+f" -Function ForwardWord
+    Set-PSReadLineKeyHandler -Chord "Alt+f" -Function ForwardWord
+    # Accepts the next suggested word
+    Set-PSReadLineKeyHandler -Chord "Ctrl+f" -Function AcceptSuggestion
     # Bash style tab completion
     Set-PSReadlineKeyHandler -Key Tab -Function Complete
 
