@@ -145,7 +145,7 @@ function Set-PitActiveFeature {
             }
 
             if ($active -ne $DEFAULT_FEATURE) {
-                $lastFeatureChange = Get-PitFeatureChanges $active | Select-Object -Last 1
+                $lastFeatureChange = Get-PitFeatureChanges $active | Select-Object -First 1
             }
             else {
                 $lastFeatureChange = $null
@@ -187,7 +187,7 @@ function Set-PitActiveFeature {
             }
 
             if ($active -ne $DEFAULT_FEATURE) {
-                $lastFeatureChange = Get-PitFeatureChanges $active | Select-Object -Last 1
+                $lastFeatureChange = Get-PitFeatureChanges $active | Select-Object -First 1
             }
             else {
                 $lastFeatureChange = $null
@@ -304,7 +304,7 @@ function Get-PitFeatureChanges {
         $json = Get-Content -Raw $file
         $data = ConvertFrom-Json $json
 
-        Write-Output $data.changes
+        Write-Output ($data.changes | Sort-Object -Descending)
     }
 }
 
@@ -361,7 +361,7 @@ function Remove-PitFeature {
 
         if (-not (Test-Path $file)) { throw "Feature '$Name' does not exist" }
 
-        $changes = Get-PitFeatureChanges -Name $Name
+        $changes = Get-PitFeatureChanges -Name $Name | Sort-Object -Ascending
         Write-Host "This command will delete the following changelists:", $changes
 
         $confirm = Read-Host "`nWould you like to proceed? (yes/no)"
@@ -619,7 +619,7 @@ function Compare-WorkspaceToPrevious {
     begin {
         $feature = Get-PitActiveFeature
         if ($feature -ne $DEFAULT_FEATURE) {
-            $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
+            $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -First 1
             if ($null -ne $lastFeatureChange) {
                 $previous = Get-FilesInChange $lastFeatureChange
             }
@@ -634,6 +634,7 @@ function Compare-WorkspaceToPrevious {
 
     process {
         foreach ($f in $File) {
+            Write-Host "A", $f
             $inShelve = $null -ne ($previous | Where-Object path -eq $f.path)
 
             if ($inShelve) { 
@@ -643,7 +644,9 @@ function Compare-WorkspaceToPrevious {
 
                 $equal = Compare-Files $f.path $local
                 if (-not $equal) {
-                    git diff --no-index $local $f.path
+                    $a = $local -replace "\\", "/"
+                    $b = $f.path -replace "\\", "/"
+                    git diff --no-index $a $b
                 }
             }
             else { # compare against the have revision
@@ -655,7 +658,9 @@ function Compare-WorkspaceToPrevious {
                     $local = Join-Path $diffTemp $leaf
                     New-Item -Type File -Path $local -Force | Out-Null
 
-                    git diff --no-index $local $f.path
+                    $a = $local -replace "\\", "/"
+                    $b = $f.path -replace "\\", "/"
+                    git diff --no-index $a $b
                 }
                 elseif ($f.action -eq "delete") {
                     $leaf = Split-Path $f.path -leaf
@@ -664,19 +669,25 @@ function Compare-WorkspaceToPrevious {
                     New-Item -Type File -Path $local -Force | Out-Null
                     p4 print -o $depot "$($f.path)#have" | Out-Null
 
-                    git diff --no-index $depot $local 
+                    $a = $depot -replace "\\", "/"
+                    $b = $local -replace "\\", "/"
+                    git diff --no-index $a $b
                 }
                 elseif ($f.action -eq "edit") {
                     $leaf = Split-Path $f.path -leaf
                     $depot = Join-Path $diffTemp $leaf
                     p4 print -o $depot "$($f.path)#have" | Out-Null
-                    git diff --no-index $depot $f.path
+
+                    $a = $depot -replace "\\", "/"
+                    $b = $f.path -replace "\\", "/"
+                    git diff --no-index $a $b
                 }
             }
         }
 
         # previous that are different (files that don't show in a reconcile because they match the depot state)
         foreach ($f in $previous) {
+            Write-Host "B", $f
             $exists = $null -ne ($File | Where-Object path -eq $f.path)
             if (-not $exists) { 
                 $leaf = Split-Path $f.path -leaf
@@ -685,7 +696,9 @@ function Compare-WorkspaceToPrevious {
 
                 $equal = Compare-Files $f.path $local
                 if (-not $equal) {
-                    git diff --no-index $local $f.path
+                    $a = $local -replace "\\", "/"
+                    $b = $f.path -replace "\\", "/"
+                    git diff --no-index $a $b
                 }
             }
         }
@@ -804,7 +817,7 @@ function Add-PitCheckpoint {
         }
 
         if ($IsAllWrite) {
-            $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
+            $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -First 1
 
             if ($null -ne $lastFeatureChange) {
                 $changed = Find-DeltaToShelve $lastFeatureChange
@@ -1248,7 +1261,7 @@ function Invoke-Pit {
                         }
                     }
                     else {
-                        $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -Last 1
+                        $lastFeatureChange = Get-PitFeatureChanges $feature | Select-Object -First 1
                         if ($null -ne $lastFeatureChange) {
                             $changes = Find-DeltaToShelve $lastFeatureChange
                             $countChanged = $changes | Measure-Object | Select-Object -ExpandProperty count
@@ -1318,7 +1331,7 @@ function Invoke-Pit {
                 # Todo: Update the data with the submitted cl number?
             }
             "switch" {
-                $isAllWrite = $false
+                # $isAllWrite = $false
                 Set-PitActiveFeature ${__Remaining__} -IsAllWrite:$isAllWrite
             }
             "unstage" {
