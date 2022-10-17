@@ -965,35 +965,6 @@ function Invoke-Pit {
                 Add-PitCheckpoint -Message $message -IsAllWrite:$isAllWrite | Out-Null
                 Write-Host "Start a review with `"pit review...`""
             }
-            "clsync" { # Changelist-based syncing. Seems to be really slow (Perforce seems to have a 6 sec overhead for each cl)
-
-                Write-Host "Gathering Changelists to sync..."
-
-                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
-                [string[]]$changes = Invoke-Perforce changes "-e" $latest -s submitted | `
-                    Select-Object -ExpandProperty change -SkipLast 1 | Sort-Object
-                $count = $changes.Length
-
-                if ($count -eq 0) {
-                    Write-Host "Already up to date."
-                }
-                else {
-                    Write-Host ("Updating {0}..{1}" -f $changes[0], $changes[-1])
-
-                    for ($i = 1; $i -le $count; $i++) { 
-                        $change = $changes[$i-1]
-                        $percent = ($i/$count) * 100
-                        
-                        # Write-Host $percent
-                        Write-Progress -Activity "Updating" -Status "Syncing $change..." -PercentComplete $percent
-
-                        Invoke-Perforce sync "//...@$change" | Select-Object action, `
-                             @{name='path';expression={$_.clientFile}}, @{name='revision';expression={$_.rev}} | `
-                             # Out-Host -Paging
-                             Out-Null
-                    }
-                }
-            }
             "describe" {
                 $desc = Get-ChangeDescription ${__Remaining__}
                 Write-Host -ForegroundColor Yellow "change $($desc.Change)"
@@ -1044,44 +1015,13 @@ function Invoke-Pit {
                     }
                 }
             }
-            "feat" {
+            "feature" {
                 Write-Host ${__Remaining__}[0]
                 if (@("-d", "--delete").Contains(${__Remaining__}[0])) {
                     Remove-PitFeature ${__Remaining__}[1]
                 }
                 else {
                     Add-PitFeature ${__Remaining__}[0]
-                }
-            }
-            "filesync" { # File-based syncing (might be faster in some instances, needs more testing)
-
-                Write-Host "Gathering Changelists to sync..."
-                $latest = Invoke-Perforce changes -m1 "@$client" | Select-Object -ExpandProperty change
-                $changes = Invoke-Perforce changes "-e" $latest -s submitted | `
-                    Select-Object -ExpandProperty change -SkipLast 1 | Sort-Object
-                $count = $changes | Measure-Object | Select-Object -ExpandProperty count
-
-                if ($count -eq 0) {
-                    Write-Host "Already up to date."
-                }
-                else {
-                    Write-Host ("Updating {0}..{1}" -f $changes[0], $changes[-1])
-
-                    for ($i = 1; $i -le $count; $i++) { 
-                        $change = $changes[$i-1]
-                        $percent = ($i/$count) * 100
-                        
-                        # Write-Host $percent
-                        Write-Progress -Activity "Updating" -Status "Syncing $change..." -PercentComplete $percent
-
-                        $files = Get-FilesInChange $change -Status "submitted"
-                        $fileCount = $files | Measure-Object | Select-Object -ExpandProperty count
-
-                        Write-Host "Syncing $fileCount files..."
-
-                        $files | ForEach-Object { "{0}@{1}" -f $_.depotFile, $change } | p4 -ztag -Mj -x- sync | `
-                            ConvertFrom-Json | Out-Host -Paging
-                    }
                 }
             }
             "help" {
@@ -1126,9 +1066,6 @@ function Invoke-Pit {
                     $currentPageSize = $pageSize
                     $changes = @()
                 }
-            }
-            "pending" {
-                Invoke-Perforce changes -L -u $user -s pending -c $client ${__Remaining__} | Select-Object change, desc
             }
             "new" {
                 $cl = New-Changelist ${__Remaining__}[0]
@@ -1187,12 +1124,6 @@ function Invoke-Pit {
                 else {
                     p4 reopen -c default ... | Out-Null
                 }
-            }
-            "restore" {
-                # Todo: work with multiple/all files
-                $file = ${__Remaining__}
-                $local = Invoke-Perforce where $file | Select-Object -ExpandProperty path
-                Invoke-Perforce clean -m $file | Where-Object data -eq $null | Out-Null
             }
             "review" {
                 $feature = Get-PitActiveFeature
@@ -1339,9 +1270,6 @@ function Invoke-Pit {
             "switch" {
                 # $isAllWrite = $false
                 Set-PitActiveFeature ${__Remaining__} -IsAllWrite:$isAllWrite
-            }
-            "unstage" {
-                p4 revert -k -c default ${__Remaining__} | Out-Null
             }
             "update" {
                 Write-Host "Gathering files to sync..."
