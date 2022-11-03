@@ -10,6 +10,9 @@ let mapleader=","
 nmap ]m :vsc Edit.NextMethod<CR>
 nmap [m :vsc Edit.PreviousMethod<CR>
 
+nmap <C-o> :vsc View.NavigateBackward<CR>
+nmap <C-i> :vsc View.NavigateForward<CR>
+
 map <Leader>nl :nohl<CR>
 map <Leader>w :w<CR>
 map <Leader>x :x<CR>
@@ -20,3 +23,4 @@ map gcc :vsc Edit.ToggleLineComment<CR>
 map gd :vsc Edit.GotoDefinition<CR>
 map gD :vsc Edit.GotoDeclaration<CR>
 
+vmap gc :vsc Edit.ToggleLineComment<CR>
