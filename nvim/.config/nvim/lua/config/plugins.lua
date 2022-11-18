@@ -60,6 +60,11 @@ M.setup = function()
     }
   }
 
+  -- Setup telescope
+  require('telescope').setup{
+    defaults = { file_ignore_patterns = {"__pycache__"} }
+  }
+
   -- Treesitter configuration
   -- Parsers must be installed manually via :TSInstall
   require('nvim-treesitter.configs').setup {
