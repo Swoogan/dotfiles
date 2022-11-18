@@ -229,10 +229,10 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
   callback = function() vim.keymap.set('i', '</', '</<c-n>', opts) end,
 })
 
--- Set indentation to 2 for lua and python
+-- Set indentation to 2 for lua and html
 vim.api.nvim_create_autocmd("FileType", {
     group = vim.api.nvim_create_augroup("IndentTwo", { clear = true }),
-    pattern = { "lua", "python" },
+    pattern = { "lua", "html" },
     callback = function() vim.cmd([[setlocal shiftwidth=2 softtabstop=2 expandtab]]) end,
 })
 
