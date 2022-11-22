@@ -98,10 +98,10 @@
 (deflayer numnav
     _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     f12  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  _    _
-    _    *    7    8    9    =    pgup home up   end  _    _    _    _
-    _    +    6    5    4    0    pgdn left down rght _    _    _
-    _    -    3    2    1    /    _    _    _    _    _    _
-    _    _    _              spc       _    _    _    _    _   
+    /    *    7    8    9    ,    pgup home up   end  _    _    _    _
+    -    +    6    5    4    _    pgdn left down rght _    _    _
+    _    =    3    2    1    .    _    _    _    _    _    _
+    _    _    _              0         _    _    _    _    _   
                                                  _    _    _
 )
 
