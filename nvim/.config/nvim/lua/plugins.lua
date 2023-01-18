@@ -18,8 +18,9 @@ M.spec = {
   -- { "nvim-treesitter/playground" },
 
   { "Hoffs/omnisharp-extended-lsp.nvim" },
-  -- { "theHamsta/nvim-dap-virtual-text" },
-  -- { "mfussenegger/nvim-dap" },
+  { "theHamsta/nvim-dap-virtual-text" },
+  { "mfussenegger/nvim-dap" },
+  { "mfussenegger/nvim-dap-python" },
 
   { "hrsh7th/cmp-nvim-lsp" },
   { "hrsh7th/cmp-buffer" },

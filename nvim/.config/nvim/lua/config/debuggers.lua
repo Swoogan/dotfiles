@@ -18,22 +18,25 @@ M.setup = function()
   vim.fn.sign_define('DapBreakpoint', { text = '🛑', texthl = '', linehl = '', numhl = '' })
   vim.fn.sign_define('DapBreakpointRejected', { text = '⛔', texthl = '', linehl = '', numhl = '' })
 
-  dap.adapters.coreclr = {
-    type = 'executable',
-    command = vim.env.DEV_HOME .. '/.tools/netcoredbg/netcoredbg',
-    args = { '--interpreter=vscode' }
-  }
+  -- require('dap-python').setup('~/.virtualenvs/debugpy/bin/python')
+  require('dap-python').setup()
 
-  dap.configurations.cs = {
-    {
-      type = "coreclr",
-      name = "launch - netcoredbg",
-      request = "launch",
-      program = function()
-        return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/net5.0', 'file')
-      end,
-    },
-  }
+  -- dap.adapters.coreclr = {
+  --   type = 'executable',
+  --   command = vim.env.DEV_HOME .. '/.tools/netcoredbg/netcoredbg',
+  --   args = { '--interpreter=vscode' }
+  -- }
+  --
+  -- dap.configurations.cs = {
+  --   {
+  --     type = "coreclr",
+  --     name = "launch - netcoredbg",
+  --     request = "launch",
+  --     program = function()
+  --       return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/net5.0', 'file')
+  --     end,
+  --   },
+  -- }
 
   -- adds loading of .vscode/launch.json files
   require('dap.ext.vscode').load_launchjs()
