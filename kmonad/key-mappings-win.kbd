@@ -56,7 +56,7 @@
     caps _    _    _    _    _    _    _    _    _    _    _    _    _  
     _    q    w    f    p    v    j    l    u    y    ;    @shi _    _  
     @nav a    @alr @cts @sft g    h    @sfn @cte @ali o    ent  _
-    @shi z    x    c    v    d    k    m    _    _    '    @shi
+    @shi z    x    c    d    b    k    m    _    _    '    @shi
     _    _    @nav      @sym           @num _    _    _    _
                                                  _    _    _
 )
@@ -108,7 +108,7 @@
     _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    _    @    ^    $    `    _    #    *    &    _    _    _    _ 
-    _    |    S--  \(   \)   /    \\   {    }    S--  :    _    _ 
+    _    |    -    \(   \)   /    \\   {    }    S--  :    _    _ 
     _    `    ~    <    >    _    _    [    ]    =    +    _ 
     _    _    _              _         bspc _    _    _    _ 
                                                  _    _    _
