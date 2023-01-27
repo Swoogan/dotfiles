@@ -67,7 +67,7 @@ M.setup = function()
     rust_analyzer = 'rust-analyzer-x86_64-pc-windows-msvc'
   end
 
-  nvim_lsp[ "rust_analyzer"].setup {
+  nvim_lsp['rust_analyzer'].setup {
     capabilities = capabilities,
     on_attach = on_attach,
     cmd = { rust_analyzer },
@@ -82,12 +82,6 @@ M.setup = function()
     capabilities = capabilities,
     on_attach = on_attach,
     bundle_path = bundle_path,
-    -- pwsh, the default, does not work for some reason
-    shell = "powershell.exe",
-    -- cmd = { "pwsh", "-NoLogo", "-NoProfile", "-Command", bundle_path .. "/PowerShellEditorServices/Start-EditorServices.ps1 -BundledModulesPath " .. bundle_path .. " -LogPath " .. session_path .. "/powershell_es.log -SessionDetailsPath " .. session_path .. "/powershell_es.session.json -FeatureFlags @() -AdditionalModules @() -HostName 'neovim' -HostProfileId " .. pid .. " -HostVersion 1.0.0 -Stdio -LogLevel Verbose"},
-    -- root_dir = function(fname)
-    --   return util.find_git_ancestor(fname) or vim.fn.getcwd()
-    -- end;
   }
 
   nvim_lsp['sumneko_lua'].setup {
