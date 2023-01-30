@@ -1,4 +1,5 @@
 $PIT_CONFIG = Join-Path $env:USERPROFILE .pit
+$PIT_SETTINGS = "pit.config"
 $DEFAULT_FEATURE = "depot"
 
 <#
@@ -558,6 +559,7 @@ function Get-ChangeDescription {
             $desc = Invoke-Perforce describe $Change
             $onlyOpened = ($desc.shelved -eq $null) -and ($desc.status -ne "submitted")
             $files = Get-FilesInChange $Change -Status $desc.status -OnlyOpened:$onlyOpened
+            if (-not $files) { $files = @() }
 
             $output = [pscustomobject]@{
                 Change = $desc.change;
@@ -577,13 +579,14 @@ function Write-Modifications {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true, Position=0, ValueFromPipeline)]
+        [AllowEmptyCollection()]
         [object[]]$Files,
         [Parameter(Mandatory=$false)]
         [switch]$Indent
     )
 
     process {
-                #Write-Host -ForegroundColor Yellow "$prefix[$($file.state)][add]    $($file.path)"
+        #"$prefix[$($file.state)][add]    $($file.path)"
         $fmt = "{0}[{1}] [{2}]{3} {4}"
         $prefix = $Indent ? "`t" : ""
 
@@ -1273,7 +1276,17 @@ function Invoke-Pit {
             }
             "update" {
                 Write-Host "Gathering files to sync..."
-                $files = Invoke-Perforce sync -n | Where-Object data -eq $null
+                $path = Join-Path $PIT_CONFIG $PIT_SETTINGS
+                $files = @()
+                if (Test-Path $path) {
+                    $settings = Get-Content $path | ConvertFrom-Json
+                    foreach ($root in $settings.sync_roots) {
+                        $files += Invoke-Perforce sync -n $root | Where-Object data -eq $null
+                    }
+                }
+                else {
+                    $files += Invoke-Perforce sync -n | Where-Object data -eq $null
+                }
                 $count = $files | Measure-Object | Select-Object -ExpandProperty count
 
                 if ($count -eq 0) {
