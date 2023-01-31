@@ -761,30 +761,43 @@ function Select-DiffersFromDepot {
         [pscustomobject[]]$File
     )
 
+    begin {
+        $tmp = Join-Path $env:temp pit
+        if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
+
+        # todo: deal with the possiblity that there are multiple files of the same name,
+        # but in different directories, within the same changelist
+        $diffTemp = Join-Path $tmp "edit"
+        if (-not (Test-Path $diffTemp)) { mkdir $diffTemp | Out-Null }
+    }
+
     process {
-        foreach ($file in $File) {
-            if ($file.action -eq "add" -or $file.action -eq "delete") {
-                Write-Output $file
+        foreach ($f in $File) {
+            if ($f.action -eq "add" -or $file.action -eq "delete") {
+                Write-Output $f
             }
-            elseif ($file.action -eq "edit") {
-                $tmp = Join-Path $env:temp pit
-                if (-not (Test-Path $tmp)) { mkdir $tmp | Out-Null }
+            elseif ($f.action -eq "edit") {
+                if ($f.type.StartsWith("binary")) {
+                    Write-Output $f
+                    continue
+                }
 
-                # todo: deal with the possiblity that there are multiple files of the same name,
-                # but in different directories, within the same changelist
-                $diffTemp = Join-Path $tmp "edit"
-                if (-not (Test-Path $diffTemp)) { mkdir $diffTemp | Out-Null }
-
-                $leaf = Split-Path $file.path -leaf
+                $path = Invoke-Perforce where $file.depotFile | Select-Object -ExpandProperty path
+                $leaf = Split-Path $path -leaf
                 $depot = Join-Path $diffTemp $leaf
-                p4 print -o $depot "$($file.path)#have" | Out-Null
+                p4 print -o $depot "$($path)#have" | Out-Null
 
-                $equal = Compare-Files $depot $file.path
+                $equal = Compare-Files $depot $path
                 if (-not $equal) {
-                    Write-Output $file
+                    Write-Output $f
                 }
             }
         }
+    }
+
+    end {
+        $tmp = Join-Path $env:temp pit
+        if (Test-Path $tmp) { Remove-Item -Recurse $tmp | Out-Null }
     }
 }
 
