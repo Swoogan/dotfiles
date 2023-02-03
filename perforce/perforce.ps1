@@ -1290,41 +1290,28 @@ function Invoke-Pit {
             "update" {
                 Write-Host "Gathering files to sync..."
                 $path = Join-Path $PIT_CONFIG $PIT_SETTINGS
-                $files = @()
                 if (Test-Path $path) {
                     $settings = Get-Content $path | ConvertFrom-Json
                     foreach ($root in $settings.sync_roots) {
-                        $files += Invoke-Perforce sync -n $root | Where-Object data -eq $null
+                        & $settings.p4sync $root
                     }
                 }
                 else {
                     $files += Invoke-Perforce sync -n | Where-Object data -eq $null
-                }
-                $count = $files | Measure-Object | Select-Object -ExpandProperty count
-
-                if ($count -eq 0) {
-                    Write-Host "Already up to date."
-                }
-                else {
-                    Write-Host "Syncing $count files..."
-
-                    for ($i = 1; $i -le $count; $i+=50) { 
-                        $percent = ($i/$count) * 100
-                        
-                        Write-Progress -Activity "Updating" -Status "Syncing ($i/$count) files..." -PercentComplete $percent
-
-                        $increment = $files[($i-1)..($i+50)] | ForEach-Object { 
-                            # WTF Perforce? What the actual...
-                            $rev = ($_.action -eq "deleted") ? [int]$_.rev + 1 : $_.rev
-                            "{0}#{1}" -f $_.depotFile, $rev
-                        }
-                        $increment | p4 -x- sync | Out-Null
+                    $count = $files | Measure-Object | Select-Object -ExpandProperty count
+                    if ($count -eq 0) {
+                        Write-Host "Already up to date."
                     }
+                    else {
+                        Write-Host "Syncing $count files..."
 
-                    $add = $files | Where-Object action -eq "added" | Measure-Object | Select-Object -ExpandProperty count
-                    $delete = $files | Where-Object action -eq "deleted" | Measure-Object | Select-Object -ExpandProperty count
-                    $edit = $files | Where-Object action -eq "updated" | Measure-Object | Select-Object -ExpandProperty count
-                    Write-Host "$edit edits, $add adds, and $delete deletes"
+                        p4 -I sync -q
+
+                        $add = $files | Where-Object action -eq "added" | Measure-Object | Select-Object -ExpandProperty count
+                        $delete = $files | Where-Object action -eq "deleted" | Measure-Object | Select-Object -ExpandProperty count
+                        $edit = $files | Where-Object action -eq "updated" | Measure-Object | Select-Object -ExpandProperty count
+                        Write-Host "$edit edits, $add adds, and $delete deletes"
+                    }
                 }
             }
             default {
