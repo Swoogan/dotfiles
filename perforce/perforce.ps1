@@ -1308,17 +1308,17 @@ function Invoke-Pit {
                 else {
                     Write-Host "Syncing $count files..."
 
-                    for ($i = 1; $i -le $count; $i++) { 
-                        $file = $files[$i-1]
+                    for ($i = 1; $i -le $count; $i+=50) { 
                         $percent = ($i/$count) * 100
                         
                         Write-Progress -Activity "Updating" -Status "Syncing ($i/$count) files..." -PercentComplete $percent
 
-                        # WTF Perforce? What the actual...
-                        $rev = ($file.action -eq "deleted") ? $file.rev + 1 : $file.rev
-
-                        $f = "{0}#{1}" -f $file.depotFile, $rev
-                        p4 sync $f | Out-Null
+                        $increment = $files[($i-1)..($i+50)] | ForEach-Object { 
+                            # WTF Perforce? What the actual...
+                            $rev = ($_.action -eq "deleted") ? [int]$_.rev + 1 : $_.rev
+                            "{0}#{1}" -f $_.depotFile, $rev
+                        }
+                        $increment | p4 -x- sync | Out-Null
                     }
 
                     $add = $files | Where-Object action -eq "added" | Measure-Object | Select-Object -ExpandProperty count
