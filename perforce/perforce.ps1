@@ -2,6 +2,9 @@ $PIT_CONFIG = Join-Path $env:USERPROFILE .pit
 $PIT_SETTINGS = "pit.config"
 $DEFAULT_FEATURE = "depot"
 
+# Todo move this to config file:
+$DIFF_COMMAND = "C:/Program Files/Git/usr/bin/diff.exe"
+
 <#
 1..20 | foreach -Begin { Write-Host "$e[s" -NoNewline} -Process {
     Write-Host "$e[u$("▉"*$_)" -NoNewLine; Start-Sleep -MilliSeconds 100
@@ -624,7 +627,7 @@ function Invoke-Diff {
     process {
         $a = $File1 -replace "\\", "/"
         $b = $File2 -replace "\\", "/"
-        git diff --no-index $a $b
+        & $DIFF_COMMAND --color -u $a $b
     }
 }
 
@@ -653,7 +656,6 @@ function Compare-WorkspaceToPrevious {
 
     process {
         foreach ($f in $File) {
-            Write-Host "A", $f
             $inShelve = $null -ne ($previous | Where-Object path -eq $f.path)
 
             if ($inShelve) { 
@@ -698,7 +700,6 @@ function Compare-WorkspaceToPrevious {
 
         # previous that are different (files that don't show in a reconcile because they match the depot state)
         foreach ($f in $previous) {
-            Write-Host "B", $f
             $exists = $null -ne ($File | Where-Object path -eq $f.path)
             if (-not $exists) { 
                 $leaf = Split-Path $f.path -leaf
