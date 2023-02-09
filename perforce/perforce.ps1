@@ -1292,8 +1292,14 @@ function Invoke-Pit {
                 $path = Join-Path $PIT_CONFIG $PIT_SETTINGS
                 if (Test-Path $path) {
                     $settings = Get-Content $path | ConvertFrom-Json
-                    foreach ($root in $settings.sync_roots) {
-                        & $settings.p4sync $root
+                    if (-not $settings.p4sync) 
+                    {
+                        Write-Host -ForegroundColor Red "p4sync setting missing from config file"
+                    }
+                    else {
+                        foreach ($root in $settings.sync_roots) {
+                            & $settings.p4sync $root
+                        }
                     }
                 }
                 else {
