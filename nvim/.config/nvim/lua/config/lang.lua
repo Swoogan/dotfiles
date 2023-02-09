@@ -1,5 +1,3 @@
--- local util = require 'lspconfig/util'
-
 local M = {
 }
 
@@ -39,7 +37,6 @@ M.setup = function()
 
   end
 
-  -- local capabilities = vim.lsp.protocol.make_client_capabilities()
   local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
   capabilities.textDocument.completion.completionItem.snippetSupport = true
@@ -75,8 +72,6 @@ M.setup = function()
 
   -- Setup PowerShell Editor Extensions
   local bundle_path = vim.env.DEV_HOME .. '/.ls/PowerShellEditorServices'
-  -- local session_path = vim.env.TMP .. '/psls'
-  -- local session_path = vim.env.TMP
 
   nvim_lsp['powershell_es'].setup {
     capabilities = capabilities,
@@ -111,7 +106,7 @@ M.setup = function()
   }
 
   nvim_lsp['zls'].setup {
-    cmd = {  vim.env.DEV_HOME .. '/.ls/zigtools-zls/bin/zls'  },
+    cmd = { vim.env.DEV_HOME .. '/.ls/zigtools-zls/bin/zls' },
     capabilities = capabilities,
     on_attach = on_attach,
   }
@@ -128,6 +123,15 @@ M.setup = function()
     cmd = { omnisharp, "--languageserver", "--hostPID", tostring(pid),
       "formattingOptions:EnableEditorConfigSupport=true" }
   }
+
+  -- Setup null-ls
+  local null_ls = require("null-ls")
+
+  null_ls.setup({
+    sources = {
+      null_ls.builtins.formatting.black,
+    },
+  })
 
 end
 

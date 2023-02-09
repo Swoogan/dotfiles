@@ -2,7 +2,7 @@ local path = require('core.path')
 local Lockfile = require("core.lockfile")
 
 local M = setmetatable({}, {
-  __index = function(_, key)
+    __index = function(_, key)
     return require("packer")[key]
   end,
 })
@@ -17,10 +17,13 @@ M.spec = {
   { "nvim-treesitter/nvim-treesitter-textobjects" }, -- Additional textobjects for treesitter
   -- { "nvim-treesitter/playground" },
 
+  { "jose-elias-alvarez/null-ls.nvim", requires = { "nvim-lua/plenary.nvim" } }, -- Easy configuration of LSP
   { "Hoffs/omnisharp-extended-lsp.nvim" },
-  { "theHamsta/nvim-dap-virtual-text" },
+
   { "mfussenegger/nvim-dap" },
   { "mfussenegger/nvim-dap-python" },
+  { "theHamsta/nvim-dap-virtual-text" },
+  { "rcarriga/nvim-dap-ui", requires = {"mfussenegger/nvim-dap"} },
 
   { "hrsh7th/cmp-nvim-lsp" },
   { "hrsh7th/cmp-buffer" },
