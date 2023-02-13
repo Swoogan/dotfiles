@@ -51,7 +51,7 @@ M.setup = function()
   -- Use a loop to conveniently call 'setup' on multiple servers and
   -- map buffer local keybindings when the language server attaches
 
-  local servers = { "pyright", "tsserver", "clangd" }
+  local servers = { "jedi_language_server", "tsserver", "clangd" }
   for _, lsp in ipairs(servers) do
     nvim_lsp[lsp].setup {
       capabilities = capabilities,
@@ -130,6 +130,7 @@ M.setup = function()
   null_ls.setup({
     sources = {
       null_ls.builtins.formatting.black,
+      null_ls.builtins.diagnostics.flake8,
     },
   })
 
