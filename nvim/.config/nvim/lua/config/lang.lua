@@ -62,17 +62,30 @@ M.setup = function()
   if vim.fn.executable('pyright') == 1 then
     nvim_lsp['pyright'].setup {
       capabilities = capabilities,
-      on_attach = on_attach,
+      on_attach = function(client, buffer)
+        client.server_capabilities.codeActionProvider = false
+        client.server_capabilities.renameProvider = false
+        on_attach(client, buffer)
+      end,
+      settings = {
+        python = {
+          analysis = {
+            typeCheckingMode = "off",
+          }
+        }
+      }
+    }
+    nvim_lsp['jedi_language_server'].setup {
+      capabilities = capabilities,
+      on_attach = function(client, buffer)
+        client.server_capabilities.completionProvider = false
+        on_attach(client, buffer)
+      end,
     }
   else
     nvim_lsp['jedi_language_server'].setup {
       capabilities = capabilities,
-      on_attach = function(client, buffer)
-        client.server_capabilities.documentFormattingProvider = false
-        client.server_capabilities.hoverProvider = false
-        client.server_capabilities.renameProvider = false
-        on_attach(client, buffer)
-      end,
+      on_attach = on_attach,
     }
   end
 
