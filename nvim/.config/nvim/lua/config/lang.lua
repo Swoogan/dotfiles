@@ -51,12 +51,28 @@ M.setup = function()
   -- Use a loop to conveniently call 'setup' on multiple servers and
   -- map buffer local keybindings when the language server attaches
 
-  -- local servers = { "jedi_language_server", "tsserver", "clangd" }
-  local servers = { "pyright", "tsserver", "clangd" }
+  local servers = { "tsserver", "clangd" }
   for _, lsp in ipairs(servers) do
     nvim_lsp[lsp].setup {
       capabilities = capabilities,
       on_attach = on_attach,
+    }
+  end
+
+  if vim.fn.executable('pyright') == 1 then
+    nvim_lsp['pyright'].setup {
+      capabilities = capabilities,
+      on_attach = on_attach,
+    }
+  else
+    nvim_lsp['jedi_language_server'].setup {
+      capabilities = capabilities,
+      on_attach = function(client, buffer)
+        client.server_capabilities.documentFormattingProvider = false
+        client.server_capabilities.hoverProvider = false
+        client.server_capabilities.renameProvider = false
+        on_attach(client, buffer)
+      end,
     }
   end
 

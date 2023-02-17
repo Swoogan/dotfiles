@@ -236,6 +236,14 @@ vim.api.nvim_create_autocmd("FileType", {
     callback = function() vim.cmd([[setlocal shiftwidth=2 softtabstop=2 expandtab]]) end,
 })
 
+-- Auto format Python files
+vim.api.nvim_create_autocmd("BufWritePre", {
+    group = vim.api.nvim_create_augroup("AutoFormat", { clear = true }),
+    pattern = "*.py",
+    callback = function() vim.lsp.buf.format({ async = false }) end,
+})
+
+-- Hide exit code on terminal close
 vim.api.nvim_create_autocmd("TermClose", {
     pattern = "*",
     callback = function() vim.cmd([[if !v:event.status | exe 'bdelete! '..expand('<abuf>') | endif]]) end,
