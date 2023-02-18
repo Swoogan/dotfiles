@@ -8,6 +8,30 @@ M.setup = function()
   local nvim_lsp = require('lspconfig')
   local pid = vim.fn.getpid()
 
+  vim.diagnostic.config({
+    virtual_text = {
+      source = "if_many",
+      prefix = '',
+      format = function(diagnostic)
+        if diagnostic.severity == vim.diagnostic.severity.ERROR then
+          return string.format(" %s", diagnostic.message)
+        elseif diagnostic.severity == vim.diagnostic.severity.WARN then
+          return string.format(" %s", diagnostic.message)
+        elseif diagnostic.severity == vim.diagnostic.severity.INFO then
+          return string.format(" %s", diagnostic.message)
+        elseif diagnostic.severity == vim.diagnostic.severity.HINT then
+          return string.format(" %s", diagnostic.message)
+        else
+          return diagnostic.message
+        end
+      end
+    },
+    severity_sort = true,
+    float = {
+      source = "always", -- Or "if_many"
+    },
+  })
+
   local on_attach = function(_, bufnr)
     --Enable completion triggered by <c-x><c-o>
     vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
