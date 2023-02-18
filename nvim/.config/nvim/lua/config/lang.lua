@@ -65,6 +65,7 @@ M.setup = function()
       on_attach = function(client, buffer)
         client.server_capabilities.codeActionProvider = false
         client.server_capabilities.renameProvider = false
+        client.handlers["textDocument/publishDiagnostics"] = function(...) end
         on_attach(client, buffer)
       end,
       settings = {
@@ -85,13 +86,7 @@ M.setup = function()
   else
     nvim_lsp['jedi_language_server'].setup {
       capabilities = capabilities,
-      -- on_attach = on_attach,
-      on_attach = function(client, buffer)
-        client.server_capabilities.completionProvider = false
-        client.handlers["textDocument/publishDiagnostics"] = function(...) end
-        -- vim.diagnostic.disable(nil, client.id)
-        on_attach(client, buffer)
-      end,
+      on_attach = on_attach,
     }
   end
 
