@@ -85,7 +85,13 @@ M.setup = function()
   else
     nvim_lsp['jedi_language_server'].setup {
       capabilities = capabilities,
-      on_attach = on_attach,
+      -- on_attach = on_attach,
+      on_attach = function(client, buffer)
+        client.server_capabilities.completionProvider = false
+        client.handlers["textDocument/publishDiagnostics"] = function(...) end
+        -- vim.diagnostic.disable(nil, client.id)
+        on_attach(client, buffer)
+      end,
     }
   end
 
@@ -161,7 +167,7 @@ M.setup = function()
     sources = {
       null_ls.builtins.formatting.black,
       null_ls.builtins.diagnostics.flake8,
-      null_ls.builtins.diagnostics.pylint,
+      -- null_ls.builtins.diagnostics.pylint,
     },
   })
 
