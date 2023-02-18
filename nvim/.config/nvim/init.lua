@@ -45,19 +45,26 @@ vim.g.loaded_tutor = 1
 vim.g.loaded_netrwPlugin = 1
 
 -- Setup auto compeletion
-vim.o.completeopt = "menu,menuone,noselect"
+vim.o.completeopt = 'menu,menuone,noselect'
 
 -- treat - seperated words as a word object
 vim.api.nvim_exec([[ set iskeyword+=- ]], false)
 -- treat _ seperated words as a word object
 vim.api.nvim_exec([[ set iskeyword+=_ ]], false)
 
+-- Add cute icons for the left margin 
+local signs = { Error = '', Warn = '', Hint = '', Info = '' }
+for type, icon in pairs(signs) do
+  local hl = "DiagnosticSign" .. type
+  vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
+end
+
 -- *** THEME *** --
 
 require('nightfox').setup({
   options = {
     styles = {
-        comments = "italic"
+      comments = "italic"
     }
   }
 })
@@ -95,11 +102,9 @@ vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, opts)
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').grep_string, opts)
 vim.keymap.set('n', '<leader>so', require('telescope.builtin').oldfiles, opts)
 vim.keymap.set('n', '<leader>sv',
-    function() require('telescope').setup { defaults = { layout_strategy = 'vertical', }, } end, opts)
+  function() require('telescope').setup { defaults = { layout_strategy = 'vertical', }, } end, opts)
 vim.keymap.set('n', '<leader>sz',
-    function() require('telescope').setup { defaults = { layout_strategy = 'horizontal', }, } end, opts)
-
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
+  function() require('telescope').setup { defaults = { layout_strategy = 'horizontal', }, } end, opts)
 
 -- Buffer Mappings
 -- Close current buffer
@@ -173,80 +178,80 @@ vim.keymap.set('n', '<leader>pf', '<cmd>PrettierAsync<cr>', opts)
 
 -- Highlight on yank
 vim.api.nvim_create_autocmd("TextYankPost", {
-    group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
-    pattern = "*", -- silent!
-    callback = function() vim.highlight.on_yank() end,
+  group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
+  pattern = "*", -- silent!
+  callback = function() vim.highlight.on_yank() end,
 })
 
 local group = vim.api.nvim_create_augroup("NumberToggle", { clear = true })
 -- Turn on relativenumber for focused buffer
 vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave" }, {
-    group = group,
-    pattern = "*",
-    callback = function() vim.cmd([[set relativenumber]]) end,
+  group = group,
+  pattern = "*",
+  callback = function() vim.cmd([[set relativenumber]]) end,
 })
 
 -- Turn off relativenumber for unfocused buffers
 vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter" }, {
-    group = group,
-    pattern = "*",
-    callback = function() vim.cmd([[set norelativenumber]]) end,
+  group = group,
+  pattern = "*",
+  callback = function() vim.cmd([[set norelativenumber]]) end,
 })
 
 -- Various settings for markdown
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-    group = vim.api.nvim_create_augroup("Markdown", { clear = true }),
-    pattern = "*.md",
-    callback = function() vim.cmd([[setlocal wrap spell linebreak]]) end,
+  group = vim.api.nvim_create_augroup("Markdown", { clear = true }),
+  pattern = "*.md",
+  callback = function() vim.cmd([[setlocal wrap spell linebreak]]) end,
 })
 
 -- Set the compiler to dotnet for cs files
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-    group = vim.api.nvim_create_augroup("CSharp", { clear = true }),
-    pattern = "*.cs",
-    callback = function() vim.cmd([[compiler dotnet]]) end,
+  group = vim.api.nvim_create_augroup("CSharp", { clear = true }),
+  pattern = "*.cs",
+  callback = function() vim.cmd([[compiler dotnet]]) end,
 })
 
 group = vim.api.nvim_create_augroup("ZigLang", { clear = true })
 -- Set zig files to zig filetype
 vim.api.nvim_create_autocmd("BufReadPost", {
-    group = group,
-    pattern = "*.zig",
-    callback = function() vim.cmd([[set ft=zig]]) end,
+  group = group,
+  pattern = "*.zig",
+  callback = function() vim.cmd([[set ft=zig]]) end,
 })
 
 -- Abbreviate oom to error.OutOfMemory in Zig
 vim.api.nvim_create_autocmd("FileType", {
-    group = group,
-    pattern = "zig",
-    callback = function() vim.cmd([[iabbrev <buffer> oom return error.OutOfMemory;]]) end,
+  group = group,
+  pattern = "zig",
+  callback = function() vim.cmd([[iabbrev <buffer> oom return error.OutOfMemory;]]) end,
 })
 
 -- auto completion for html closing tags
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
   group = vim.api.nvim_create_augroup("TagCompletion", { clear = true }),
-  pattern = {"*.html", "*.xml"},
+  pattern = { "*.html", "*.xml" },
   callback = function() vim.keymap.set('i', '</', '</<c-n>', opts) end,
 })
 
 -- Set indentation to 2 for lua and html
 vim.api.nvim_create_autocmd("FileType", {
-    group = vim.api.nvim_create_augroup("IndentTwo", { clear = true }),
-    pattern = { "lua", "html" },
-    callback = function() vim.cmd([[setlocal shiftwidth=2 softtabstop=2 expandtab]]) end,
+  group = vim.api.nvim_create_augroup("IndentTwo", { clear = true }),
+  pattern = { "lua", "html" },
+  callback = function() vim.cmd([[setlocal shiftwidth=2 softtabstop=2 expandtab]]) end,
 })
 
 -- Auto format Python files
 vim.api.nvim_create_autocmd("BufWritePre", {
-    group = vim.api.nvim_create_augroup("AutoFormat", { clear = true }),
-    pattern = "*.py",
-    callback = function() vim.lsp.buf.format({ async = false }) end,
+  group = vim.api.nvim_create_augroup("AutoFormat", { clear = true }),
+  pattern = "*.py",
+  callback = function() vim.lsp.buf.format({ async = false }) end,
 })
 
 -- Hide exit code on terminal close
 vim.api.nvim_create_autocmd("TermClose", {
-    pattern = "*",
-    callback = function() vim.cmd([[if !v:event.status | exe 'bdelete! '..expand('<abuf>') | endif]]) end,
+  pattern = "*",
+  callback = function() vim.cmd([[if !v:event.status | exe 'bdelete! '..expand('<abuf>') | endif]]) end,
 })
 
 -- *** MISCELLANEOUS *** --
@@ -255,15 +260,15 @@ local is_windows = vim.loop.os_uname().sysname == "Windows_NT"
 
 -- launch a terminal
 if is_windows then
-    vim.keymap.set('n', '<leader>t', '<cmd>10split|term pwsh -NoLogo<Cr>a', opts)
+  vim.keymap.set('n', '<leader>t', '<cmd>10split|term pwsh -NoLogo<Cr>a', opts)
 else
-    vim.keymap.set('n', '<leader>t', '<cmd>10split|term<Cr>a', opts)
+  vim.keymap.set('n', '<leader>t', '<cmd>10split|term<Cr>a', opts)
 end
 
 -- set swap folder
 local swap = vim.fn.expand("$HOME/.cache/nvim/swap")
 if not vim.fn.isdirectory(swap) then
-    vim.fn.mkdir(swap, "p")
+  vim.fn.mkdir(swap, "p")
 end
 vim.cmd([[set directory=$HOME/.cache/nvim/swap]])
 
