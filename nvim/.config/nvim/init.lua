@@ -81,7 +81,7 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 
 -- These use the <leader>l lsp prefix even though they aren't lsp specific.
 vim.keymap.set('n', '<leader>le', vim.diagnostic.open_float, opts)
-vim.keymap.set('n', '<leader>lq', vim.diagnostic.setloclist, opts)
+vim.keymap.set('n', '<leader>lq', vim.diagnostic.setqflist, opts)
 
 -- Generate test names in the standard format
 vim.keymap.set("n", "<leader>tt", require('utils').transform_test_name, opts)
@@ -268,6 +268,13 @@ end
 vim.cmd([[set directory=$HOME/.cache/nvim/swap]])
 
 -- diff a file against the unchanged state
-vim.api.nvim_create_user_command("DiffOrig", function()
-    vim.cmd([[vertical new | set buftype=nofile | read # | 0d_ | diffthis | wincmd p | diffthis ]])
+vim.api.nvim_create_user_command('DiffOrig', function()
+  vim.cmd([[vertical new | set buftype=nofile | read # | 0d_ | diffthis | wincmd p | diffthis ]])
 end, {})
+
+vim.api.nvim_create_user_command('Redir', function(ctx)
+  local lines = vim.split(vim.api.nvim_exec(ctx.args, true), '\n', { plain = true })
+  vim.cmd('enew')
+  vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+  vim.opt_local.modified = false
+end, { nargs = '+', complete = 'command' })
