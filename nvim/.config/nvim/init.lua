@@ -52,8 +52,8 @@ vim.api.nvim_exec([[ set iskeyword+=- ]], false)
 -- treat _ seperated words as a word object
 vim.api.nvim_exec([[ set iskeyword+=_ ]], false)
 
--- Add cute icons for the left margin 
-local signs = { Error = '', Warn = '', Hint = '', Info = '' }
+-- Add cute icons for the left margin
+local signs = { Error = '', Warn = '', Hint = '', Info = '' }
 for type, icon in pairs(signs) do
   local hl = "DiagnosticSign" .. type
   vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
@@ -248,6 +248,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   callback = function() vim.lsp.buf.format({ async = false }) end,
 })
 
+
 -- Hide exit code on terminal close
 vim.api.nvim_create_autocmd("TermClose", {
   pattern = "*",
@@ -277,6 +278,7 @@ vim.api.nvim_create_user_command('DiffOrig', function()
   vim.cmd([[vertical new | set buftype=nofile | read # | 0d_ | diffthis | wincmd p | diffthis ]])
 end, {})
 
+-- redirect command output to a buffer
 vim.api.nvim_create_user_command('Redir', function(ctx)
   local lines = vim.split(vim.api.nvim_exec(ctx.args, true), '\n', { plain = true })
   vim.cmd('enew')

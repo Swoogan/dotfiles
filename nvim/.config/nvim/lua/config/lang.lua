@@ -11,25 +11,48 @@ M.setup = function()
   vim.diagnostic.config({
     virtual_text = {
       source = "if_many",
-      prefix = '',
-      format = function(diagnostic)
-        if diagnostic.severity == vim.diagnostic.severity.ERROR then
-          return string.format(" %s", diagnostic.message)
-        elseif diagnostic.severity == vim.diagnostic.severity.WARN then
-          return string.format(" %s", diagnostic.message)
-        elseif diagnostic.severity == vim.diagnostic.severity.INFO then
-          return string.format(" %s", diagnostic.message)
-        elseif diagnostic.severity == vim.diagnostic.severity.HINT then
-          return string.format(" %s", diagnostic.message)
-        else
-          return diagnostic.message
-        end
-      end
+      prefix = '󰂖',
+      -- prefix = '',
+      -- prefix = '',
+      -- prefix = '',
+      -- prefix = '',
+      -- prefix = '󰵛',
+      -- prefix = '󰂚',
+      -- prefix = '󰵙',
+      -- prefix = '',
+      -- prefix = '',
+      -- prefix = '',
     },
     severity_sort = true,
     float = {
       source = "always", -- Or "if_many"
     },
+  })
+
+  local code_action_func = function()
+    vim.lsp.buf.code_action({
+      filter = function(client) return client.name ~= "pyright" end
+    })
+  end
+
+  vim.api.nvim_create_autocmd('LspAttach', {
+    pattern = "*.py",
+    callback = function(_)
+      vim.diagnostic.config({
+        virtual_text = {
+          source = false,
+          -- prefix = '',
+          prefix = '',
+          format = function(diagnostic)
+            return string.format("%s (%s) %s", diagnostic.source, diagnostic.code, diagnostic.message)
+          end
+        },
+        severity_sort = true,
+        float = {
+          source = "always", -- Or "if_many"
+        },
+      })
+    end,
   })
 
   local on_attach = function(_, bufnr)
@@ -55,10 +78,9 @@ M.setup = function()
     vim.keymap.set('n', '<leader>ls', vim.lsp.buf.signature_help, bufopts)
     vim.keymap.set('n', '<leader>lt', vim.lsp.buf.type_definition, bufopts)
     vim.keymap.set('n', '<leader>lr', vim.lsp.buf.rename, bufopts)
-    vim.keymap.set('n', '<leader>lc', vim.lsp.buf.code_action, bufopts)
-    vim.keymap.set('n', '<leader>lf', vim.lsp.buf.formatting, bufopts)
+    vim.keymap.set('n', '<leader>lc', code_action_func, bufopts)
+    vim.keymap.set('n', '<leader>lf', function() vim.lsp.buf.format({ async = true }) end, bufopts)
     vim.keymap.set('n', '<leader>ld', require('telescope.builtin').lsp_document_symbols, bufopts)
-
   end
 
   local capabilities = require('cmp_nvim_lsp').default_capabilities()
@@ -74,7 +96,6 @@ M.setup = function()
 
   -- Use a loop to conveniently call 'setup' on multiple servers and
   -- map buffer local keybindings when the language server attaches
-
   local servers = { "tsserver", "clangd" }
   for _, lsp in ipairs(servers) do
     nvim_lsp[lsp].setup {
