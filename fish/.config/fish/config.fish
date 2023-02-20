@@ -21,9 +21,6 @@ set -gx WASMTIME_HOME "$HOME/.wasmtime"
 set -gx WASMER_DIR "$HOME/.wasmer"
 set -gx WASMER_CACHE_DIR "$WASMER_DIR/cache"
 
-# Wasmer
-[ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"
-
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
@@ -38,9 +35,6 @@ if status --is-interactive
     /usr/bin/keychain -q --nogui $HOME/.ssh/id_rsa
 end
 source_exists ~/.keychain/(hostname)-fish
-
-# Nix
-# source_exists ~/.nix-profile/etc/profile.d/nix.sh
 
 # Colours
 source_exists ~/.local/share/nvim/site/pack/packer/start/nightfox.nvim/extra/nightfox/nightfox_fish.fish
