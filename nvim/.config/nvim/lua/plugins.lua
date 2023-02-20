@@ -10,7 +10,7 @@ local M = setmetatable({}, {
 M.spec = {
   { "wbthomason/packer.nvim" }, -- Package manager
 
-  { "Swoogan/nightfox.nvim" }, -- theme
+  { "EdenEast/nightfox.nvim" }, -- theme
 
   { "neovim/nvim-lspconfig" }, -- Easy configuration of LSP
   { "nvim-treesitter/nvim-treesitter", run = ":TSUpdate" }, -- incremental language parser
