@@ -105,8 +105,10 @@ M.setup = function()
   end
 
   if vim.fn.executable('pyright') == 1 then
+    local cap = capabilities
+    cap.textDocument.publishDiagnostics = { tagSupport = { valueSet = { 2 } } }
     nvim_lsp['pyright'].setup {
-      capabilities = capabilities,
+      capabilities = cap,
       on_attach = function(client, buffer)
         client.server_capabilities.codeActionProvider = false
         client.server_capabilities.renameProvider = false
@@ -205,7 +207,7 @@ M.setup = function()
 
   null_ls.setup({
     sources = {
-      null_ls.builtins.formatting.black,
+      -- null_ls.builtins.formatting.black,
       null_ls.builtins.diagnostics.flake8,
       -- null_ls.builtins.diagnostics.pylint,
     },
