@@ -1,10 +1,11 @@
 set ignorecase
 
 let mapleader=","
-"set clipboard=unnamed
-"
+
+" Make the unnamed register copy into the system clipboard
+set clipboard=unnamed
+
 "map <Space>qk :vsc Tools.CustomizeKeyboard<CR>
-"map <Space>b :vsc Build.BuildSolution<CR>
 "map <Space><Space> :vsc Tools.InvokeAceJumpCommand<CR>
 
 nmap ]m :vsc Edit.NextMethod<CR>
@@ -18,9 +19,17 @@ map <Leader>w :w<CR>
 map <Leader>x :x<CR>
 map <Leader>b :vsc Build.BuildSolution<CR>
 map <Leader>r :vsc Debug.Start<CR>
+map <Leader>lf :vsc Edit.FormatDocument<CR>
+map <Leader>sf :vsc Edit.GotoFile<CR>
+map <Leader>sg :vsc Edit.GotoAll<CR>
+" map <Leader><Space> :vsc Window.ShowEZMDIFileList<CR>
+map <Leader><Space> :vsc Window.Windows<CR>
 
 map gcc :vsc Edit.ToggleLineComment<CR>
 map gd :vsc Edit.GotoDefinition<CR>
 map gD :vsc Edit.GotoDeclaration<CR>
+map gr :vsc Edit.FindAllReferences<CR>
 
 vmap gc :vsc Edit.ToggleLineComment<CR>
+
+" Todo: map a key to open this config.
