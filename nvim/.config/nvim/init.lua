@@ -21,6 +21,7 @@ vim.opt.smartindent = true
 vim.opt.cursorline = true -- highlights current line
 vim.opt.smartcase = true -- searching case insensitive unless mixed case
 vim.opt.ignorecase = true
+vim.opt.clipboard = 'unnamedplus'
 vim.opt.wrap = false
 
 vim.opt.tabstop = indent
@@ -146,17 +147,6 @@ vim.keymap.set('n', '<c-h>', '<c-w>h', opts)
 vim.keymap.set('n', '<c-j>', '<c-w>j', opts)
 vim.keymap.set('n', '<c-k>', '<c-w>k', opts)
 vim.keymap.set('n', '<c-l>', '<c-w>l', opts)
-
--- Yanks selection to system clipboard
-vim.keymap.set('n', '<leader>y', '"+y', opts)
--- Yanks selection to system clipboard
-vim.keymap.set('v', '<leader>y', '"+y', opts)
--- Yanks line to system clipboard
-vim.keymap.set('n', '<leader>yy', '"+yy', opts)
--- Pastes from system clipboard
-vim.keymap.set('n', '<leader>p', '"+p', opts)
--- Pastes from system clipboard
-vim.keymap.set('n', '<leader>P', '"+P', opts)
 
 -- Edit vim config in split
 vim.keymap.set('n', '<leader>ec', '<cmd>vsplit $MYVIMRC<cr>', opts)
