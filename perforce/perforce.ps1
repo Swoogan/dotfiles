@@ -4,6 +4,7 @@ $DEFAULT_FEATURE = "depot"
 
 # Todo move this to config file:
 $DIFF_COMMAND = "C:/Program Files/Git/usr/bin/diff.exe"
+$PIT_EXE = "C:/dev/pit/target/debug/pit.exe"
 
 <#
 1..20 | foreach -Begin { Write-Host "$e[s" -NoNewline} -Process {
@@ -1033,13 +1034,13 @@ function Invoke-Pit {
                 }
             }
             "feature" {
-                Write-Host ${__Remaining__}[0]
-                if (@("-d", "--delete").Contains(${__Remaining__}[0])) {
-                    Remove-PitFeature ${__Remaining__}[1]
-                }
-                else {
-                    Add-PitFeature ${__Remaining__}[0]
-                }
+                & $PIT_EXE feature ${__Remaining__}
+                # if (@("-d", "--delete").Contains(${__Remaining__}[0])) {
+                #     Remove-PitFeature ${__Remaining__}[1]
+                # }
+                # else {
+                #     Add-PitFeature ${__Remaining__}[0]
+                # }
             }
             "help" {
                 $help = p4 help ${__Remaining__}
