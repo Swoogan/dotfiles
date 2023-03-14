@@ -112,8 +112,8 @@ vim.keymap.set('n', '<leader>sz',
 vim.keymap.set('n', '<leader>bd', '<cmd>bd<CR>', opts)
 -- lua vim.api.nvim_buf_delete(vim.api.nvim_get_current_buf(), {})
 -- Swap buffer
-vim.keymap.set('n', '<leader>bd', '<cmd>bd<CR>', opts)
--- vim.api.nvim_set_keymap('n', '<leader><leader>', [[<cmd>b#<CR>]], opts)
+vim.keymap.set('n', '<leader>,', '<cmd>b#<CR>', opts)
+-- vim.keymap.set('n', '<leader><leader> '<cmd>b#<CR>', opts)
 -- Close current buffer and switch to last used
 vim.keymap.set('n', '<leader>bq', '<cmd>b#|bd#<CR>', opts)
 
