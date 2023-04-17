@@ -1042,7 +1042,8 @@ function Invoke-Pit {
                 }
             }
             "help" {
-                p4 help ${__Remaining__}
+                $help = p4 help ${__Remaining__}
+                $help | ForEach-Object { $_ -creplace '([Tt]he) (-{1,2}[^\s]*) flag', "`e[33;5;220m`$1 `$2 flag`e[0m" }
             }
             "log" {
                 $pageSize = $Host.UI.RawUI.WindowSize.Height - 5
