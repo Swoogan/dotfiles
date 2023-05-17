@@ -2,6 +2,10 @@ local M = {
 }
 
 M.setup = function()
+  if vim.opt.diff:get() then
+    return
+  end
+
   -- vim.lsp.set_log_level("debug")
 
   -- Setup Language sever protocol
