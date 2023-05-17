@@ -92,7 +92,7 @@ vim.keymap.set('n', '<leader>le', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', '<leader>lq', vim.diagnostic.setqflist, opts)
 
 -- Generate test names in the standard format
-vim.keymap.set("n", "<leader>tt", require('utils').transform_test_name, opts)
+-- vim.keymap.set("n", "<leader>tt", require('utils').transform_test_name, opts)
 
 -- Add telescope shortcuts
 vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, opts)
