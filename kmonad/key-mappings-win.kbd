@@ -87,9 +87,9 @@
 (deflayer shift
     _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    _  
-    _    Q    W    F    P    G    J    L    U    Y    %    _    _    _ 
-    _    A    R    S    T    D    H    N    E    I    O    S-ent  _
-    _    Z    X    C    V    B    K    M    !    ?    "    _  
+    _    Q    W    F    P    V    J    L    U    Y    %    _    _    _ 
+    _    A    R    S    T    G    H    N    E    I    O    S-ent  _
+    _    Z    X    C    D    B    K    M    !    ?    "    _  
     _    _    _         _              del  _    _    _    _
                                                  _    _    _
 )
