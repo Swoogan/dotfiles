@@ -1,0 +1,115 @@
+#| ------------------------------------------------------------------
+(deflayer template
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _           _            _    _    _    _    _ 
+                                       _    _    _ 
+)
+-------------------------------------------------------------------- |#
+
+(defcfg)
+
+(defsrc
+    esc  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12  home  end  del
+    grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+    tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+    caps a    s    d    f    g    h    j    k    l    ;    '    ret    
+    lsft z    x    c    v    b    n    m    ,    .    /    rsft
+    lctl lmet lalt           spc       ralt rctl pgup up   pgdn
+                                                 left down rght
+)
+
+;; common
+(defalias
+    shi (one-shot 800 lsft)
+
+    nav (tap-hold 200 200 esc (layer-toggle numnav))
+    num (tap-hold 200 200 bspc (layer-toggle numnav))
+    sym (tap-hold 200 200 spc (layer-toggle symbols))
+
+    cex (fork , S-1 (lsft rsft))
+    pqu (fork . S-/ (lsft rsft))
+    bde (fork @num del (lsft rsft))
+)
+
+;; colemak
+(defalias
+    alr (tap-hold 210 210 r lalt)
+    cts (tap-hold 180 180 s lctl)
+    sft (tap-hold 200 200 t lsft)
+
+    sfn (tap-hold 200 200 n rsft)
+    cte (tap-hold 180 180 e rctl)
+    ali (tap-hold 210 210 i lalt)
+
+    qrt (tap-hold 500 500 f1 (layer-switch qwerty))
+)
+
+(deflayer colemak
+    _    @qrt _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    caps _    _    _    _    _    _    _    _    _    _    _    _    _  
+    _    q    w    f    p    v    j    l    u    y    ;    @shi _    _  
+    @nav a    @alr @cts @sft g    h    @sfn @cte @ali o    ent  _
+    _    z    x    c    d    b    k    m    @cex @pqu '    @shi
+    _    _    @nav      @sym           @bde _    _    _    _
+                                                 _    _    _
+)
+
+(defalias
+    als (tap-hold 210 210 s lalt)
+    ctd (tap-hold 180 180 d lctl)
+    sff (tap-hold 200 200 f lsft)
+
+    sfj (tap-hold 200 200 j rsft)
+    ctk (tap-hold 180 180 k rctl)
+    all (tap-hold 210 210 l lalt)
+
+    col (tap-hold 500 500 f1 (layer-switch colemak))
+)
+
+
+(deflayer qwerty
+    _    @col _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    caps _    _    _    _    _    _    _    _    _    _    _    _    _
+    _    q    w    e    r    t    y    u    i    o    p    @shi _    _
+    @nav a    @als @ctd @sff g    h    @sfj @ctk @all ;    ent  XX
+    @shi z    x    c    v    b    n    m    @cex @pqu _    @shi
+    _    _    @nav           _         @bde _    _    _    _ 
+                                       _    _    _ 
+)
+
+#|
+(deflayer shift
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _  
+    _    Q    W    F    P    V    J    L    U    Y    %    _    _    _ 
+    _    A    R    S    T    G    H    N    E    I    O    S-ent  _
+    _    Z    X    C    D    B    K    M    !    ?    S-'  _  
+    _    _    _         _              del  _    _    _    _
+                                                 _    _    _
+)
+|#
+
+(deflayer numnav
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    f12  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  _    _
+    /    S-8  7    8    9    ,    pgup home up   end  _    _    _    _
+    -    +    6    5    4    _    pgdn left down rght _    _    _
+    _    =    3    2    1    .    _    _    _    _    _    _
+    _    _    _              0         _    _    _    _    _   
+                                                 _    _    _
+)
+
+(deflayer symbols
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    S-2  S-6  S-4  `    _    S-3  S-8  S-7  _    _    _    _ 
+    _    S-\  -    S-9  S-0  /    \    {    }    S--  S-;  _    _ 
+    _    `    S-`  S-,  S-.  _    _    [    ]    =    +    _ 
+    _    _    _              _         bspc _    _    _    _ 
+                                                 _    _    _
+)
+
