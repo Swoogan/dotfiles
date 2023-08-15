@@ -1,5 +1,4 @@
 local path = require('core.path')
-local Lockfile = require("core.lockfile")
 
 local M = setmetatable({}, {
     __index = function(_, key)
@@ -68,31 +67,6 @@ function M.init()
   if vim.fn.empty(vim.fn.glob(install_path)) > 0 then
     vim.fn.execute("!git clone https://github.com/wbthomason/packer.nvim " .. install_path)
   end
-
-  -- vim.api.nvim_create_augroup("Packer", { clear = true })
-  -- vim.api.nvim_create_autocmd({ "BufWritePost" }, {
-  --   pattern = "init.lua",
-  --   callback = "PackerCompile",
-  -- })
-
-  -- Set plugins to the value defined in lockfile
-  -- vim.api.nvim_create_user_command("PackInstall", function()
-  --   Lockfile.should_apply = true
-  --   require("packer").sync()
-  -- end, {})
-  --
-  -- vim.api.nvim_create_user_command("PackUpgrade", function()
-  --   Lockfile.should_apply = false
-  --   require("packer").sync()
-  --   require("plugins").set_on_packer_complete(function()
-  --     Lockfile.should_apply = true
-  --     Lockfile:update(M.spec)
-  --   end)
-  -- end, {})
-  --
-  -- vim.api.nvim_create_user_command("LockUpdate", function()
-  --   require("plugins").lockfile_update()
-  -- end, {})
 end
 
 ---Loads packer spec defined above and applies the lockfile if it should apply
@@ -108,21 +82,6 @@ function M.load()
   for _, spec in ipairs(specs) do
     packer.use(spec)
   end
-
-  -- if Lockfile.should_apply then
-  --   Lockfile:load()
-  --   for _, spec in ipairs(specs) do
-  --     packer.use(Lockfile:apply(spec))
-  --   end
-  -- else
-  --   for _, spec in ipairs(specs) do
-  --     packer.use(spec)
-  --   end
-  -- end
-end
-
-function M.lockfile_update()
-  Lockfile:update(M.spec)
 end
 
 function M.set_on_packer_complete(fn, pattern)
