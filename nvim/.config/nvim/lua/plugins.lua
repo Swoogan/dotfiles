@@ -1,28 +1,21 @@
-local path = require('core.path')
-
-local M = setmetatable({}, {
-    __index = function(_, key)
-    return require("packer")[key]
-  end,
-})
+local M = {
+}
 
 M.spec = {
-  { "wbthomason/packer.nvim" }, -- Package manager
-
   { "EdenEast/nightfox.nvim" }, -- theme
 
   { "neovim/nvim-lspconfig" }, -- Easy configuration of LSP
-  { "nvim-treesitter/nvim-treesitter", run = ":TSUpdate" }, -- incremental language parser
+  {"nvim-treesitter/nvim-treesitter", build = ":TSUpdate"}, -- incremental language parser
   { "nvim-treesitter/nvim-treesitter-textobjects" }, -- Additional textobjects for treesitter
   -- { "nvim-treesitter/playground" },
 
-  { "jose-elias-alvarez/null-ls.nvim", requires = { "nvim-lua/plenary.nvim" } }, -- Easy configuration of LSP
+  { "jose-elias-alvarez/null-ls.nvim", dependencies = { "nvim-lua/plenary.nvim" } }, -- Easy configuration of LSP
   { "Hoffs/omnisharp-extended-lsp.nvim" },
 
   { "mfussenegger/nvim-dap" },
   { "mfussenegger/nvim-dap-python" },
   { "theHamsta/nvim-dap-virtual-text" },
-  { "rcarriga/nvim-dap-ui", requires = {"mfussenegger/nvim-dap"} },
+  { "rcarriga/nvim-dap-ui", dependencies = {"mfussenegger/nvim-dap"} },
 
   { "hrsh7th/cmp-nvim-lsp" },
   { "hrsh7th/cmp-buffer" },
@@ -30,13 +23,17 @@ M.spec = {
   { "hrsh7th/cmp-cmdline" },
   { "hrsh7th/nvim-cmp" }, -- Autocomplete
 
-  { "nvim-telescope/telescope.nvim", requires = { "nvim-lua/plenary.nvim" } }, -- Fuzzy finder
+  { "nvim-telescope/telescope.nvim", dependencies = { "nvim-lua/plenary.nvim" } }, -- Fuzzy finder
   -- { "prettier/vim-prettier" }, -- Run prettier formatting for javascript/typescript
   {
-    "kyazdani42/nvim-tree.lua",
-    requires = { "kyazdani42/nvim-web-devicons" },
+    "nvim-tree/nvim-tree.lua",
+    version = "*",
+    lazy = false,
+    dependencies = {
+      "nvim-tree/nvim-web-devicons",
+    },
     config = function()
-      require("nvim-tree").setup({})
+      require("nvim-tree").setup {}
     end,
   }, -- Filesystem viewer
   { "editorconfig/editorconfig-vim" },
@@ -61,43 +58,25 @@ M.spec = {
 }
 
 function M.init()
-  -- Install packer
-  local install_path = vim.fn.stdpath("data") .. "/site/pack/packer/start/packer.nvim"
+  -- Install lazy.nvim if necessary
 
-  if vim.fn.empty(vim.fn.glob(install_path)) > 0 then
-    vim.fn.execute("!git clone https://github.com/wbthomason/packer.nvim " .. install_path)
+  local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+  if not vim.loop.fs_stat(lazypath) then
+    vim.fn.system({
+      "git",
+      "clone",
+      "--filter=blob:none",
+      "https://github.com/folke/lazy.nvim.git",
+      "--branch=stable", -- latest stable release
+      lazypath,
+    })
   end
+  vim.opt.rtp:prepend(lazypath)
 end
 
 ---Loads packer spec defined above and applies the lockfile if it should apply
 function M.load()
-  local packer = require("packer")
-  packer.init({
-    -- This path needs to be known to the lockfile as this is where it will search installed plugins
-    package_root = path.packroot,
-  })
-  packer.reset()
-
-  local specs = vim.deepcopy(M.spec)
-  for _, spec in ipairs(specs) do
-    packer.use(spec)
-  end
-end
-
-function M.set_on_packer_complete(fn, pattern)
-  local id = vim.api.nvim_create_augroup("PackOnComplete", { clear = true })
-  vim.api.nvim_create_autocmd("User", {
-    group = id,
-    pattern = pattern or "PackerComplete",
-    callback = function()
-      M.on_packer_complete(fn)
-    end,
-  })
-end
-
-function M.on_packer_complete(fn)
-  vim.api.nvim_del_augroup_by_name("PackOnComplete")
-  fn()
+  require("lazy").setup(M.spec)
 end
 
 return M

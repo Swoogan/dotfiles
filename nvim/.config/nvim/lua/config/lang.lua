@@ -2,6 +2,7 @@ local M = {
 }
 
 M.setup = function()
+  -- turn off all code diagnostics when diffing
   if vim.opt.diff:get() then
     return
   end
@@ -149,27 +150,22 @@ M.setup = function()
     bundle_path = bundle_path,
   }
 
-  nvim_lsp['sumneko_lua'].setup {
-    settings = {
-      Lua = {
+  nvim_lsp['lua_ls'].setup {
+    on_init = function(client)
+      client.config.settings = vim.tbl_deep_extend('force', client.config.settings.Lua, {
         runtime = {
           -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
-          version = 'LuaJIT',
+          version = 'LuaJIT'
         },
-        diagnostics = {
-          -- Get the language server to recognize the `vim` global
-          globals = { 'vim' },
-        },
+        -- Make the server aware of Neovim runtime files
         workspace = {
-          -- Make the server aware of Neovim runtime files
-          library = vim.api.nvim_get_runtime_file("", true),
-        },
-        -- Do not send telemetry data containing a randomized but unique identifier
-        telemetry = {
-          enable = false,
-        },
-      },
-    },
+          library = { vim.env.VIMRUNTIME }
+        }
+      })
+
+      client.notify("workspace/didChangeConfiguration", { settings = client.config.settings })
+      return true
+    end,
     cmd = { vim.env.DEV_HOME .. '/.ls/lua-language-server/bin/lua-language-server' },
     capabilities = capabilities,
     on_attach = on_attach,

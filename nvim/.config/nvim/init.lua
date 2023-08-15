@@ -1,11 +1,15 @@
 local plugins = require("plugins")
-plugins.init() -- Install packer if not exists and setup commands and autocmds
-plugins.load() -- Load packer with the packer spec
+plugins.init() -- Install lazy if not exists and setup commands and autocmds
+
+vim.g.mapleader = ','
+vim.g.maplocalleader = ','
+
+plugins.load() -- Load lazy with the spec
 
 require('config.plugins').setup()
 require('config.lang').setup()
 require('config.debuggers').setup()
-require('config.snippets').setup()
+-- require('config.snippets').setup()
 
 -- *** CONFIG *** --
 
@@ -38,8 +42,6 @@ vim.opt.undofile = true
 vim.opt.updatetime = 250
 vim.opt.signcolumn = 'yes'
 
-vim.g.mapleader = ','
-vim.g.maplocalleader = ','
 
 -- disable builtin plugins I don't use
 vim.g.loaded_tutor = 1
