@@ -9,7 +9,6 @@ plugins.load() -- Load lazy with the spec
 require('config.plugins').setup()
 require('config.lang').setup()
 require('config.debuggers').setup()
--- require('config.snippets').setup()
 
 -- *** CONFIG *** --
 
