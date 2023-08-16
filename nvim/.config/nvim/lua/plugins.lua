@@ -3,15 +3,33 @@ local M = {
 
 M.spec = {
   { "EdenEast/nightfox.nvim" }, -- theme
-
   { "neovim/nvim-lspconfig" }, -- Easy configuration of LSP
   {
     "nvim-treesitter/nvim-treesitter",
     event = { "BufReadPost", "BufNewFile" },
     build = ":TSUpdate",
     dependencies = { "nvim-treesitter/nvim-treesitter-textobjects" }, -- Additional textobjects for treesitter
+    opts = {
+      ensure_installed = {
+        "c",
+        "c_sharp",
+        "go",
+        "html",
+        "javascript",
+        "json",
+        "lua",
+        "markdown",
+        "markdown_inline",
+        "python",
+        "query",
+        "regex",
+        "rust",
+        "typescript",
+        "zig",
+      },
+      auto_install = true,
+    },
     -- Treesitter configuration
-    -- Parsers must be installed manually via :TSInstall
     config = function()
       require('nvim-treesitter.configs').setup {
         highlight = {
@@ -92,7 +110,7 @@ M.spec = {
   -- { "nvim-treesitter/playground" },
 
   { "jose-elias-alvarez/null-ls.nvim", dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
-  { "Hoffs/omnisharp-extended-lsp.nvim" },
+  { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
   { "mfussenegger/nvim-dap" },
   { "mfussenegger/nvim-dap-python", ft = "python" },
   { "theHamsta/nvim-dap-virtual-text" },
@@ -187,7 +205,7 @@ M.spec = {
         opts
       )
       vim.keymap.set('n', '<leader>sz',
-        function() telescope.setup { defaults = { layout_strategy = 'horizontal', }, } end, 
+        function() telescope.setup { defaults = { layout_strategy = 'horizontal', }, } end,
         opts
       )
     end
@@ -202,7 +220,6 @@ M.spec = {
     end
   }, -- Autoformatting
   {
-
     "nvim-tree/nvim-web-devicons", -- Pretty Icons
     lazy = true,
     config = function()
@@ -213,16 +230,15 @@ M.spec = {
       }
     end
   },
-
   {
     "nvim-tree/nvim-tree.lua", -- Filesystem viewer
+    cmd = { "NvimTreeToggle" },
     version = "*",
-    lazy = false,
     dependencies = {
       "nvim-tree/nvim-web-devicons",
     },
     config = function()
-      require("nvim-tree").setup {}
+      require("nvim-tree").setup({})
     end,
   },
   { "editorconfig/editorconfig-vim" },
@@ -230,7 +246,7 @@ M.spec = {
   -- Comment stuff out.  gcc to comment out a line, gcb to block comment.
   {
     "numToStr/Comment.nvim",
-    keys = { "gc" },
+    keys = { "gc", { "gc", mode = "v" } },
     config = function()
       require("Comment").setup({})
     end,
@@ -246,6 +262,7 @@ M.spec = {
     end
   },
   { "nvim-lualine/lualine.nvim",
+    event = "VeryLazy",
     config = function()
       require('lualine').setup {
         options = { theme = "nightfox" }

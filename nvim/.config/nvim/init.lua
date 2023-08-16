@@ -32,6 +32,7 @@ vim.opt.shiftwidth = indent
 vim.opt.expandtab = true -- converts tab presses to spaces
 vim.opt.inccommand = 'nosplit' -- shows effects of substitutions
 vim.opt.mouse = 'a'
+vim.opt.shortmess = "I" -- disable the intro screen (display with `:intro`)
 
 --Save undo history
 vim.opt.undofile = true
@@ -94,7 +95,6 @@ vim.keymap.set('n', '<leader>lq', vim.diagnostic.setqflist, opts)
 -- Generate test names in the standard format
 -- vim.keymap.set("n", "<leader>tt", require('utils').transform_test_name, opts)
 
-
 -- Buffer Mappings
 -- Close current buffer
 vim.keymap.set('n', '<leader>bd', '<cmd>bd<CR>', opts)
@@ -145,9 +145,10 @@ vim.keymap.set('n', '<leader>sc', '<cmd>source $MYVIMRC<cr>', opts)
 vim.keymap.set('t', '<esc>', '<c-\\><c-n>', opts)
 vim.keymap.set('t', '<c-v><esc>', '<esc>', opts)
 
+-- Nvim Tree
 vim.keymap.set('n', '<c-n>', '<cmd>NvimTreeToggle<cr>', opts)
 -- vim.keymap.set('n', '<leader>r', '<cmd>NvimTreeRefresh<cr>', opts)
--- vim.keymap.set('n', '<leader>n', '<cmd>NvimTreeFindFile<cr>', opts)
+vim.keymap.set('n', '<leader>st', '<cmd>NvimTreeFindFile<cr>', opts)
 
 -- Run prettier
 vim.keymap.set('n', '<leader>pf', '<cmd>PrettierAsync<cr>', opts)

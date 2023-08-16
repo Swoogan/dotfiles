@@ -135,20 +135,28 @@ M.setup = function()
     rust_analyzer = 'rust-analyzer-x86_64-pc-windows-msvc'
   end
 
-  nvim_lsp['rust_analyzer'].setup {
-    capabilities = capabilities,
-    on_attach = on_attach,
-    cmd = { rust_analyzer },
-  }
+  if vim.fn.executable('rust-analyzer') == 1 then
+    nvim_lsp['rust_analyzer'].setup {
+      capabilities = capabilities,
+      on_attach = on_attach,
+      cmd = { rust_analyzer },
+    }
+  end
 
-  -- Setup PowerShell Editor Extensions
-  local bundle_path = vim.env.DEV_HOME .. '/.ls/PowerShellEditorServices'
+  vim.api.nvim_create_autocmd('LspAttach', {
+    pattern = "*.ps1",
+    callback = function(_)
+      -- Setup PowerShell Editor Extensions
+      local bundle_path = vim.env.DEV_HOME .. '/.ls/PowerShellEditorServices'
 
-  nvim_lsp['powershell_es'].setup {
-    capabilities = capabilities,
-    on_attach = on_attach,
-    bundle_path = bundle_path,
-  }
+      -- Todo: test that the path exists
+      nvim_lsp['powershell_es'].setup {
+        capabilities = capabilities,
+        on_attach = on_attach,
+        bundle_path = bundle_path,
+      }
+    end
+  })
 
   nvim_lsp['lua_ls'].setup {
     on_init = function(client)
@@ -156,6 +164,12 @@ M.setup = function()
         runtime = {
           -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
           version = 'LuaJIT'
+        },
+        diagnostics = {
+          -- Get the language server to recognize the `vim` global
+          globals = {
+            'vim',
+          },
         },
         -- Make the server aware of Neovim runtime files
         workspace = {
@@ -171,11 +185,16 @@ M.setup = function()
     on_attach = on_attach,
   }
 
-  nvim_lsp['zls'].setup {
-    cmd = { vim.env.DEV_HOME .. '/.ls/zigtools-zls/bin/zls' },
-    capabilities = capabilities,
-    on_attach = on_attach,
-  }
+  vim.api.nvim_create_autocmd('LspAttach', {
+    pattern = "*.zig",
+    callback = function(_)
+      nvim_lsp['zls'].setup {
+        cmd = { vim.env.DEV_HOME .. '/.ls/zigtools-zls/bin/zls' },
+        capabilities = capabilities,
+        on_attach = on_attach,
+      }
+    end
+  })
 
   -- Setup OmniSharp
   vim.api.nvim_create_autocmd('LspAttach', {
@@ -196,14 +215,19 @@ M.setup = function()
   })
 
   -- Setup null-ls
-  local null_ls = require("null-ls")
+  vim.api.nvim_create_autocmd('LspAttach', {
+    pattern = "*.py",
+    callback = function(_)
+      local null_ls = require("null-ls")
 
-  null_ls.setup({
-    sources = {
-      null_ls.builtins.formatting.black,
-      null_ls.builtins.diagnostics.flake8,
-      null_ls.builtins.diagnostics.ruff,
-    },
+      null_ls.setup({
+        sources = {
+          null_ls.builtins.formatting.black,
+          null_ls.builtins.diagnostics.flake8,
+          null_ls.builtins.diagnostics.ruff,
+        },
+      })
+    end
   })
 
 end
