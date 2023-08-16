@@ -105,15 +105,6 @@ vim.keymap.set('n', '<leader>,', '<cmd>b#<CR>', opts)
 -- Close current buffer and switch to last used
 vim.keymap.set('n', '<leader>bq', '<cmd>b#|bd#<CR>', opts)
 
--- dap hotkeys
-local dap = require('dap')
-vim.keymap.set('n', '<leader>db', dap.toggle_breakpoint, opts)
-vim.keymap.set('n', '<leader>dc', dap.continue, opts)
-vim.keymap.set('n', '<leader>do', dap.step_over, opts)
-vim.keymap.set('n', '<leader>di', dap.step_into, opts)
-vim.keymap.set('n', '<leader>ds', dap.close, opts)
-vim.keymap.set('n', '<leader>dro', dap.repl.open, opts)
-vim.keymap.set('n', '<leader>drc', dap.repl.close, opts)
 
 -- quickfix hotkeys
 vim.keymap.set('n', '<leader>qc', '<cmd>cclose<CR>', opts)

@@ -111,11 +111,27 @@ M.spec = {
 
   { "jose-elias-alvarez/null-ls.nvim", dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
   { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
-  { "mfussenegger/nvim-dap",
+
+  -- DAP (set lazy to true on dap-ui to not load anything, aka disable dap until I have a workflow established)
+  { "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap" }, lazy = true },
+  {
+    "mfussenegger/nvim-dap",
     dependencies = { "theHamsta/nvim-dap-virtual-text" },
+    lazy = true,
+    config = function()
+      -- hotkeys
+      local dap = require('dap')
+      vim.keymap.set('n', '<leader>db', dap.toggle_breakpoint, opts)
+      vim.keymap.set('n', '<leader>dc', dap.continue, opts)
+      vim.keymap.set('n', '<leader>do', dap.step_over, opts)
+      vim.keymap.set('n', '<leader>di', dap.step_into, opts)
+      vim.keymap.set('n', '<leader>ds', dap.close, opts)
+      vim.keymap.set('n', '<leader>dro', dap.repl.open, opts)
+      vim.keymap.set('n', '<leader>drc', dap.repl.close, opts)
+    end,
   },
-  { "mfussenegger/nvim-dap-python", ft = "python", dependencies = { "mfussenegger/nvim-dap" }  },
-  { "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap" } },
+  { "mfussenegger/nvim-dap-python", ft = "python", dependencies = { "mfussenegger/nvim-dap" } },
+
   {
     "hrsh7th/nvim-cmp", -- Autocomplete
     event = "InsertEnter",
