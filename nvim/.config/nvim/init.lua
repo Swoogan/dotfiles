@@ -6,7 +6,6 @@ vim.g.maplocalleader = ','
 
 plugins.load() -- Load lazy with the spec
 
-require('config.plugins').setup()
 require('config.lang').setup()
 require('config.debuggers').setup()
 
@@ -95,18 +94,6 @@ vim.keymap.set('n', '<leader>lq', vim.diagnostic.setqflist, opts)
 -- Generate test names in the standard format
 -- vim.keymap.set("n", "<leader>tt", require('utils').transform_test_name, opts)
 
--- Add telescope shortcuts
-vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, opts)
-vim.keymap.set('n', '<leader>sf', function() require('telescope.builtin').find_files({ previewer = false }) end, opts)
-vim.keymap.set('n', '<leader>sb', require('telescope.builtin').current_buffer_fuzzy_find, opts)
-vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, opts)
-vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, opts)
-vim.keymap.set('n', '<leader>sd', require('telescope.builtin').grep_string, opts)
-vim.keymap.set('n', '<leader>so', require('telescope.builtin').oldfiles, opts)
-vim.keymap.set('n', '<leader>sv',
-  function() require('telescope').setup { defaults = { layout_strategy = 'vertical', }, } end, opts)
-vim.keymap.set('n', '<leader>sz',
-  function() require('telescope').setup { defaults = { layout_strategy = 'horizontal', }, } end, opts)
 
 -- Buffer Mappings
 -- Close current buffer

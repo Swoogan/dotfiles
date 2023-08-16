@@ -178,17 +178,22 @@ M.setup = function()
   }
 
   -- Setup OmniSharp
-  local omnisharp = vim.env.DEV_HOME .. '/.ls/omnisharp/OmniSharp.exe'
+  vim.api.nvim_create_autocmd('LspAttach', {
+    pattern = "*.cs",
+    callback = function(_)
+      local omnisharp = vim.env.DEV_HOME .. '/.ls/omnisharp/OmniSharp.exe'
 
-  nvim_lsp['omnisharp'].setup {
-    handlers = {
-      ["textDocument/definition"] = require('omnisharp_extended').handler,
-    },
-    capabilities = capabilities,
-    on_attach = on_attach,
-    cmd = { omnisharp, "--languageserver", "--hostPID", tostring(pid),
-      "formattingOptions:EnableEditorConfigSupport=true" }
-  }
+      nvim_lsp['omnisharp'].setup {
+        handlers = {
+          ["textDocument/definition"] = require('omnisharp_extended').handler,
+        },
+        capabilities = capabilities,
+        on_attach = on_attach,
+        cmd = { omnisharp, "--languageserver", "--hostPID", tostring(pid),
+          "formattingOptions:EnableEditorConfigSupport=true" }
+      }
+    end
+  })
 
   -- Setup null-ls
   local null_ls = require("null-ls")

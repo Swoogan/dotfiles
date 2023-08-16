@@ -97,7 +97,6 @@ M.spec = {
   { "mfussenegger/nvim-dap-python", ft = "python" },
   { "theHamsta/nvim-dap-virtual-text" },
   { "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap" } },
-
   {
     "hrsh7th/nvim-cmp", -- Autocomplete
     event = "InsertEnter",
@@ -109,12 +108,89 @@ M.spec = {
       "hrsh7th/cmp-path",
       "hrsh7th/cmp-cmdline",
     },
+    config = function()
+      local cmp = require('cmp')
 
+      cmp.setup({
+        snippet = {
+          expand = function(args)
+            require('luasnip').lsp_expand(args.body)
+          end,
+        },
+        mapping = cmp.mapping.preset.insert({
+          ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+          ['<C-f>'] = cmp.mapping.scroll_docs(4),
+          ['<C-Space>'] = cmp.mapping.complete(),
+          ['<C-e>'] = cmp.mapping.abort(),
+          ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+        }),
+        sources = cmp.config.sources({
+          { name = 'nvim_lsp' },
+          { name = 'luasnip' },
+        }, {
+          { name = 'buffer' },
+        }),
+        completion = { keyword_length = 3 }
+      })
+
+
+      -- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
+      cmp.setup.cmdline('/', {
+        mapping = cmp.mapping.preset.cmdline(),
+        sources = {
+          { name = 'buffer' }
+        }
+      })
+      cmp.setup.cmdline('?', {
+        mapping = cmp.mapping.preset.cmdline(),
+        sources = {
+          { name = 'buffer' }
+        }
+      })
+
+      -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
+      cmp.setup.cmdline(':', {
+        mapping = cmp.mapping.preset.cmdline(),
+        sources = cmp.config.sources({
+          { name = 'path' }
+        }, {
+          { name = 'cmdline' }
+        })
+      })
+    end
   },
   {
     "nvim-telescope/telescope.nvim", -- Fuzzy finder
     keys = { "<leader>s" },
-    dependencies = { "nvim-lua/plenary.nvim" }
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      local telescope = require("telescope")
+      local builtin = require("telescope.builtin")
+
+      telescope.setup {
+        defaults = { file_ignore_patterns = { "__pycache__" } }
+      }
+
+      -- Add shortcuts
+      local opts = { noremap = true, silent = true }
+
+      vim.keymap.set('n', '<leader><space>', builtin.buffers, opts)
+      vim.keymap.set('n', '<leader>sf', function() builtin.find_files({ previewer = false }) end,
+        opts)
+      vim.keymap.set('n', '<leader>sb', builtin.current_buffer_fuzzy_find, opts)
+      vim.keymap.set('n', '<leader>sh', builtin.help_tags, opts)
+      vim.keymap.set('n', '<leader>sg', builtin.live_grep, opts)
+      vim.keymap.set('n', '<leader>sd', builtin.grep_string, opts)
+      vim.keymap.set('n', '<leader>so', builtin.oldfiles, opts)
+      vim.keymap.set('n', '<leader>sv',
+        function() telescope.setup { defaults = { layout_strategy = 'vertical', }, } end,
+        opts
+      )
+      vim.keymap.set('n', '<leader>sz',
+        function() telescope.setup { defaults = { layout_strategy = 'horizontal', }, } end, 
+        opts
+      )
+    end
   },
 
   {
@@ -169,9 +245,13 @@ M.spec = {
       vim.api.nvim_exec([[ let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes) ]], false)
     end
   },
-
-  { "nvim-lualine/lualine.nvim" }, -- Fancier statusline
-
+  { "nvim-lualine/lualine.nvim",
+    config = function()
+      require('lualine').setup {
+        options = { theme = "nightfox" }
+      }
+    end
+  }, -- Fancier statusline
   { "L3MON4D3/LuaSnip",
     event = "InsertEnter",
     dependencies = {
