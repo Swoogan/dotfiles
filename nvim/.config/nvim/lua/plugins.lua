@@ -3,7 +3,7 @@ local M = {
 
 M.spec = {
   { "EdenEast/nightfox.nvim" }, -- theme
-  { "neovim/nvim-lspconfig" }, -- Easy configuration of LSP
+  { "neovim/nvim-lspconfig" },  -- Easy configuration of LSP
   {
     "nvim-treesitter/nvim-treesitter",
     event = { "BufReadPost", "BufNewFile" },
@@ -89,7 +89,7 @@ M.spec = {
         playground = {
           enable = false,
           disable = {},
-          updatetime = 25, -- Debounced time for highlighting nodes in the playground from source code
+          updatetime = 25,         -- Debounced time for highlighting nodes in the playground from source code
           persist_queries = false, -- Whether the query persists across vim sessions
           keybindings = {
             toggle_query_editor = 'o',
@@ -109,11 +109,11 @@ M.spec = {
   }, -- incremental language parser
   -- { "nvim-treesitter/playground" },
 
-  { "jose-elias-alvarez/null-ls.nvim", dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
+  { "jose-elias-alvarez/null-ls.nvim",   dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
   { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
 
   -- DAP (set lazy to true on dap-ui to not load anything, aka disable dap until I have a workflow established)
-  { "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap" }, lazy = true },
+  { "rcarriga/nvim-dap-ui",              dependencies = { "mfussenegger/nvim-dap" }, lazy = true },
   {
     "mfussenegger/nvim-dap",
     dependencies = { "theHamsta/nvim-dap-virtual-text" },
@@ -235,7 +235,7 @@ M.spec = {
       vim.g['prettier#autoformat'] = 1
       vim.g['prettier#autoformat_require_pragma'] = 0
     end
-  }, -- Autoformatting
+  },                               -- Autoformatting
   {
     "nvim-tree/nvim-web-devicons", -- Pretty Icons
     lazy = true,
@@ -243,7 +243,7 @@ M.spec = {
       require('nvim-web-devicons').setup {
         -- globally enable default icons (default to false)
         -- will get overriden by `get_icons` option
-        default = true;
+        default = true,
       }
     end
   },
@@ -258,7 +258,6 @@ M.spec = {
       require("nvim-tree").setup({})
     end,
   },
-  { "editorconfig/editorconfig-vim" },
 
   -- Comment stuff out.  gcc to comment out a line, gcb to block comment.
   {
@@ -269,7 +268,8 @@ M.spec = {
     end,
   },
 
-  { "machakann/vim-sandwich", -- add, delete, replace pairs (like {}, (), "")
+  {
+    "machakann/vim-sandwich", -- add, delete, replace pairs (like {}, (), "")
     keys = { "s" },
     config = function()
       -- Add: Press sa{motion/textobject}{addition}. For example, a key sequence saiw( makes foo to (foo).
@@ -278,7 +278,8 @@ M.spec = {
       vim.api.nvim_exec([[ let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes) ]], false)
     end
   },
-  { "nvim-lualine/lualine.nvim",
+  {
+    "nvim-lualine/lualine.nvim",
     event = "VeryLazy",
     config = function()
       require('lualine').setup {
@@ -286,10 +287,11 @@ M.spec = {
       }
     end
   }, -- Fancier statusline
-  { "L3MON4D3/LuaSnip",
+  {
+    "L3MON4D3/LuaSnip",
     event = "InsertEnter",
     dependencies = {
-      "saadparwaiz1/cmp_luasnip", -- luasnip to nvim-cmp integration
+      "saadparwaiz1/cmp_luasnip",    -- luasnip to nvim-cmp integration
       "rafamadriz/friendly-snippets" -- Premade snippets
     },
     config = function()
@@ -318,7 +320,28 @@ end
 
 ---Loads packer spec defined above and applies the lockfile if it should apply
 function M.load()
-  require("lazy").setup(M.spec)
+  require("lazy").setup({
+    spec = M.spec,
+    performance = {
+      rtp = {
+        -- disable some rtp plugins
+        disabled_plugins = {
+          "gzip",
+          "man",
+          "matchit",
+          "matchparen",
+          "netrwPlugin",
+          "remote_plugins",
+          "rplugin",
+          "tarPlugin",
+          "tohtml",
+          "tutor",
+          "zip",
+          "zipPlugin",
+        },
+      },
+    }
+  })
 end
 
 return M

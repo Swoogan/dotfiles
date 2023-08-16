@@ -41,11 +41,6 @@ vim.opt.undofile = true
 vim.opt.updatetime = 250
 vim.opt.signcolumn = 'yes'
 
-
--- disable builtin plugins I don't use
-vim.g.loaded_tutor = 1
-vim.g.loaded_netrwPlugin = 1
-
 -- Setup auto compeletion
 vim.o.completeopt = 'menu,menuone,noselect'
 
