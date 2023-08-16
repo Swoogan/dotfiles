@@ -7,7 +7,7 @@ vim.g.maplocalleader = ','
 plugins.load() -- Load lazy with the spec
 
 require('config.lang').setup()
-require('config.debuggers').setup()
+-- require('config.debuggers').setup()
 
 -- *** CONFIG *** --
 

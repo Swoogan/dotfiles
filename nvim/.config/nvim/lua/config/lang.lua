@@ -130,102 +130,128 @@ M.setup = function()
     }
   end
 
+  -- Rust
   local rust_analyzer = 'rust-analyzer'
   if vim.fn.executable('rust-analyzer-x86_64-pc-windows-msvc') == 1 then
     rust_analyzer = 'rust-analyzer-x86_64-pc-windows-msvc'
   end
 
   if vim.fn.executable('rust-analyzer') == 1 then
-    nvim_lsp['rust_analyzer'].setup {
+    vim.api.nvim_create_autocmd('LspAttach', {
+      pattern = "*.rs",
+      callback = function(_)
+        nvim_lsp['rust_analyzer'].setup {
+          capabilities = capabilities,
+          on_attach = on_attach,
+          cmd = { rust_analyzer },
+        }
+      end
+    })
+  end
+
+  -- PowerShell
+  local bundle_path = vim.env.DEV_HOME .. '/.ls/PowerShellEditorServices'
+  if vim.fn.isdirectory(bundle_path) == 1 then
+    vim.api.nvim_create_autocmd('LspAttach', {
+      pattern = "*.ps1",
+      callback = function(_)
+        -- Setup PowerShell Editor Extensions
+
+        -- Todo: test that the path exists
+        nvim_lsp['powershell_es'].setup {
+          capabilities = capabilities,
+          on_attach = on_attach,
+          bundle_path = bundle_path,
+        }
+      end
+    })
+  end
+
+  -- Lua
+  local lua_language_server = vim.env.DEV_HOME .. '/.ls/lua-language-server/bin/lua-language-server'
+  if vim.fn.executable(lua_language_server) == 1 then
+    nvim_lsp['lua_ls'].setup {
+      on_init = function(client)
+        client.config.settings = vim.tbl_deep_extend('force', client.config.settings.Lua, {
+          runtime = {
+            -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
+            version = 'LuaJIT'
+          },
+          diagnostics = {
+            -- Get the language server to recognize the `vim` global
+            globals = {
+              'vim',
+            },
+          },
+          -- Make the server aware of Neovim runtime files
+          workspace = {
+            library = { vim.env.VIMRUNTIME }
+          }
+        })
+
+        client.notify("workspace/didChangeConfiguration", { settings = client.config.settings })
+        return true
+      end,
+      cmd = { lua_language_server },
       capabilities = capabilities,
       on_attach = on_attach,
-      cmd = { rust_analyzer },
     }
   end
 
-  vim.api.nvim_create_autocmd('LspAttach', {
-    pattern = "*.ps1",
-    callback = function(_)
-      -- Setup PowerShell Editor Extensions
-      local bundle_path = vim.env.DEV_HOME .. '/.ls/PowerShellEditorServices'
-
-      -- Todo: test that the path exists
-      nvim_lsp['powershell_es'].setup {
-        capabilities = capabilities,
-        on_attach = on_attach,
-        bundle_path = bundle_path,
-      }
-    end
-  })
-
-  nvim_lsp['lua_ls'].setup {
-    on_init = function(client)
-      client.config.settings = vim.tbl_deep_extend('force', client.config.settings.Lua, {
-        runtime = {
-          -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
-          version = 'LuaJIT'
-        },
-        diagnostics = {
-          -- Get the language server to recognize the `vim` global
-          globals = {
-            'vim',
-          },
-        },
-        -- Make the server aware of Neovim runtime files
-        workspace = {
-          library = { vim.env.VIMRUNTIME }
+  -- Zig
+  local zls = vim.env.DEV_HOME .. '/.ls/zigtools-zls/bin/zls'
+  if vim.fn.executable(zls) == 1 then
+    vim.api.nvim_create_autocmd('LspAttach', {
+      pattern = "*.zig",
+      callback = function(_)
+        nvim_lsp['zls'].setup {
+          cmd = { zls },
+          capabilities = capabilities,
+          on_attach = on_attach,
         }
-      })
+      end
+    })
+  end
 
-      client.notify("workspace/didChangeConfiguration", { settings = client.config.settings })
-      return true
-    end,
-    cmd = { vim.env.DEV_HOME .. '/.ls/lua-language-server/bin/lua-language-server' },
-    capabilities = capabilities,
-    on_attach = on_attach,
-  }
-
-  vim.api.nvim_create_autocmd('LspAttach', {
-    pattern = "*.zig",
-    callback = function(_)
-      nvim_lsp['zls'].setup {
-        cmd = { vim.env.DEV_HOME .. '/.ls/zigtools-zls/bin/zls' },
-        capabilities = capabilities,
-        on_attach = on_attach,
-      }
-    end
-  })
-
-  -- Setup OmniSharp
-  vim.api.nvim_create_autocmd('LspAttach', {
-    pattern = "*.cs",
-    callback = function(_)
-      local omnisharp = vim.env.DEV_HOME .. '/.ls/omnisharp/OmniSharp.exe'
-
-      nvim_lsp['omnisharp'].setup {
-        handlers = {
-          ["textDocument/definition"] = require('omnisharp_extended').handler,
-        },
-        capabilities = capabilities,
-        on_attach = on_attach,
-        cmd = { omnisharp, "--languageserver", "--hostPID", tostring(pid),
-          "formattingOptions:EnableEditorConfigSupport=true" }
-      }
-    end
-  })
+  -- C#
+  local omnisharp = vim.env.DEV_HOME .. '/.ls/omnisharp/OmniSharp.exe'
+  if vim.fn.executable(omnisharp) == 1 then
+    vim.api.nvim_create_autocmd('LspAttach', {
+      pattern = "*.cs",
+      callback = function(_)
+        nvim_lsp['omnisharp'].setup {
+          handlers = {
+            ["textDocument/definition"] = require('omnisharp_extended').handler,
+          },
+          capabilities = capabilities,
+          on_attach = on_attach,
+          cmd = { omnisharp, "--languageserver", "--hostPID", tostring(pid),
+            "formattingOptions:EnableEditorConfigSupport=true" }
+        }
+      end
+    })
+  end
 
   -- Setup null-ls
   vim.api.nvim_create_autocmd('LspAttach', {
     pattern = "*.py",
     callback = function(_)
       local null_ls = require("null-ls")
+      local null_ls_sources = {}
+      if vim.fn.executable('black') == 1 then
+        null_ls_sources.insert(null_ls.builtins.formatting.black)
+      end
+
+      if vim.fn.executable('flake8') == 1 then
+        null_ls_sources.insert(null_ls.builtins.formatting.flake8)
+      end
+
+      if vim.fn.executable('ruff') == 1 then
+        null_ls_sources.insert(null_ls.builtins.formatting.ruff)
+      end
 
       null_ls.setup({
-        sources = {
-          null_ls.builtins.formatting.black,
-          null_ls.builtins.diagnostics.flake8,
-          null_ls.builtins.diagnostics.ruff,
-        },
+        sources = null_ls_sources,
       })
     end
   })
