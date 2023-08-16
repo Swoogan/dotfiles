@@ -12,6 +12,7 @@ require('config.lang').setup()
 -- *** CONFIG *** --
 
 local indent = 4
+local is_windows = vim.loop.os_uname().sysname == "Windows_NT"
 
 -- Vim options
 vim.opt.termguicolors = true
@@ -40,6 +41,12 @@ vim.opt.undofile = true
 --Decrease update time
 vim.opt.updatetime = 250
 vim.opt.signcolumn = 'yes'
+
+if is_windows then
+  vim.g.clipboard = 'win32yank.exe'
+else
+  vim.g.clipboard = 'xsel'
+end
 
 -- Setup auto compeletion
 vim.o.completeopt = 'menu,menuone,noselect'
@@ -221,8 +228,6 @@ vim.api.nvim_create_autocmd("TermClose", {
 })
 
 -- *** MISCELLANEOUS *** --
-
-local is_windows = vim.loop.os_uname().sysname == "Windows_NT"
 
 -- launch a terminal
 if is_windows then
