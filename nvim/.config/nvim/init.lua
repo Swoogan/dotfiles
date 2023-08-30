@@ -43,9 +43,32 @@ vim.opt.updatetime = 250
 vim.opt.signcolumn = 'yes'
 
 if is_windows then
-  vim.g.clipboard = 'win32yank.exe'
+  local win32yank = 'win32yank.exe'
+  vim.g.clipboard = {
+    name = "win32yank",
+    copy = {
+      ["+"] = { win32yank, '-i', '--crlf' },
+      ["*"] = { win32yank, '-i', '--crlf' },
+    },
+    paste = {
+      ["+"] = { win32yank, '-o', '--lf' },
+      ["*"] = { win32yank, '-o', '--lf' },
+    },
+    cache_enabled = 1,
+  }
 else
-  vim.g.clipboard = 'xsel'
+  vim.g.clipboard = {
+    name = "xsel",
+    copy = {
+      ["+"] = { 'xsel', '--nodetach', '-i', '-b' },
+      ["*"] = { 'xsel', '--nodetach', '-i', '-p' },
+    },
+    paste = {
+      ["+"] = { 'xsel', '-o', '-b' },
+      ["*"] = { 'xsel', '-o', '-p' },
+    },
+    cache_enabled = 1,
+  }
 end
 
 -- Setup auto compeletion
@@ -83,6 +106,9 @@ local opts = { noremap = true, silent = true }
 
 -- not sure why I do this?
 vim.keymap.set('', '<Space>', '<Nop>', opts)
+
+-- quick paste word
+vim.keymap.set('n', '<leader>pp', 'viw<S-p>', opts)
 
 -- map gp to re-select the thing you just pasted
 vim.keymap.set('n', 'gp', '`[v`]', opts)

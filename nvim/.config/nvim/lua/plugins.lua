@@ -121,6 +121,7 @@ M.spec = {
     config = function()
       -- hotkeys
       local dap = require('dap')
+      local opts = { noremap = true, silent = true }
       vim.keymap.set('n', '<leader>db', dap.toggle_breakpoint, opts)
       vim.keymap.set('n', '<leader>dc', dap.continue, opts)
       vim.keymap.set('n', '<leader>do', dap.step_over, opts)
