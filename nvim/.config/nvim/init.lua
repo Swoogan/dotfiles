@@ -33,7 +33,7 @@ vim.opt.shiftwidth = indent
 vim.opt.expandtab = true -- converts tab presses to spaces
 vim.opt.inccommand = 'nosplit' -- shows effects of substitutions
 vim.opt.mouse = 'a'
-vim.opt.shortmess = "I" -- disable the intro screen (display with `:intro`)
+vim.opt.shortmess = "IF" -- disable the intro screen (display with `:intro`)
 
 --Save undo history
 vim.opt.undofile = true
@@ -107,8 +107,17 @@ local opts = { noremap = true, silent = true }
 -- not sure why I do this?
 vim.keymap.set('', '<Space>', '<Nop>', opts)
 
--- quick paste word
+-- quick yank/paste 
 vim.keymap.set('n', '<leader>pp', 'viw<S-p>', opts)
+vim.keymap.set('n', '<leader>yy', 'yiw', opts)
+vim.keymap.set('n', '<space>y', '"ty', opts)
+vim.keymap.set('n', '<space>p', '"tP', opts)
+vim.keymap.set('n', '<space>d', '"_d', opts)
+vim.keymap.set('n', '<space>c', '"_c', opts)
+vim.keymap.set('n', '<leader>ys', '"sy', opts)
+vim.keymap.set('n', '<leader>ps', '"sP', opts)
+vim.keymap.set('n', '<leader>ye', '"ey', opts)
+vim.keymap.set('n', '<leader>pe', '"eP', opts)
 
 -- map gp to re-select the thing you just pasted
 vim.keymap.set('n', 'gp', '`[v`]', opts)
@@ -246,6 +255,11 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   callback = function() vim.lsp.buf.format({ async = false }) end,
 })
 
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("PythonImportSort", { clear = true }),
+  pattern = "*.py",
+  callback = function() vim.keymap.set('n', '<leader>fi', '<cmd>!ruff check --fix --select=I001 %:p<cr>', opts) end,
+})
 
 -- Hide exit code on terminal close
 vim.api.nvim_create_autocmd("TermClose", {
