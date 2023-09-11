@@ -107,7 +107,7 @@ local opts = { noremap = true, silent = true }
 -- not sure why I do this?
 vim.keymap.set('', '<Space>', '<Nop>', opts)
 
--- quick yank/paste 
+-- quick yank/paste
 vim.keymap.set('n', '<leader>pp', 'viw<S-p>', opts)
 vim.keymap.set('n', '<leader>yy', 'yiw', opts)
 vim.keymap.set('n', '<space>y', '"ty', opts)
@@ -295,3 +295,45 @@ vim.api.nvim_create_user_command('Redir', function(ctx)
   vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
   vim.opt_local.modified = false
 end, { nargs = '+', complete = 'command' })
+
+
+-- Give the name of the current class or function
+local function find_parent_node(node, node_type)
+  while node do
+    if node:type() == node_type then
+      break
+    end
+    node = node:parent()
+  end
+  return node
+end
+
+local function get_node_by_type(node_type)
+  local ts_utils = require('nvim-treesitter.ts_utils')
+  local node = ts_utils.get_node_at_cursor()
+  return find_parent_node(node, node_type)
+end
+
+local function get_first_line_of_node_text(node, bufnr)
+  if not node then return "" end
+  local node_text = vim.treesitter.get_node_text(node, bufnr)
+  return node_text:match("([^\n]*)\n?")
+end
+
+local function print_function()
+  local node = get_node_by_type('function_definition')
+  if not node then
+    node = get_node_by_type('function_declaration')
+  end
+  local line = get_first_line_of_node_text(node, 0)
+  print(line)
+end
+
+local function print_class()
+  local node = get_node_by_type('class_definition')
+  local line = get_first_line_of_node_text(node, 0)
+  print(line)
+end
+
+vim.keymap.set({ 'n', 'v', 'o', 'i' }, '<A-f>', print_function, opts)
+vim.keymap.set({ 'n', 'v', 'o', 'i' }, '<A-c>', print_class, opts)
