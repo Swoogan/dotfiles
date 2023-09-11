@@ -218,6 +218,7 @@ M.spec = {
       vim.keymap.set('n', '<leader>sg', builtin.live_grep, opts)
       vim.keymap.set('n', '<leader>sd', builtin.grep_string, opts)
       vim.keymap.set('n', '<leader>so', builtin.oldfiles, opts)
+      vim.keymap.set('n', '<leader>sm', builtin.marks, opts)
       vim.keymap.set('n', '<leader>sv',
         function() telescope.setup { defaults = { layout_strategy = 'vertical', }, } end,
         opts
