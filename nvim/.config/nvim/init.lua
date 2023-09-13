@@ -337,3 +337,19 @@ end
 
 vim.keymap.set({ 'n', 'v', 'o', 'i' }, '<A-f>', print_function, opts)
 vim.keymap.set({ 'n', 'v', 'o', 'i' }, '<A-c>', print_class, opts)
+
+
+local function get_win_filename(winnr)
+  local bufnr = vim.api.nvim_win_get_buf(winnr)
+  return vim.api.nvim_buf_get_name(bufnr)
+end
+
+local function print_win_filenames()
+  local windows = vim.api.nvim_list_wins()
+  for _, window in pairs(windows) do
+    local buf_name = get_win_filename(window)
+    print(buf_name)
+  end
+end
+
+vim.keymap.set({ 'n' }, '<A-w>', print_win_filenames, opts)

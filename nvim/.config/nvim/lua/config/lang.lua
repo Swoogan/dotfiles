@@ -60,32 +60,69 @@ M.setup = function()
     end,
   })
 
+  local on_list = function(def_list)
+    local items = ipairs(def_list['items'])
+
+  end
+
   local on_attach = function(_, bufnr)
     --Enable completion triggered by <c-x><c-o>
     vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
     -- Mappings.
-    -- See `:help vim.lsp.*` for documentation on any of the below functions
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
     vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
-    vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
-    vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
-    vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
+    -- vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
+    vim.keymap.set('n', 'gd',
+      function()
+        vim.lsp.buf.definition({
+          on_list = function(def_list)
+            if #def_list > 1 then
+              -- double call to lsp :(
+              require('telescope.builtin').lsp_definitions()
+            else
+              local windows = vim.api.nvim_list_wins()
+              local item = def_list['items'][1]
 
-    -- vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
-    -- vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
-    -- vim.keymap.set('n', '<space>wl', function()
-    --   print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-    -- end, bufopts)
+              if #windows == 1 then
+                local window = windows[1]
+                local buf = vim.api.nvim_win_get_buf(window)
+                local file = vim.api.nvim_buf_get_name(buf)
 
-    -- TODO: unify these keypresses
+                if item['filename'] == file then
+                  vim.api.nvim_win_set_cursor(window, { item['lnum'], item['col'] - 1 })
+                else
+                  vim.cmd.vsplit()
+                  vim.cmd.edit(item['filename'])
+                  local new_win = vim.api.nvim_get_current_win()
+                  vim.api.nvim_win_set_cursor(new_win, { item['lnum'], item['col'] - 1 })
+                end
+              else
+                local window = windows[2]
+                vim.api.nvim_set_current_win(windows[2])
+                vim.api.nvim_win_set_cursor(window, { item['lnum'], item['col'] - 1 })
+              end
+            end
+          end
+        })
+      end
+      , bufopts)
+    vim.keymap.set('n', 'gi', require('telescope.builtin').lsp_incoming_calls, bufopts)
+    vim.keymap.set('n', 'go', require('telescope.builtin').lsp_outgoing_calls, bufopts)
+    -- vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
+    vim.keymap.set('n', 'gr',
+      function() require('telescope.builtin').lsp_references({ path_display = { "tail" } }) end
+      , bufopts)
+    -- vim.keymap.set('n', '<leader>lt', vim.lsp.buf.type_definition, bufopts)
+    vim.keymap.set('n', 'gt', require('telescope.builtin').lsp_type_definitions, bufopts)
+
     vim.keymap.set('n', '<leader>lh', vim.lsp.buf.hover, bufopts)
     vim.keymap.set('n', '<leader>ls', vim.lsp.buf.signature_help, bufopts)
-    vim.keymap.set('n', '<leader>lt', vim.lsp.buf.type_definition, bufopts)
+    vim.keymap.set('n', '<leader>lf', function() vim.lsp.buf.format({ async = true }) end, bufopts)
     vim.keymap.set('n', '<leader>lr', vim.lsp.buf.rename, bufopts)
     vim.keymap.set('n', '<leader>lc', code_action_func, bufopts)
-    vim.keymap.set('n', '<leader>lf', function() vim.lsp.buf.format({ async = true }) end, bufopts)
-    vim.keymap.set('n', '<leader>ld', require('telescope.builtin').lsp_document_symbols, bufopts)
+    -- vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
+    vim.keymap.set('n', '<leader>li', require('telescope.builtin').lsp_implementations, bufopts)
   end
 
   local capabilities = require('cmp_nvim_lsp').default_capabilities()
