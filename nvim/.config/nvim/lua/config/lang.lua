@@ -62,7 +62,6 @@ M.setup = function()
 
   local on_list = function(def_list)
     local items = ipairs(def_list['items'])
-
   end
 
   local on_attach = function(_, bufnr)
@@ -95,12 +94,35 @@ M.setup = function()
                   vim.cmd.vsplit()
                   vim.cmd.edit(item['filename'])
                   local new_win = vim.api.nvim_get_current_win()
+                  vim.api.nvim_win_set_var(new_win, "references", true)
                   vim.api.nvim_win_set_cursor(new_win, { item['lnum'], item['col'] - 1 })
                 end
               else
-                local window = windows[2]
-                vim.api.nvim_set_current_win(windows[2])
-                vim.api.nvim_win_set_cursor(window, { item['lnum'], item['col'] - 1 })
+                local done = false
+                for _, window in pairs(windows) do
+                  local buf = vim.api.nvim_win_get_buf(window)
+                  local file = vim.api.nvim_buf_get_name(buf)
+                  if item['filename'] == file then
+                    vim.api.nvim_win_set_cursor(window, { item['lnum'], item['col'] - 1 })
+                    done = true
+                    break
+                  end
+                  local ok, refs = pcall(vim.api.nvim_win_get_var, window, "references")
+                  if ok and refs then
+                    vim.api.nvim_set_current_win(window)
+                    vim.cmd.edit(item['filename'])
+                    vim.api.nvim_win_set_cursor(window, { item['lnum'], item['col'] - 1 })
+                    done = true
+                    break
+                  end
+                end
+                if not done then
+                  vim.cmd.vsplit()
+                  vim.cmd.edit(item['filename'])
+                  local new_win = vim.api.nvim_get_current_win()
+                  vim.api.nvim_win_set_var(new_win, "references", true)
+                  vim.api.nvim_win_set_cursor(new_win, { item['lnum'], item['col'] - 1 })
+                end
               end
             end
           end
@@ -291,7 +313,6 @@ M.setup = function()
       })
     end
   })
-
 end
 
 return M

@@ -3,7 +3,7 @@ local M = {
 
 M.spec = {
   { "EdenEast/nightfox.nvim" }, -- theme
-  { "neovim/nvim-lspconfig" }, -- Easy configuration of LSP
+  { "neovim/nvim-lspconfig" },  -- Easy configuration of LSP
   {
     "nvim-treesitter/nvim-treesitter",
     event = { "BufReadPost", "BufNewFile" },
@@ -93,7 +93,7 @@ M.spec = {
         playground = {
           enable = false,
           disable = {},
-          updatetime = 25, -- Debounced time for highlighting nodes in the playground from source code
+          updatetime = 25,         -- Debounced time for highlighting nodes in the playground from source code
           persist_queries = false, -- Whether the query persists across vim sessions
           keybindings = {
             toggle_query_editor = 'o',
@@ -112,12 +112,11 @@ M.spec = {
     end
   }, -- incremental language parser
   { "nvim-treesitter/playground" },
-
-  { "jose-elias-alvarez/null-ls.nvim", dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
+  { "jose-elias-alvarez/null-ls.nvim",   dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
   { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
 
   -- DAP (set lazy to true on dap-ui to not load anything, aka disable dap until I have a workflow established)
-  { "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap" }, lazy = true },
+  { "rcarriga/nvim-dap-ui",              dependencies = { "mfussenegger/nvim-dap" }, lazy = true },
   {
     "mfussenegger/nvim-dap",
     dependencies = { "theHamsta/nvim-dap-virtual-text" },
@@ -208,10 +207,10 @@ M.spec = {
       local builtin = require("telescope.builtin")
 
       telescope.setup {
-        defaults = { 
+        defaults = {
           file_ignore_patterns = { "__pycache__" },
-          -- path_display = { shorten = { len = 1, exclude = { -1, -2 } } } 
-          path_display = { "truncate" } 
+          -- path_display = { shorten = { len = 1, exclude = { -1, -2 } } }
+          path_display = { "truncate" }
         }
       }
 
@@ -248,7 +247,7 @@ M.spec = {
       vim.g['prettier#autoformat'] = 1
       vim.g['prettier#autoformat_require_pragma'] = 0
     end
-  }, -- Autoformatting
+  },                               -- Autoformatting
   {
     "nvim-tree/nvim-web-devicons", -- Pretty Icons
     lazy = true,
@@ -304,14 +303,14 @@ M.spec = {
     "L3MON4D3/LuaSnip",
     event = "InsertEnter",
     dependencies = {
-      "saadparwaiz1/cmp_luasnip", -- luasnip to nvim-cmp integration
+      "saadparwaiz1/cmp_luasnip",    -- luasnip to nvim-cmp integration
       "rafamadriz/friendly-snippets" -- Premade snippets
     },
     config = function()
       require('config.snippets').setup()
     end
   }, -- Snippets plugin,
-  { "AndrewRadev/tagalong.vim", ft = "html" },
+  { "AndrewRadev/tagalong.vim",     ft = "html" },
 }
 
 function M.init()
