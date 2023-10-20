@@ -108,7 +108,7 @@ local opts = { noremap = true, silent = true }
 vim.keymap.set('', '<Space>', '<Nop>', opts)
 
 -- quick yank/paste
-vim.keymap.set('n', '<leader>pp', 'viw<S-p>', opts)
+vim.keymap.set('n', '<leader>pp', 'ciw<C-r>0<Esc>', opts)
 vim.keymap.set('n', '<leader>yy', 'yiw', opts)
 vim.keymap.set('n', '<space>y', '"ty', opts)
 vim.keymap.set('n', '<space>p', '"tP', opts)
@@ -116,8 +116,9 @@ vim.keymap.set('n', '<space>d', '"_d', opts)
 vim.keymap.set('n', '<space>c', '"_c', opts)
 vim.keymap.set('n', '<leader>ys', '"sy', opts)
 vim.keymap.set('n', '<leader>ps', '"sP', opts)
-vim.keymap.set('n', '<leader>ye', '"ey', opts)
-vim.keymap.set('n', '<leader>pe', '"eP', opts)
+-- vim.keymap.set('n', '<leader>ye', '"ey', opts)
+-- vim.keymap.set('n', '<leader>pe', '"eP', opts)
+vim.keymap.set('i', '<A-p>', '<C-r>"', opts)
 
 -- map gp to re-select the thing you just pasted
 vim.keymap.set('n', 'gp', '`[v`]', opts)
@@ -135,13 +136,13 @@ vim.keymap.set('n', '<leader>lq', vim.diagnostic.setqflist, opts)
 -- Buffer Mappings
 -- Close current buffer
 vim.keymap.set('n', '<leader>bd', '<cmd>bd<CR>', opts)
--- lua vim.api.nvim_buf_delete(vim.api.nvim_get_current_buf(), {})
 -- Swap buffer
 vim.keymap.set('n', '<leader>,', '<cmd>b#<CR>', opts)
--- vim.keymap.set('n', '<leader><leader> '<cmd>b#<CR>', opts)
 -- Close current buffer and switch to last used
 vim.keymap.set('n', '<leader>bq', '<cmd>b#|bd#<CR>', opts)
 
+-- Open Blender (this should be moved to a local file)
+vim.keymap.set('n', '<leader>ob', '<cmd>!pwsh -nologo -c Start-Blender<CR><CR>', opts)
 
 -- quickfix hotkeys
 vim.keymap.set('n', '<leader>qc', '<cmd>cclose<CR>', opts)
@@ -163,6 +164,10 @@ vim.keymap.set('n', '<c-h>', '<c-w>h', opts)
 vim.keymap.set('n', '<c-j>', '<c-w>j', opts)
 vim.keymap.set('n', '<c-k>', '<c-w>k', opts)
 vim.keymap.set('n', '<c-l>', '<c-w>l', opts)
+-- close the window below
+vim.keymap.set('n', '<leader>dj', '<c-w>j<c-c>', opts)
+-- close the window above
+vim.keymap.set('n', '<leader>dk', '<c-w>k<c-c>', opts)
 
 -- Edit vim config in split
 vim.keymap.set('n', '<leader>ec', '<cmd>vsplit $MYVIMRC<cr>', opts)
@@ -253,12 +258,47 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   group = vim.api.nvim_create_augroup("AutoFormat", { clear = true }),
   pattern = "*.py",
   callback = function() vim.lsp.buf.format({ async = false }) end,
+  -- Works, but errors are written to the buffer and cursor is moved
+  -- callback = function() vim.cmd([[silent %!black -q --stdin-filename % -]]) end,
 })
 
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("PythonImportSort", { clear = true }),
   pattern = "*.py",
-  callback = function() vim.keymap.set('n', '<leader>fi', '<cmd>!ruff check --fix --select=I001 %:p<cr>', opts) end,
+  callback = function()
+    vim.keymap.set('n', '<leader>fi', '<cmd>!ruff check --fix --select=I001 %:p<cr>', opts)
+    -- vim.keymap.set('n', '<leader>pd', 'yiwoprint(f""(<cmd>lua vim.api.nvim_win_get_cursor(0)<cr>i): {"}")', opts)
+    vim.keymap.set('n', '<leader>pd',
+      function()
+        vim.cmd.normal('yiwoprint(f"" ')
+        local pos = vim.api.nvim_win_get_cursor(0)
+        vim.cmd.normal('a: {"}")')
+        vim.api.nvim_buf_set_text(0, pos[1] - 1, pos[2] + 1, pos[1] - 1, pos[2] + 1, { '(' .. tostring(pos[1]) .. ')' })
+      end, opts)
+    vim.keymap.set('n', '<leader>pf',
+      function()
+        local lnum, _ = unpack(vim.api.nvim_win_get_cursor(0))
+        local errors = vim.diagnostic.get(0, { lnum = lnum - 1 })
+        for _, err in pairs(errors) do
+          if err.source == "ruff" then
+            vim.cmd('!ruff check --fix --select=' .. err.code .. ' %:p')
+            -- only fix the first error
+            -- TODO: print a menu and let me decide which error to fix
+            break
+          end
+        end
+      end, opts)
+    vim.keymap.set('n', '<leader>pe',
+      function()
+        local lnum, _ = unpack(vim.api.nvim_win_get_cursor(0))
+        local errors = vim.diagnostic.get(0, { lnum = lnum - 1 })
+        for _, err in pairs(errors) do
+          if err.source == "ruff" then
+            vim.cmd('!ruff rule ' .. err.code)
+          end
+        end
+      end, opts)
+  end,
 })
 
 -- Hide exit code on terminal close

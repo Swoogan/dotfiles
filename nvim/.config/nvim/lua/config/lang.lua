@@ -61,7 +61,74 @@ M.setup = function()
   })
 
   local on_list = function(def_list)
-    local items = ipairs(def_list['items'])
+    if #def_list > 1 then
+      -- double call to lsp :(
+      require('telescope.builtin').lsp_definitions()
+    else
+      local windows = vim.api.nvim_list_wins()
+      local item = def_list['items'][1]
+
+      if #windows == 1 then
+        local window = windows[1]
+        local buf = vim.api.nvim_win_get_buf(window)
+        local file = vim.api.nvim_buf_get_name(buf)
+
+        if item['filename'] == file then
+          -- local lnum, col = unpack(vim.api.nvim_win_get_cursor(0))
+          -- vim.api.nvim_buf_set_mark(0, "p", lnum, col, {})
+          -- vim.api.nvim_buf_set_mark(0, "`", lnum, col, {})
+          print("a")
+          vim.cmd("normal m`")
+          vim.api.nvim_win_set_cursor(window, { item['lnum'], item['col'] - 1 })
+        else
+          print("b")
+          vim.cmd.vsplit()
+          vim.cmd.edit(item['filename'])
+          local new_win = vim.api.nvim_get_current_win()
+          vim.api.nvim_win_set_var(new_win, "references", true)
+          vim.api.nvim_win_set_cursor(new_win, { item['lnum'], item['col'] - 1 })
+        end
+      else
+        local cur_win = vim.api.nvim_get_current_win()
+        local cur_buf = vim.api.nvim_win_get_buf(cur_win)
+        local cur_file = vim.api.nvim_buf_get_name(cur_buf)
+        local done = false
+        if item['filename'] == cur_file then
+          print("c")
+          vim.cmd("normal m`")
+          vim.api.nvim_win_set_cursor(cur_win, { item['lnum'], item['col'] - 1 })
+          return
+        end
+        for _, window in pairs(windows) do
+          local buf = vim.api.nvim_win_get_buf(window)
+          local file = vim.api.nvim_buf_get_name(buf)
+          if item['filename'] == file then
+            print("d")
+            vim.cmd("normal m`")
+            vim.api.nvim_win_set_cursor(window, { item['lnum'], item['col'] - 1 })
+            done = true
+            break
+          end
+          local ok, refs = pcall(vim.api.nvim_win_get_var, window, "references")
+          if ok and refs then
+            print("e")
+            vim.api.nvim_set_current_win(window)
+            vim.cmd.edit(item['filename'])
+            vim.api.nvim_win_set_cursor(window, { item['lnum'], item['col'] - 1 })
+            done = true
+            break
+          end
+        end
+        if not done then
+          print("f")
+          vim.cmd.vsplit()
+          vim.cmd.edit(item['filename'])
+          local new_win = vim.api.nvim_get_current_win()
+          vim.api.nvim_win_set_var(new_win, "references", true)
+          vim.api.nvim_win_set_cursor(new_win, { item['lnum'], item['col'] - 1 })
+        end
+      end
+    end
   end
 
   local on_attach = function(_, bufnr)
@@ -72,63 +139,7 @@ M.setup = function()
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
     vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
     -- vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
-    vim.keymap.set('n', 'gd',
-      function()
-        vim.lsp.buf.definition({
-          on_list = function(def_list)
-            if #def_list > 1 then
-              -- double call to lsp :(
-              require('telescope.builtin').lsp_definitions()
-            else
-              local windows = vim.api.nvim_list_wins()
-              local item = def_list['items'][1]
-
-              if #windows == 1 then
-                local window = windows[1]
-                local buf = vim.api.nvim_win_get_buf(window)
-                local file = vim.api.nvim_buf_get_name(buf)
-
-                if item['filename'] == file then
-                  vim.api.nvim_win_set_cursor(window, { item['lnum'], item['col'] - 1 })
-                else
-                  vim.cmd.vsplit()
-                  vim.cmd.edit(item['filename'])
-                  local new_win = vim.api.nvim_get_current_win()
-                  vim.api.nvim_win_set_var(new_win, "references", true)
-                  vim.api.nvim_win_set_cursor(new_win, { item['lnum'], item['col'] - 1 })
-                end
-              else
-                local done = false
-                for _, window in pairs(windows) do
-                  local buf = vim.api.nvim_win_get_buf(window)
-                  local file = vim.api.nvim_buf_get_name(buf)
-                  if item['filename'] == file then
-                    vim.api.nvim_win_set_cursor(window, { item['lnum'], item['col'] - 1 })
-                    done = true
-                    break
-                  end
-                  local ok, refs = pcall(vim.api.nvim_win_get_var, window, "references")
-                  if ok and refs then
-                    vim.api.nvim_set_current_win(window)
-                    vim.cmd.edit(item['filename'])
-                    vim.api.nvim_win_set_cursor(window, { item['lnum'], item['col'] - 1 })
-                    done = true
-                    break
-                  end
-                end
-                if not done then
-                  vim.cmd.vsplit()
-                  vim.cmd.edit(item['filename'])
-                  local new_win = vim.api.nvim_get_current_win()
-                  vim.api.nvim_win_set_var(new_win, "references", true)
-                  vim.api.nvim_win_set_cursor(new_win, { item['lnum'], item['col'] - 1 })
-                end
-              end
-            end
-          end
-        })
-      end
-      , bufopts)
+    vim.keymap.set('n', 'gd', function() vim.lsp.buf.definition({ on_list = on_list }) end, bufopts)
     vim.keymap.set('n', 'gi', require('telescope.builtin').lsp_incoming_calls, bufopts)
     vim.keymap.set('n', 'go', require('telescope.builtin').lsp_outgoing_calls, bufopts)
     -- vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
@@ -195,35 +206,28 @@ M.setup = function()
     rust_analyzer = 'rust-analyzer-x86_64-pc-windows-msvc'
   end
 
-  if vim.fn.executable('rust-analyzer') == 1 then
-    vim.api.nvim_create_autocmd('LspAttach', {
-      pattern = "*.rs",
-      callback = function(_)
-        nvim_lsp['rust_analyzer'].setup {
-          capabilities = capabilities,
-          on_attach = on_attach,
-          cmd = { rust_analyzer },
-        }
-      end
-    })
+  -- vim.api.nvim_create_autocmd('LspAttach', {
+  --   pattern = "*.rs",
+  --   callback = function(_)
+  if vim.fn.executable(rust_analyzer) == 1 then
+    nvim_lsp['rust_analyzer'].setup {
+      capabilities = capabilities,
+      on_attach = on_attach,
+      cmd = { rust_analyzer },
+    }
   end
+  --   end
+  -- })
 
   -- PowerShell
   local bundle_path = vim.env.DEV_HOME .. '/.ls/PowerShellEditorServices'
   if vim.fn.isdirectory(bundle_path) == 1 then
-    vim.api.nvim_create_autocmd('LspAttach', {
-      pattern = "*.ps1",
-      callback = function(_)
-        -- Setup PowerShell Editor Extensions
-
-        -- Todo: test that the path exists
-        nvim_lsp['powershell_es'].setup {
-          capabilities = capabilities,
-          on_attach = on_attach,
-          bundle_path = bundle_path,
-        }
-      end
-    })
+    -- Setup PowerShell Editor Extensions
+    nvim_lsp['powershell_es'].setup {
+      capabilities = capabilities,
+      on_attach = on_attach,
+      bundle_path = bundle_path,
+    }
   end
 
   -- Lua
@@ -259,35 +263,25 @@ M.setup = function()
   -- Zig
   local zls = vim.env.DEV_HOME .. '/.ls/zigtools-zls/bin/zls'
   if vim.fn.executable(zls) == 1 then
-    vim.api.nvim_create_autocmd('LspAttach', {
-      pattern = "*.zig",
-      callback = function(_)
-        nvim_lsp['zls'].setup {
-          cmd = { zls },
-          capabilities = capabilities,
-          on_attach = on_attach,
-        }
-      end
-    })
+    nvim_lsp['zls'].setup {
+      cmd = { zls },
+      capabilities = capabilities,
+      on_attach = on_attach,
+    }
   end
 
   -- C#
   local omnisharp = vim.env.DEV_HOME .. '/.ls/omnisharp/OmniSharp.exe'
   if vim.fn.executable(omnisharp) == 1 then
-    vim.api.nvim_create_autocmd('LspAttach', {
-      pattern = "*.cs",
-      callback = function(_)
-        nvim_lsp['omnisharp'].setup {
-          handlers = {
-            ["textDocument/definition"] = require('omnisharp_extended').handler,
-          },
-          capabilities = capabilities,
-          on_attach = on_attach,
-          cmd = { omnisharp, "--languageserver", "--hostPID", tostring(pid),
-            "formattingOptions:EnableEditorConfigSupport=true" }
-        }
-      end
-    })
+    nvim_lsp['omnisharp'].setup {
+      handlers = {
+        ["textDocument/definition"] = require('omnisharp_extended').handler,
+      },
+      capabilities = capabilities,
+      on_attach = on_attach,
+      cmd = { omnisharp, "--languageserver", "--hostPID", tostring(pid),
+        "formattingOptions:EnableEditorConfigSupport=true" }
+    }
   end
 
   -- Setup null-ls

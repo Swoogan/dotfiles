@@ -3,7 +3,7 @@ local M = {
 
 M.spec = {
   { "EdenEast/nightfox.nvim" }, -- theme
-  { "neovim/nvim-lspconfig" },  -- Easy configuration of LSP
+  { "neovim/nvim-lspconfig" }, -- Easy configuration of LSP
   {
     "nvim-treesitter/nvim-treesitter",
     event = { "BufReadPost", "BufNewFile" },
@@ -93,7 +93,7 @@ M.spec = {
         playground = {
           enable = false,
           disable = {},
-          updatetime = 25,         -- Debounced time for highlighting nodes in the playground from source code
+          updatetime = 25, -- Debounced time for highlighting nodes in the playground from source code
           persist_queries = false, -- Whether the query persists across vim sessions
           keybindings = {
             toggle_query_editor = 'o',
@@ -112,11 +112,11 @@ M.spec = {
     end
   }, -- incremental language parser
   { "nvim-treesitter/playground" },
-  { "jose-elias-alvarez/null-ls.nvim",   dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
+  { "jose-elias-alvarez/null-ls.nvim", dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
   { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
 
   -- DAP (set lazy to true on dap-ui to not load anything, aka disable dap until I have a workflow established)
-  { "rcarriga/nvim-dap-ui",              dependencies = { "mfussenegger/nvim-dap" }, lazy = true },
+  { "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap" }, lazy = true },
   {
     "mfussenegger/nvim-dap",
     dependencies = { "theHamsta/nvim-dap-virtual-text" },
@@ -163,15 +163,34 @@ M.spec = {
           ['<C-e>'] = cmp.mapping.abort(),
           ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
         }),
-        sources = cmp.config.sources({
-          { name = 'nvim_lsp' },
-          { name = 'luasnip' },
-        }, {
+        sources = cmp.config.sources(
+          {
+            { name = 'nvim_lsp' },
+            { name = 'luasnip' },
+          }, {
           { name = 'buffer' },
-        }),
-        completion = { keyword_length = 3 }
+        }
+        ),
+        -- Todo: switch to debounce time instead?
+        completion = { keyword_length = 2 }
       })
 
+      -- Set configuration for Python.
+      cmp.setup.filetype('python', {
+        sources = cmp.config.sources(
+          {
+            { name = 'nvim_lsp',
+              entry_filter = function(entry, ctx)
+                return string.find(entry:get_word(), '__') == nil
+              end
+            },
+            { name = 'luasnip' },
+          },
+          {
+            { name = 'buffer' },
+          }
+        )
+      })
 
       -- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
       cmp.setup.cmdline('/', {
@@ -247,7 +266,7 @@ M.spec = {
       vim.g['prettier#autoformat'] = 1
       vim.g['prettier#autoformat_require_pragma'] = 0
     end
-  },                               -- Autoformatting
+  }, -- Autoformatting
   {
     "nvim-tree/nvim-web-devicons", -- Pretty Icons
     lazy = true,
@@ -261,7 +280,7 @@ M.spec = {
   },
   {
     "nvim-tree/nvim-tree.lua", -- Filesystem viewer
-    cmd = { "NvimTreeToggle" },
+    cmd = { "NvimTreeToggle", "NvimTreeFindFile" },
     version = "*",
     dependencies = {
       "nvim-tree/nvim-web-devicons",
@@ -303,14 +322,14 @@ M.spec = {
     "L3MON4D3/LuaSnip",
     event = "InsertEnter",
     dependencies = {
-      "saadparwaiz1/cmp_luasnip",    -- luasnip to nvim-cmp integration
+      "saadparwaiz1/cmp_luasnip", -- luasnip to nvim-cmp integration
       "rafamadriz/friendly-snippets" -- Premade snippets
     },
     config = function()
       require('config.snippets').setup()
     end
   }, -- Snippets plugin,
-  { "AndrewRadev/tagalong.vim",     ft = "html" },
+  { "AndrewRadev/tagalong.vim", ft = "html" },
 }
 
 function M.init()
