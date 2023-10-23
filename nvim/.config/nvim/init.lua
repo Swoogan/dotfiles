@@ -186,6 +186,10 @@ vim.keymap.set('n', '<leader>st', '<cmd>NvimTreeFindFile<cr>', opts)
 -- Run prettier
 vim.keymap.set('n', '<leader>pf', '<cmd>PrettierAsync<cr>', opts)
 
+-- Change or delete the word plus the first character after the word
+vim.keymap.set('v', 'ew', 'vel', opts)
+vim.keymap.set('o', 'ew', '<cmd>normal Vew<cr>')
+
 -- *** AUTOGROUPS *** --
 
 -- Highlight on yank

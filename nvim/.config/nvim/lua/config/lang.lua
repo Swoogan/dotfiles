@@ -73,15 +73,13 @@ M.setup = function()
         local buf = vim.api.nvim_win_get_buf(window)
         local file = vim.api.nvim_buf_get_name(buf)
 
-        if item['filename'] == file then
+        if item['filename'] == string.lower(file) then
           -- local lnum, col = unpack(vim.api.nvim_win_get_cursor(0))
           -- vim.api.nvim_buf_set_mark(0, "p", lnum, col, {})
           -- vim.api.nvim_buf_set_mark(0, "`", lnum, col, {})
-          print("a")
           vim.cmd("normal m`")
           vim.api.nvim_win_set_cursor(window, { item['lnum'], item['col'] - 1 })
         else
-          print("b")
           vim.cmd.vsplit()
           vim.cmd.edit(item['filename'])
           local new_win = vim.api.nvim_get_current_win()
@@ -92,18 +90,16 @@ M.setup = function()
         local cur_win = vim.api.nvim_get_current_win()
         local cur_buf = vim.api.nvim_win_get_buf(cur_win)
         local cur_file = vim.api.nvim_buf_get_name(cur_buf)
-        local done = false
-        if item['filename'] == cur_file then
-          print("c")
+        if item['filename'] == string.lower(cur_file) then
           vim.cmd("normal m`")
           vim.api.nvim_win_set_cursor(cur_win, { item['lnum'], item['col'] - 1 })
           return
         end
+        local done = false
         for _, window in pairs(windows) do
           local buf = vim.api.nvim_win_get_buf(window)
           local file = vim.api.nvim_buf_get_name(buf)
           if item['filename'] == file then
-            print("d")
             vim.cmd("normal m`")
             vim.api.nvim_win_set_cursor(window, { item['lnum'], item['col'] - 1 })
             done = true
@@ -111,7 +107,6 @@ M.setup = function()
           end
           local ok, refs = pcall(vim.api.nvim_win_get_var, window, "references")
           if ok and refs then
-            print("e")
             vim.api.nvim_set_current_win(window)
             vim.cmd.edit(item['filename'])
             vim.api.nvim_win_set_cursor(window, { item['lnum'], item['col'] - 1 })

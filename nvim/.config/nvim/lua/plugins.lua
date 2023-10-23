@@ -181,7 +181,8 @@ M.spec = {
           {
             { name = 'nvim_lsp',
               entry_filter = function(entry, ctx)
-                return string.find(entry:get_word(), '__') == nil
+                local match = string.match(entry:get_word(), '__(%w+)__')
+                return match == nil
               end
             },
             { name = 'luasnip' },
