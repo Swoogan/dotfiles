@@ -193,7 +193,6 @@ function Set-Development ([string]$location) {
 #######################
 
 Set-Alias touch Set-LastWriteToNow
-Set-Alias pit Invoke-Pit
 Set-Alias ep Edit-Profile
 Set-Alias spp Read-Profile
 Set-Alias rc Reset-Colors
