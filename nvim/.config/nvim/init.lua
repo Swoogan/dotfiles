@@ -257,10 +257,10 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function() vim.cmd([[setlocal shiftwidth=2 softtabstop=2 expandtab]]) end,
 })
 
--- Auto format Python files
+-- Auto format Python, Lua and Rust files
 vim.api.nvim_create_autocmd("BufWritePre", {
   group = vim.api.nvim_create_augroup("AutoFormat", { clear = true }),
-  pattern = "*.py",
+  pattern = { "*.rs", ".py", "*.lua" },
   callback = function() vim.lsp.buf.format({ async = false }) end,
   -- Works, but errors are written to the buffer and cursor is moved
   -- callback = function() vim.cmd([[silent %!black -q --stdin-filename % -]]) end,
@@ -310,8 +310,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("RustSpecific", { clear = true }),
   pattern = "*.rs",
   callback = function()
-    vim.keymap.set('n', '<leader>fi', '<cmd>!ruff check --fix --select=I001 %:p<cr>', opts)
-    -- vim.keymap.set('n', '<leader>pd', 'yiwoprint(f""(<cmd>lua vim.api.nvim_win_get_cursor(0)<cr>i): {"}")', opts)
     vim.keymap.set('n', '<leader>pd',
       function()
         vim.cmd.normal('yiwoprintln!("" ')
