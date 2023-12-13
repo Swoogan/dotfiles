@@ -267,7 +267,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 })
 
 vim.api.nvim_create_autocmd("LspAttach", {
-  group = vim.api.nvim_create_augroup("PythonImportSort", { clear = true }),
+  group = vim.api.nvim_create_augroup("PythonSpecific", { clear = true }),
   pattern = "*.py",
   callback = function()
     vim.keymap.set('n', '<leader>fi', '<cmd>!ruff check --fix --select=I001 %:p<cr>', opts)
@@ -301,6 +301,23 @@ vim.api.nvim_create_autocmd("LspAttach", {
             vim.cmd('!ruff rule ' .. err.code)
           end
         end
+      end, opts)
+  end,
+})
+
+-- TODO: should be FileType event?
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("RustSpecific", { clear = true }),
+  pattern = "*.rs",
+  callback = function()
+    vim.keymap.set('n', '<leader>fi', '<cmd>!ruff check --fix --select=I001 %:p<cr>', opts)
+    -- vim.keymap.set('n', '<leader>pd', 'yiwoprint(f""(<cmd>lua vim.api.nvim_win_get_cursor(0)<cr>i): {"}")', opts)
+    vim.keymap.set('n', '<leader>pd',
+      function()
+        vim.cmd.normal('yiwoprintln!("" ')
+        local pos = vim.api.nvim_win_get_cursor(0)
+        vim.cmd.normal('a: {}", ");')
+        vim.api.nvim_buf_set_text(0, pos[1] - 1, pos[2] + 1, pos[1] - 1, pos[2] + 1, { '(' .. tostring(pos[1]) .. ')' })
       end, opts)
   end,
 })
@@ -397,3 +414,28 @@ local function print_win_filenames()
 end
 
 vim.keymap.set({ 'n' }, '<A-w>', print_win_filenames, opts)
+
+local function print_bufs()
+  local keep = {}
+  local windows = vim.api.nvim_list_wins()
+  for _, window in pairs(windows) do
+    local buf = vim.api.nvim_win_get_buf(window)
+    -- local buf_name = get_win_filename(window)
+    table.insert(keep, buf)
+  end
+
+  local bufs = vim.api.nvim_list_bufs()
+  for _, buf in pairs(bufs) do
+    local found = false
+    for _, k in pairs(keep) do
+      if buf == k then
+        found = true
+      end
+    end
+    if not found then
+      vim.api.nvim_buf_delete(buf, {})
+    end
+  end
+end
+
+vim.keymap.set({ 'n' }, '<A-b>', print_bufs, opts)

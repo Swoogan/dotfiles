@@ -73,7 +73,7 @@ M.setup = function()
         local buf = vim.api.nvim_win_get_buf(window)
         local file = vim.api.nvim_buf_get_name(buf)
 
-        if item['filename'] == string.lower(file) then
+        if string.lower(item['filename']) == string.lower(file) then
           -- local lnum, col = unpack(vim.api.nvim_win_get_cursor(0))
           -- vim.api.nvim_buf_set_mark(0, "p", lnum, col, {})
           -- vim.api.nvim_buf_set_mark(0, "`", lnum, col, {})
@@ -90,7 +90,7 @@ M.setup = function()
         local cur_win = vim.api.nvim_get_current_win()
         local cur_buf = vim.api.nvim_win_get_buf(cur_win)
         local cur_file = vim.api.nvim_buf_get_name(cur_buf)
-        if item['filename'] == string.lower(cur_file) then
+        if string.lower(item['filename']) == string.lower(cur_file) then
           vim.cmd("normal m`")
           vim.api.nvim_win_set_cursor(cur_win, { item['lnum'], item['col'] - 1 })
           return
