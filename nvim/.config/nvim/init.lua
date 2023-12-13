@@ -311,6 +311,7 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function()
     vim.cmd([[compiler cargo]])
     vim.keymap.set('n', '<leader>bb', '<cmd>make build|copen<cr>', opts)
+    vim.keymap.set('n', '<leader>bc', '<cmd>make clippy|copen<cr>', opts)
   end,
 })
 
@@ -422,7 +423,7 @@ end
 
 vim.keymap.set({ 'n' }, '<A-w>', print_win_filenames, opts)
 
-local function print_bufs()
+local function close_unused_buffers()
   local keep = {}
   local windows = vim.api.nvim_list_wins()
   for _, window in pairs(windows) do
@@ -445,4 +446,4 @@ local function print_bufs()
   end
 end
 
-vim.keymap.set({ 'n' }, '<A-b>', print_bufs, opts)
+vim.keymap.set({ 'n' }, '<A-b>', close_unused_buffers, opts)
