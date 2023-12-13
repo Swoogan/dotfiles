@@ -305,6 +305,15 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("Cargo", { clear = true }),
+  pattern = "rust",
+  callback = function()
+    vim.cmd([[compiler cargo]])
+    vim.keymap.set('n', '<leader>bb', '<cmd>make build|copen<cr>', opts)
+  end,
+})
+
 -- TODO: should be FileType event?
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("RustSpecific", { clear = true }),
