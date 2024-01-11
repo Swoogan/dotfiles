@@ -7,7 +7,7 @@ vim.g.maplocalleader = ','
 plugins.load() -- Load lazy with the spec
 
 require('config.lang').setup()
--- require('config.debuggers').setup()
+require('config.debuggers').setup()
 
 -- *** CONFIG *** --
 
@@ -34,13 +34,13 @@ vim.opt.expandtab = true -- converts tab presses to spaces
 vim.opt.inccommand = 'nosplit' -- shows effects of substitutions
 vim.opt.mouse = 'a'
 vim.opt.shortmess = "IF" -- disable the intro screen (display with `:intro`)
+vim.opt.signcolumn = 'auto:3'
 
 --Save undo history
 vim.opt.undofile = true
 
 --Decrease update time
 vim.opt.updatetime = 250
-vim.opt.signcolumn = 'yes'
 
 if is_windows then
   local win32yank = 'win32yank.exe'
@@ -260,7 +260,7 @@ vim.api.nvim_create_autocmd("FileType", {
 -- Auto format Python, Lua and Rust files
 vim.api.nvim_create_autocmd("BufWritePre", {
   group = vim.api.nvim_create_augroup("AutoFormat", { clear = true }),
-  pattern = { "*.rs", ".py", "*.lua" },
+  pattern = { "*.rs", "*.py", "*.lua" },
   callback = function() vim.lsp.buf.format({ async = false }) end,
   -- Works, but errors are written to the buffer and cursor is moved
   -- callback = function() vim.cmd([[silent %!black -q --stdin-filename % -]]) end,
@@ -271,7 +271,13 @@ vim.api.nvim_create_autocmd("LspAttach", {
   pattern = "*.py",
   callback = function()
     vim.keymap.set('n', '<leader>fi', '<cmd>!ruff check --fix --select=I001 %:p<cr>', opts)
-    -- vim.keymap.set('n', '<leader>pd', 'yiwoprint(f""(<cmd>lua vim.api.nvim_win_get_cursor(0)<cr>i): {"}")', opts)
+    vim.keymap.set('n', '<leader>ds',
+      function()
+        require('dap').attach(
+          { type = "server"; host = "127.0.0.1", port = 5678 },
+          { type = "python"; request = "attach"; mode = "remote" }
+        )
+      end, opts)
     vim.keymap.set('n', '<leader>pd',
       function()
         vim.cmd.normal('yiwoprint(f"" ')
@@ -310,8 +316,8 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = "rust",
   callback = function()
     vim.cmd([[compiler cargo]])
-    vim.keymap.set('n', '<leader>bb', '<cmd>make build|copen<cr>', opts)
-    vim.keymap.set('n', '<leader>bc', '<cmd>make clippy|copen<cr>', opts)
+    vim.keymap.set('n', '<leader>bb', '<cmd>make build|cwindow<cr>', opts)
+    vim.keymap.set('n', '<leader>bc', '<cmd>make clippy|cwindow<cr>', opts)
   end,
 })
 
@@ -428,7 +434,6 @@ local function close_unused_buffers()
   local windows = vim.api.nvim_list_wins()
   for _, window in pairs(windows) do
     local buf = vim.api.nvim_win_get_buf(window)
-    -- local buf_name = get_win_filename(window)
     table.insert(keep, buf)
   end
 
@@ -447,3 +452,70 @@ local function close_unused_buffers()
 end
 
 vim.keymap.set({ 'n' }, '<A-b>', close_unused_buffers, opts)
+
+-- *** Setup signs ***
+vim.fn.sign_define('Mark_' .. 'm', { text = '⚓' })
+
+-- signs = { 'm', 'a', 's', 't', 'n', 'e' }
+-- signs = { 'a', 's', 't', 'n', 'e' }
+-- for _, sign in pairs(signs) do
+--   vim.fn.sign_define('Mark_' .. sign, { text = sign })
+-- end
+
+vim.keymap.set('n', 'mm', function()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
+  vim.fn.sign_place(0, 'marks', 'Mark_m', bufnr, { lnum = lnum })
+  vim.api.nvim_buf_set_mark(bufnr, "m", lnum, cnum, {})
+end, opts)
+
+-- *** Setup Auto Marks ***
+
+local index = 1
+local letters = { 'W', 'X', 'Y', 'Z' }
+local mark_count = 0
+local curr_index = 1
+
+local function set_mark()
+  local letter = letters[index]
+  index = index + 1
+  if index > 4 then
+    index = 1
+  end
+
+  local bufnr = vim.api.nvim_get_current_buf()
+  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
+  vim.api.nvim_buf_set_mark(bufnr, letter, lnum, cnum, {})
+  mark_count = min(mark_count + 1, 4)
+end
+
+vim.api.nvim_create_autocmd("InsertLeave", {
+  pattern = "*",
+  callback = set_mark
+})
+
+vim.keymap.set('n', '<leader>mp', function()
+  if mark_count < 2 then
+    return
+  end
+
+  curr_index = curr_index - 1
+  if curr_index < 1 then
+    curr_index = mark_count
+  end
+
+  local letter = letters[curr_index]
+end, opts)
+
+vim.keymap.set('n', '<leader>mn', function()
+  if mark_count < 2 then
+    return
+  end
+
+  curr_index = curr_index + 1
+  if curr_index > 4 then
+    curr_index = 1
+  end
+
+  local letter = letters[curr_index]
+end, opts)

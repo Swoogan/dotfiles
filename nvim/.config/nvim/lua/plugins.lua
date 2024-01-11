@@ -129,7 +129,7 @@ M.spec = {
       vim.keymap.set('n', '<leader>dc', dap.continue, opts)
       vim.keymap.set('n', '<leader>do', dap.step_over, opts)
       vim.keymap.set('n', '<leader>di', dap.step_into, opts)
-      vim.keymap.set('n', '<leader>ds', dap.close, opts)
+      vim.keymap.set('n', '<leader>de', dap.close, opts)
       vim.keymap.set('n', '<leader>dro', dap.repl.open, opts)
       vim.keymap.set('n', '<leader>drc', dap.repl.close, opts)
     end,
