@@ -474,7 +474,7 @@ end, opts)
 local index = 1
 local letters = { 'W', 'X', 'Y', 'Z' }
 local mark_count = 0
-local curr_index = 1
+local curr_index = 0
 
 local function set_mark()
   local letter = letters[index]
@@ -486,7 +486,7 @@ local function set_mark()
   local bufnr = vim.api.nvim_get_current_buf()
   local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
   vim.api.nvim_buf_set_mark(bufnr, letter, lnum, cnum, {})
-  mark_count = min(mark_count + 1, 4)
+  mark_count = math.min(mark_count + 1, 4)
 end
 
 vim.api.nvim_create_autocmd("InsertLeave", {
@@ -495,27 +495,32 @@ vim.api.nvim_create_autocmd("InsertLeave", {
 })
 
 vim.keymap.set('n', '<leader>mp', function()
-  if mark_count < 2 then
+  if mark_count <= 1 then
     return
   end
 
+  -- cycle down
   curr_index = curr_index - 1
   if curr_index < 1 then
     curr_index = mark_count
   end
 
   local letter = letters[curr_index]
+  vim.cmd.normal("'" .. letter)
 end, opts)
 
 vim.keymap.set('n', '<leader>mn', function()
-  if mark_count < 2 then
+  if mark_count <= 1 then
     return
   end
 
+  -- cycle up
   curr_index = curr_index + 1
-  if curr_index > 4 then
+  if curr_index > mark_count then
     curr_index = 1
   end
 
   local letter = letters[curr_index]
+  print(letter)
+  vim.cmd.normal("'" .. letter)
 end, opts)

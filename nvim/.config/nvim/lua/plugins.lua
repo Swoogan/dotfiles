@@ -62,6 +62,10 @@ M.spec = {
               ['ab'] = '@block.outer',
               ['ib'] = '@block.inner',
             },
+            selection_modes = {
+              ['@block.outer'] = 'V', -- linewise
+              ['@function.outer'] = 'V', -- linewise
+            },
           },
           move = {
             enable = true,
@@ -79,39 +83,20 @@ M.spec = {
               ['[b'] = '@block.outer',
             },
             goto_next_end = {
-              [']}'] = '@class.outer',
+              [']['] = '@class.outer',
               [']M'] = '@function.outer',
               [']A'] = '@parameter.outer',
             },
             goto_previous_end = {
-              ['[{'] = '@class.outer',
+              ['[]'] = '@class.outer',
               ['[M'] = '@function.outer',
               ['[A'] = '@parameter.outer',
             },
           },
         },
-        playground = {
-          enable = false,
-          disable = {},
-          updatetime = 25, -- Debounced time for highlighting nodes in the playground from source code
-          persist_queries = false, -- Whether the query persists across vim sessions
-          keybindings = {
-            toggle_query_editor = 'o',
-            toggle_hl_groups = 'i',
-            toggle_injected_languages = 't',
-            toggle_anonymous_nodes = 'a',
-            toggle_language_display = 'I',
-            focus_language = 'f',
-            unfocus_language = 'F',
-            update = 'R',
-            goto_node = '<cr>',
-            show_help = '?',
-          },
-        },
       }
     end
   }, -- incremental language parser
-  { "nvim-treesitter/playground" },
   { "jose-elias-alvarez/null-ls.nvim", dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
   { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
 
