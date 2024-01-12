@@ -34,7 +34,7 @@ vim.opt.expandtab = true -- converts tab presses to spaces
 vim.opt.inccommand = 'nosplit' -- shows effects of substitutions
 vim.opt.mouse = 'a'
 vim.opt.shortmess = "IF" -- disable the intro screen (display with `:intro`)
-vim.opt.signcolumn = 'auto:3'
+vim.opt.signcolumn = 'auto:1-3'
 
 --Save undo history
 vim.opt.undofile = true
@@ -201,17 +201,17 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 
 local group = vim.api.nvim_create_augroup("NumberToggle", { clear = true })
 -- Turn on relativenumber for focused buffer
-vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave" }, {
+-- vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave" }, {
+vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "InsertLeave" }, {
   group = group,
-  pattern = "*",
-  callback = function() vim.cmd([[set relativenumber]]) end,
+  command = [[set relativenumber]]
 })
 
 -- Turn off relativenumber for unfocused buffers
-vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter" }, {
+-- vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter" }, {
+vim.api.nvim_create_autocmd({ "BufLeave", "WinLeave", "InsertEnter" }, {
   group = group,
-  pattern = "*",
-  callback = function() vim.cmd([[set norelativenumber]]) end,
+  command = [[set norelativenumber]]
 })
 
 -- Various settings for markdown
@@ -270,6 +270,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("PythonSpecific", { clear = true }),
   pattern = "*.py",
   callback = function()
+    vim.keymap.set('n', '}', '}w', opts)
+    vim.keymap.set('n', '{', '{{w', opts)
     vim.keymap.set('n', '<leader>fi', '<cmd>!ruff check --fix --select=I001 %:p<cr>', opts)
     vim.keymap.set('n', '<leader>ds',
       function()
@@ -455,6 +457,11 @@ vim.keymap.set({ 'n' }, '<A-b>', close_unused_buffers, opts)
 
 -- *** Setup signs ***
 vim.fn.sign_define('Mark_' .. 'm', { text = '⚓' })
+vim.fn.sign_define('Mark_' .. 's', { text = '🔻' })
+vim.fn.sign_define('Mark_' .. 'e', { text = '🔺' })
+
+
+-- want to use this for highlight lines 🌟
 
 -- signs = { 'm', 'a', 's', 't', 'n', 'e' }
 -- signs = { 'a', 's', 't', 'n', 'e' }
@@ -467,6 +474,20 @@ vim.keymap.set('n', 'mm', function()
   local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
   vim.fn.sign_place(0, 'marks', 'Mark_m', bufnr, { lnum = lnum })
   vim.api.nvim_buf_set_mark(bufnr, "m", lnum, cnum, {})
+end, opts)
+
+vim.keymap.set('n', 'ms', function()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
+  vim.fn.sign_place(0, 'marks', 'Mark_s', bufnr, { lnum = lnum })
+  vim.api.nvim_buf_set_mark(bufnr, "s", lnum, cnum, {})
+end, opts)
+
+vim.keymap.set('n', 'me', function()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
+  vim.fn.sign_place(0, 'marks', 'Mark_e', bufnr, { lnum = lnum })
+  vim.api.nvim_buf_set_mark(bufnr, "e", lnum, cnum, {})
 end, opts)
 
 -- *** Setup Auto Marks ***
@@ -494,7 +515,7 @@ vim.api.nvim_create_autocmd("InsertLeave", {
   callback = set_mark
 })
 
-vim.keymap.set('n', '<leader>mp', function()
+local function previous_mark()
   if mark_count <= 1 then
     return
   end
@@ -507,9 +528,9 @@ vim.keymap.set('n', '<leader>mp', function()
 
   local letter = letters[curr_index]
   vim.cmd.normal("'" .. letter)
-end, opts)
+end
 
-vim.keymap.set('n', '<leader>mn', function()
+local function next_mark()
   if mark_count <= 1 then
     return
   end
@@ -523,4 +544,8 @@ vim.keymap.set('n', '<leader>mn', function()
   local letter = letters[curr_index]
   print(letter)
   vim.cmd.normal("'" .. letter)
-end, opts)
+end
+
+vim.keymap.set('n', '<leader>mp', previous_mark, opts)
+vim.keymap.set('n', '<leader>mn', next_mark, opts)
+vim.keymap.set('n', '<leader>ms', set_mark, opts)

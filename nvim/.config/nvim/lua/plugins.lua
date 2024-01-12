@@ -25,9 +25,10 @@ M.spec = {
         "regex",
         "rust",
         "typescript",
+        "vimdoc",
         "zig",
       },
-      auto_install = true,
+      auto_install = false,
     },
     -- Treesitter configuration
     config = function()
