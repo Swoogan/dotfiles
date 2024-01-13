@@ -195,7 +195,8 @@ vim.keymap.set('o', 'ew', '<cmd>normal Vew<cr>')
 -- Highlight on yank
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
-  pattern = "*", -- silent!
+  pattern = "*",
+  -- callback = function() vim.highlight.on_yank() end,
   callback = function() vim.highlight.on_yank() end,
 })
 
@@ -218,14 +219,14 @@ vim.api.nvim_create_autocmd({ "BufLeave", "WinLeave", "InsertEnter" }, {
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
   group = vim.api.nvim_create_augroup("Markdown", { clear = true }),
   pattern = "*.md",
-  callback = function() vim.cmd([[setlocal wrap spell linebreak]]) end,
+  command = [[setlocal wrap spell linebreak]]
 })
 
 -- Set the compiler to dotnet for cs files
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
   group = vim.api.nvim_create_augroup("CSharp", { clear = true }),
   pattern = "*.cs",
-  callback = function() vim.cmd([[compiler dotnet]]) end,
+  command = [[compiler dotnet]]
 })
 
 group = vim.api.nvim_create_augroup("ZigLang", { clear = true })
@@ -233,14 +234,14 @@ group = vim.api.nvim_create_augroup("ZigLang", { clear = true })
 vim.api.nvim_create_autocmd("BufReadPost", {
   group = group,
   pattern = "*.zig",
-  callback = function() vim.cmd([[set ft=zig]]) end,
+  command = [[set ft=zig]]
 })
 
 -- Abbreviate oom to error.OutOfMemory in Zig
 vim.api.nvim_create_autocmd("FileType", {
   group = group,
   pattern = "zig",
-  callback = function() vim.cmd([[iabbrev <buffer> oom return error.OutOfMemory;]]) end,
+  command = [[iabbrev <buffer> oom return error.OutOfMemory;]]
 })
 
 -- auto completion for html closing tags
@@ -254,14 +255,27 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
 vim.api.nvim_create_autocmd("FileType", {
   group = vim.api.nvim_create_augroup("IndentTwo", { clear = true }),
   pattern = { "lua", "html" },
-  callback = function() vim.cmd([[setlocal shiftwidth=2 softtabstop=2 expandtab]]) end,
+  command = [[setlocal shiftwidth=2 softtabstop=2 expandtab]]
 })
 
 -- Auto format Python, Lua and Rust files
 vim.api.nvim_create_autocmd("BufWritePre", {
   group = vim.api.nvim_create_augroup("AutoFormat", { clear = true }),
   pattern = { "*.rs", "*.py", "*.lua" },
-  callback = function() vim.lsp.buf.format({ async = false }) end,
+  callback = function()
+    -- We just want to autoformat but the lsp api call wipes out all
+    -- signs and marks. Therefore, we cache and restore them
+    -- Todo: just fix all signs and marks
+    local sign_marks = require('signs')
+    -- store sign_marks
+    local placed_signs = sign_marks.get_all()
+
+    -- actual autoformat (wipes signs and marks)
+    vim.lsp.buf.format({ async = false })
+
+    -- restore sign_marks
+    sign_marks.set_all(placed_signs)
+  end,
   -- Works, but errors are written to the buffer and cursor is moved
   -- callback = function() vim.cmd([[silent %!black -q --stdin-filename % -]]) end,
 })
@@ -270,8 +284,10 @@ vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("PythonSpecific", { clear = true }),
   pattern = "*.py",
   callback = function()
+    -- https://superuser.com/questions/836784/in-vim-dont-store-motions-in-jumplist
     vim.keymap.set('n', '}', '}w', opts)
     vim.keymap.set('n', '{', '{{w', opts)
+
     vim.keymap.set('n', '<leader>fi', '<cmd>!ruff check --fix --select=I001 %:p<cr>', opts)
     vim.keymap.set('n', '<leader>ds',
       function()
@@ -402,6 +418,9 @@ local function print_function()
   if not node then
     node = get_node_by_type('function_declaration')
   end
+  if not node then
+    node = get_node_by_type('function_item')
+  end
   local line = get_first_line_of_node_text(node, 0)
   print(line)
 end
@@ -455,40 +474,12 @@ end
 
 vim.keymap.set({ 'n' }, '<A-b>', close_unused_buffers, opts)
 
--- *** Setup signs ***
-vim.fn.sign_define('Mark_' .. 'm', { text = '⚓' })
-vim.fn.sign_define('Mark_' .. 's', { text = '🔻' })
-vim.fn.sign_define('Mark_' .. 'e', { text = '🔺' })
-
-
--- want to use this for highlight lines 🌟
-
--- signs = { 'm', 'a', 's', 't', 'n', 'e' }
--- signs = { 'a', 's', 't', 'n', 'e' }
--- for _, sign in pairs(signs) do
---   vim.fn.sign_define('Mark_' .. sign, { text = sign })
--- end
-
-vim.keymap.set('n', 'mm', function()
-  local bufnr = vim.api.nvim_get_current_buf()
-  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
-  vim.fn.sign_place(0, 'marks', 'Mark_m', bufnr, { lnum = lnum })
-  vim.api.nvim_buf_set_mark(bufnr, "m", lnum, cnum, {})
-end, opts)
-
-vim.keymap.set('n', 'ms', function()
-  local bufnr = vim.api.nvim_get_current_buf()
-  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
-  vim.fn.sign_place(0, 'marks', 'Mark_s', bufnr, { lnum = lnum })
-  vim.api.nvim_buf_set_mark(bufnr, "s", lnum, cnum, {})
-end, opts)
-
-vim.keymap.set('n', 'me', function()
-  local bufnr = vim.api.nvim_get_current_buf()
-  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
-  vim.fn.sign_place(0, 'marks', 'Mark_e', bufnr, { lnum = lnum })
-  vim.api.nvim_buf_set_mark(bufnr, "e", lnum, cnum, {})
-end, opts)
+-- *** Setup Signs ***
+local sign_marks = require('signs')
+sign_marks.setup()
+vim.keymap.set('n', 'mm', sign_marks.set_anchor)
+vim.keymap.set('n', 'ms', sign_marks.set_start)
+vim.keymap.set('n', 'me', sign_marks.set_end)
 
 -- *** Setup Auto Marks ***
 
@@ -546,6 +537,7 @@ local function next_mark()
   vim.cmd.normal("'" .. letter)
 end
 
+-- Note: there is also, jump to sign, so maybe don't need the marks
 vim.keymap.set('n', '<leader>mp', previous_mark, opts)
 vim.keymap.set('n', '<leader>mn', next_mark, opts)
 vim.keymap.set('n', '<leader>ms', set_mark, opts)
