@@ -541,3 +541,17 @@ end
 vim.keymap.set('n', '<leader>mp', previous_mark, opts)
 vim.keymap.set('n', '<leader>mn', next_mark, opts)
 vim.keymap.set('n', '<leader>ms', set_mark, opts)
+
+
+
+-- replaces <c-f> <c-u> <c-b> <c-d> { } j k [* ]*
+vim.keymap.set('n', '<c-e>', '10<C-e>')
+vim.keymap.set('n', '<c-y>', '10<C-y>')
+
+local indents = require('indents')
+vim.keymap.set('n', '<c-u>', indents.up_same_indent)
+vim.keymap.set('n', '<c-f>', indents.down_same_indent)
+vim.keymap.set('n', '<a-n>', indents.up_out_indent)
+vim.keymap.set('n', '<a-e>', indents.up_in_indent)
+vim.keymap.set('n', '<a-m>', indents.down_out_indent)
+vim.keymap.set('n', '<a-,>', indents.down_in_indent)
