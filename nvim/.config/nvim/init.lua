@@ -169,6 +169,13 @@ vim.keymap.set('n', '<leader>dj', '<c-w>j<c-c>', opts)
 -- close the window above
 vim.keymap.set('n', '<leader>dk', '<c-w>k<c-c>', opts)
 
+-- Tabs
+vim.keymap.set('n', '<leader>to', '<cmd>tabnew<cr><c-6>', opts)
+vim.keymap.set('n', '<leader>tc', '<cmd>tabclose<cr>', opts)
+vim.keymap.set('n', '<leader>tn', '<cmd>tabnext<cr>', opts)
+vim.keymap.set('n', '<leader>tp', '<cmd>tabprevious<cr>', opts)
+
+
 -- Edit vim config in split
 vim.keymap.set('n', '<leader>ec', '<cmd>vsplit $MYVIMRC<cr>', opts)
 -- Source vim config
@@ -555,3 +562,9 @@ vim.keymap.set('n', '<a-n>', indents.up_out_indent)
 vim.keymap.set('n', '<a-e>', indents.up_in_indent)
 vim.keymap.set('n', '<a-m>', indents.down_out_indent)
 vim.keymap.set('n', '<a-,>', indents.down_in_indent)
+
+-- diag
+vim.keymap.set('n', '<a-s>', indents.diag_up_out)
+vim.keymap.set('n', '<a-t>', indents.diag_up_in)
+vim.keymap.set('n', '<a-a>', indents.diag_down_out)
+vim.keymap.set('n', '<a-r>', indents.diag_down_in)
