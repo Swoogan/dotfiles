@@ -1,6 +1,9 @@
 local M = {
 }
 
+---Is the given line empty
+---@param lnum integer
+---@return boolean
 local function is_empty(lnum)
   -- print("is empty lnum:", lnum)
   local text = vim.api.nvim_buf_get_text(0, lnum - 1, 0, lnum - 1, -1, {})
@@ -19,6 +22,10 @@ local function has_deindent_between(indent, start, stop)
   return found
 end
 
+---Find the next line, moving in the given direction, that is of the given type
+---@param type string # A type of 'same' (same indent level), 'in' (indented) or 'out' (dedented)
+---@param direction integer # An integer, either 1 or -1 indicating to move down or up, respectively
+---@return integer[] # A list containing the line number as the first element and column number as the second
 local function find(type, direction)
   local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
   local indent = vim.fn.indent(lnum)

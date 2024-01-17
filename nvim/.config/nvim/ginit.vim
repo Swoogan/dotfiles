@@ -2,7 +2,7 @@
 set mouse=a
 
 " Setup ctrl+v in insert mode
-source $VIMRUNTIME/mswin.vim
+" source $VIMRUNTIME/mswin.vim
 
 " Set Editor Font
 if exists(':GuiFont')

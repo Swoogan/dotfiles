@@ -85,6 +85,8 @@ M.setup = function()
           local new_win = vim.api.nvim_get_current_win()
           vim.api.nvim_win_set_var(new_win, "references", true)
           vim.api.nvim_win_set_cursor(new_win, { item['lnum'], item['col'] - 1 })
+          vim.api.nvim_set_hl(55, "Normal", { bg = "#222730" })
+          vim.api.nvim_win_set_hl_ns(0, 55)
         end
       else
         local cur_win = vim.api.nvim_get_current_win()
@@ -115,12 +117,13 @@ M.setup = function()
           end
         end
         if not done then
-          print("f")
           vim.cmd.vsplit()
           vim.cmd.edit(item['filename'])
           local new_win = vim.api.nvim_get_current_win()
           vim.api.nvim_win_set_var(new_win, "references", true)
           vim.api.nvim_win_set_cursor(new_win, { item['lnum'], item['col'] - 1 })
+          vim.api.nvim_set_hl(55, "Normal", { bg = "#222730" })
+          vim.api.nvim_win_set_hl_ns(0, 55)
         end
       end
     end
@@ -133,7 +136,6 @@ M.setup = function()
     -- Mappings.
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
     vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
-    -- vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
     vim.keymap.set('n', 'gd', function() vim.lsp.buf.definition({ on_list = on_list }) end, bufopts)
     vim.keymap.set('n', 'gi', require('telescope.builtin').lsp_incoming_calls, bufopts)
     vim.keymap.set('n', 'go', require('telescope.builtin').lsp_outgoing_calls, bufopts)

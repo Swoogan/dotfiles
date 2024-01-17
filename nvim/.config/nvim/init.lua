@@ -118,7 +118,7 @@ vim.keymap.set('n', '<leader>ys', '"sy', opts)
 vim.keymap.set('n', '<leader>ps', '"sP', opts)
 -- vim.keymap.set('n', '<leader>ye', '"ey', opts)
 -- vim.keymap.set('n', '<leader>pe', '"eP', opts)
-vim.keymap.set('i', '<A-p>', '<C-r>"', opts)
+vim.keymap.set('i', '<A-p>', '<C-r>+', opts)
 
 -- map gp to re-select the thing you just pasted
 vim.keymap.set('n', 'gp', '`[v`]', opts)
@@ -258,6 +258,16 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
   callback = function() vim.keymap.set('i', '</', '</<c-n>', opts) end,
 })
 
+-- Set background colour for help
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("ReferenceColours", { clear = true }),
+  pattern = { "help" },
+  callback = function()
+    vim.api.nvim_set_hl(55, "Normal", { bg = "#222730" })
+    vim.api.nvim_win_set_hl_ns(0, 55)
+  end,
+})
+
 -- Set indentation to 2 for lua and html
 vim.api.nvim_create_autocmd("FileType", {
   group = vim.api.nvim_create_augroup("IndentTwo", { clear = true }),
@@ -270,8 +280,8 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   group = vim.api.nvim_create_augroup("AutoFormat", { clear = true }),
   pattern = { "*.rs", "*.py", "*.lua" },
   callback = function()
-    -- We just want to autoformat but the lsp api call wipes out all
-    -- signs and marks. Therefore, we cache and restore them
+    -- We just want to autoformat but sometimes the lsp api call wipes
+    -- out all signs and marks. Therefore, we cache and restore them
     -- Todo: just fix all signs and marks
     local sign_marks = require('signs')
     -- store sign_marks
@@ -281,7 +291,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
     vim.lsp.buf.format({ async = false })
 
     -- restore sign_marks
-    -- sign_marks.set_all(placed_signs)
+    sign_marks.set_all(placed_signs)
   end,
   -- Works, but errors are written to the buffer and cursor is moved
   -- callback = function() vim.cmd([[silent %!black -q --stdin-filename % -]]) end,
