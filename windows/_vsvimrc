@@ -24,6 +24,8 @@ map <Leader>sf :vsc Edit.GotoFile<CR>
 map <Leader>sg :vsc Edit.GotoAll<CR>
 " map <Leader><Space> :vsc Window.ShowEZMDIFileList<CR>
 map <Leader><Space> :vsc Window.Windows<CR>
+map <Leader>qn :vsc View.NextError<CR>
+map <Leader>qp :vsc View.PreviousError<CR>
 
 map gcc :vsc Edit.ToggleLineComment<CR>
 map gd :vsc Edit.GotoDefinition<CR>
