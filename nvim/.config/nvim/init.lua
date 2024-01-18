@@ -24,23 +24,21 @@ vim.opt.smartindent = true
 vim.opt.cursorline = true -- highlights current line
 vim.opt.smartcase = true -- searching case insensitive unless mixed case
 vim.opt.ignorecase = true
-vim.opt.clipboard = 'unnamedplus'
+vim.opt.clipboard = 'unnamedplus' -- make the default yank register shared with + register
 vim.opt.wrap = false
-
 vim.opt.tabstop = indent
 vim.opt.softtabstop = indent
 vim.opt.shiftwidth = indent
 vim.opt.expandtab = true -- converts tab presses to spaces
 vim.opt.inccommand = 'nosplit' -- shows effects of substitutions
-vim.opt.mouse = 'a'
+vim.opt.mouse = 'a' -- enable mouse usage
 vim.opt.shortmess = "IF" -- disable the intro screen (display with `:intro`)
-vim.opt.signcolumn = 'auto:1-3'
+vim.opt.signcolumn = 'auto:1-3' -- make the sign column have between 1 and 3 elements
+vim.opt.undofile = true --Save undo history
+vim.opt.updatetime = 250 --Decrease update time
 
---Save undo history
-vim.opt.undofile = true
-
---Decrease update time
-vim.opt.updatetime = 250
+-- experimental
+vim.opt.jumpoptions = 'stack'
 
 if is_windows then
   local win32yank = 'win32yank.exe'
@@ -178,8 +176,6 @@ vim.keymap.set('n', '<leader>tp', '<cmd>tabprevious<cr>', opts)
 
 -- Edit vim config in split
 vim.keymap.set('n', '<leader>ec', '<cmd>vsplit $MYVIMRC<cr>', opts)
--- Source vim config
-vim.keymap.set('n', '<leader>sc', '<cmd>source $MYVIMRC<cr>', opts)
 
 -- Remap keys in terminal mode
 vim.keymap.set('t', '<esc>', '<c-\\><c-n>', opts)

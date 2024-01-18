@@ -1,6 +1,3 @@
-" Enable Mouse
-set mouse=a
-
 " Setup ctrl+v in insert mode
 " source $VIMRUNTIME/mswin.vim
 
