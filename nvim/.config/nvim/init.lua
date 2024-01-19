@@ -555,8 +555,6 @@ vim.keymap.set('n', '<leader>mp', previous_mark, opts)
 vim.keymap.set('n', '<leader>mn', next_mark, opts)
 vim.keymap.set('n', '<leader>ms', set_mark, opts)
 
-
-
 -- replaces <c-f> <c-u> <c-b> <c-d> { } j k [* ]*
 vim.keymap.set('n', '<c-e>', '10<C-e>')
 vim.keymap.set('n', '<c-y>', '10<C-y>')
@@ -574,3 +572,9 @@ vim.keymap.set('n', '<a-s>', indents.diag_up_out)
 vim.keymap.set('n', '<a-t>', indents.diag_up_in)
 vim.keymap.set('n', '<a-a>', indents.diag_down_out)
 vim.keymap.set('n', '<a-r>', indents.diag_down_in)
+
+-- test
+vim.keymap.set('n', '<leader>es', require('stacktraces').stacktrace_to_qflist)
+
+local function_picker = require('function_picker')
+vim.keymap.set('n', '<leader>su', function_picker.functions)

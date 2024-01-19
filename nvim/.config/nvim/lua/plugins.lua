@@ -3,7 +3,7 @@ local M = {
 
 M.spec = {
   { "EdenEast/nightfox.nvim" }, -- theme
-  { "neovim/nvim-lspconfig" }, -- Easy configuration of LSP
+  { "neovim/nvim-lspconfig" },  -- Easy configuration of LSP
   {
     "nvim-treesitter/nvim-treesitter",
     event = { "BufReadPost", "BufNewFile" },
@@ -64,7 +64,7 @@ M.spec = {
               ['ib'] = '@block.inner',
             },
             selection_modes = {
-              ['@block.outer'] = 'V', -- linewise
+              ['@block.outer'] = 'V',    -- linewise
               ['@function.outer'] = 'V', -- linewise
             },
           },
@@ -97,12 +97,12 @@ M.spec = {
         },
       }
     end
-  }, -- incremental language parser
-  { "jose-elias-alvarez/null-ls.nvim", dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
+  },                                                                                                  -- incremental language parser
+  { "jose-elias-alvarez/null-ls.nvim",   dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
   { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
 
   -- DAP (set lazy to true on dap-ui to not load anything, aka disable dap until I have a workflow established)
-  { "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap" }, lazy = true },
+  { "rcarriga/nvim-dap-ui",              dependencies = { "mfussenegger/nvim-dap" }, lazy = true },
   {
     "mfussenegger/nvim-dap",
     dependencies = { "theHamsta/nvim-dap-virtual-text" },
@@ -154,8 +154,8 @@ M.spec = {
             { name = 'nvim_lsp' },
             { name = 'luasnip' },
           }, {
-          { name = 'buffer' },
-        }
+            { name = 'buffer' },
+          }
         ),
         -- Todo: switch to debounce time instead?
         completion = { keyword_length = 2 }
@@ -165,7 +165,8 @@ M.spec = {
       cmp.setup.filetype('python', {
         sources = cmp.config.sources(
           {
-            { name = 'nvim_lsp',
+            {
+              name = 'nvim_lsp',
               entry_filter = function(entry, ctx)
                 local match = string.match(entry:get_word(), '__(%w+)__')
                 return match == nil
@@ -217,7 +218,7 @@ M.spec = {
           file_ignore_patterns = { "__pycache__" },
           -- path_display = { shorten = { len = 1, exclude = { -1, -2 } } }
           path_display = { "truncate" }
-        }
+        },
       }
 
       -- Add shortcuts
@@ -253,7 +254,7 @@ M.spec = {
       vim.g['prettier#autoformat'] = 1
       vim.g['prettier#autoformat_require_pragma'] = 0
     end
-  }, -- Autoformatting
+  },                               -- Autoformatting
   {
     "nvim-tree/nvim-web-devicons", -- Pretty Icons
     lazy = true,
@@ -310,14 +311,14 @@ M.spec = {
     "L3MON4D3/LuaSnip",
     event = "InsertEnter",
     dependencies = {
-      "saadparwaiz1/cmp_luasnip", -- luasnip to nvim-cmp integration
+      "saadparwaiz1/cmp_luasnip",    -- luasnip to nvim-cmp integration
       "rafamadriz/friendly-snippets" -- Premade snippets
     },
     config = function()
       require('config.snippets').setup()
     end
   }, -- Snippets plugin,
-  { "AndrewRadev/tagalong.vim", ft = "html" },
+  { "AndrewRadev/tagalong.vim",     ft = "html" },
 }
 
 function M.init()
