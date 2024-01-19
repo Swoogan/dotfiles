@@ -116,7 +116,7 @@ vim.keymap.set('n', '<leader>ys', '"sy', opts)
 vim.keymap.set('n', '<leader>ps', '"sP', opts)
 -- vim.keymap.set('n', '<leader>ye', '"ey', opts)
 -- vim.keymap.set('n', '<leader>pe', '"eP', opts)
-vim.keymap.set('i', '<A-p>', '<C-r>+', opts)
+vim.keymap.set({ 'i', 'c' }, '<A-p>', '<C-r>+', opts)
 
 -- map gp to re-select the thing you just pasted
 vim.keymap.set('n', 'gp', '`[v`]', opts)
