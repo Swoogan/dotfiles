@@ -300,14 +300,14 @@ vim.api.nvim_create_autocmd("LspAttach", {
     -- https://superuser.com/questions/836784/in-vim-dont-store-motions-in-jumplist
     -- vim.keymap.set('n', '}', '}w', opts)
     -- vim.keymap.set('n', '{', '{{w', opts)
-    -- vim.keymap.set('n', '}', require('movement').paragraph_down, opts)
-    -- vim.keymap.set('n', '{', require('movement').paragraph_up, opts)
+    vim.keymap.set('n', '}', require('movement').paragraph_down, opts)
+    vim.keymap.set('n', '{', require('movement').paragraph_up, opts)
 
     vim.keymap.set('n', '<leader>pd',
       function()
         vim.cmd.normal('yiwoprint("" ')
         local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
-        vim.cmd.normal('a: ", ")')
+        vim.cmd.normal('a:", ")')
         vim.api.nvim_buf_set_text(0, lnum - 1, cnum + 1, lnum - 1, cnum + 1, { '(' .. tostring(lnum) .. ')' })
         vim.cmd.normal('^')
       end, opts)
@@ -323,6 +323,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
     -- vim.keymap.set('n', '{', '{{w', opts)
     vim.keymap.set('n', '}', require('movement').paragraph_down, opts)
     vim.keymap.set('n', '{', require('movement').paragraph_up, opts)
+    vim.keymap.set('n', 'w', require('movement').forward_word, opts)
+    vim.keymap.set('n', 'b', require('movement').backward_word, opts)
 
     vim.keymap.set('n', '<leader>fi', '<cmd>!ruff check --fix --select=I001 %:p<cr>', opts)
     vim.keymap.set('n', '<leader>ds',
