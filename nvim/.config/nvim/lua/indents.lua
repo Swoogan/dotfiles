@@ -1,26 +1,7 @@
+local utils = require('utils')
+
 local M = {
 }
-
----Is the given line empty
----@param lnum integer
----@return boolean
-local function is_empty(lnum)
-  -- print("is empty lnum:", lnum)
-  local text = vim.api.nvim_buf_get_text(0, lnum - 1, 0, lnum - 1, -1, {})
-  -- print("is empty lnum:", lnum)
-  return unpack(text) == ""
-end
-
-local function has_deindent_between(indent, start, stop)
-  local found = false
-  for i = start, stop do
-    local ind = vim.fn.indent(i)
-    if ind < indent then
-      found = true
-    end
-  end
-  return found
-end
 
 ---Find the next line, moving in the given direction, that is of the given type
 ---@param type string # A type of 'same' (same indent level), 'in' (indented) or 'out' (dedented)
@@ -40,7 +21,7 @@ local function find(type, direction)
       break
     end
 
-    if is_empty(lnum) then
+    if utils.is_empty(lnum) then
       goto continue
     end
 
@@ -124,7 +105,7 @@ local function find_next(type, direction)
       break
     end
 
-    if is_empty(lnum) then
+    if utils.is_empty(lnum) then
       goto continue
     end
 
@@ -152,7 +133,7 @@ local function find_next_not_empty(direction)
       break
     end
 
-    if is_empty(lnum) ~= true then
+    if utils.is_empty(lnum) ~= true then
       return { lnum, ind }
     end
   end

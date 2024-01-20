@@ -1,32 +1,41 @@
+local utils = require('utils')
+
 local M = {
+
 }
 
--- Define the function to find lines containing a string
-function find_lines_containing_string(bufnr, target)
-  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  local matching_lines = {}
-
-  for i, line in ipairs(lines) do
-    if vim.fn.match(line, target) > -1 then
-      table.insert(matching_lines, i)
+M.paragraph_down = function()
+  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
+  local bufnr = vim.api.nvim_get_current_buf()
+  if not utils.is_empty(bufnr, lnum) then
+    lnum = utils.find_next_empty(bufnr, 1, lnum)
+    if lnum == -1 then
+      return
     end
   end
-
-  return matching_lines
+  lnum = utils.find_next_not_empty(bufnr, 1, lnum)
+  if lnum > -1 then
+    vim.api.nvim_win_set_cursor(0, { lnum, cnum })
+  end
 end
 
-M.find_functions = function()
-  if vim.bo.filetype == "python" then
-    -- Example: Find lines containing the string "example" in the current buffer
-    local current_bufnr = vim.api.nvim_get_current_buf()
-    local target_string = "^\\s*def"
-    local result = find_lines_containing_string(current_bufnr, target_string)
-
-    -- Print the result
-    print("Lines containing '" .. target_string .. "':")
-    for _, line_number in ipairs(result) do
-      print(line_number .. ": " .. vim.api.nvim_buf_get_lines(current_bufnr, line_number - 1, line_number, false)[1])
+M.paragraph_up = function()
+  local winnr = vim.api.nvim_get_current_win()
+  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(winnr))
+  local bufnr = vim.api.nvim_get_current_buf()
+  if not utils.is_empty(bufnr, lnum) then
+    lnum = utils.find_next_empty(bufnr, -1, lnum)
+    if lnum == -1 then
+      return
     end
+  end
+  lnum = utils.find_next_not_empty(bufnr, -1, lnum)
+  if lnum == -1 then
+    return
+  end
+  lnum = utils.find_next_empty(bufnr, -1, lnum)
+  if lnum == -1 or lnum > 0 then
+    vim.api.nvim_win_set_cursor(winnr, { lnum + 1, cnum })
   end
 end
 

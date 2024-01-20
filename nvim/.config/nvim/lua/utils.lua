@@ -1,6 +1,42 @@
 local M = {
 }
 
+local find_next_line = function(bufnr, direction, start, match)
+  local lnum = start
+  local total_lines = vim.api.nvim_buf_line_count(bufnr)
+
+  while true do
+    lnum = lnum + direction
+
+    if lnum > total_lines or lnum < 1 then
+      break
+    end
+
+    if match(lnum) then
+      return lnum
+    end
+  end
+
+  return -1
+end
+
+
+---Is the given line empty
+---@param lnum integer
+---@return boolean
+M.is_empty = function(bufnr, lnum)
+  local text = vim.api.nvim_buf_get_text(bufnr, lnum - 1, 0, lnum - 1, -1, {})
+  return unpack(text) == ""
+end
+
+M.find_next_not_empty = function(bufnr, direction, start)
+  return find_next_line(bufnr, direction, start, function(lnum) return not M.is_empty(bufnr, lnum) end)
+end
+
+M.find_next_empty = function(bufnr, direction, start)
+  return find_next_line(bufnr, direction, start, function(lnum) return M.is_empty(bufnr, lnum) end)
+end
+
 M.transform_test_name = function()
   -- Takes user input and replaces space with underscore, capitalizes each word
   -- Ex. "this is a test method" => "This_Is_A_Test_Method"
