@@ -603,6 +603,9 @@ vim.keymap.set('n', '<leader>es', require('stacktraces').stacktrace_to_qflist)
 local function_picker = require('function_picker')
 vim.keymap.set('n', '<leader>su', function_picker.functions)
 
+local perforce_picker = require('perforce_picker')
+vim.keymap.set('n', '<leader>sy', perforce_picker.opened)
+
 vim.keymap.set('n', '<leader>qq', '<cmd>mksession! | qa<cr>')
 -- vim.keymap.set('n', '<leader>qo', '<cmd>mksession! | qa<cr>')
 

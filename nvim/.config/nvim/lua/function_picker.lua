@@ -24,11 +24,12 @@ M.find_functions = function()
   local results = {}
 
   for _, match in ipairs(matches) do
+    local display = string.sub(match.text, 4, -2)
     table.insert(results, {
       lnum = match.line,
       bufnr = bufnr,
       filename = filename,
-      text = match.text,
+      text = display,
     })
   end
 
