@@ -487,30 +487,7 @@ local function print_win_filenames()
 end
 
 vim.keymap.set({ 'n' }, '<A-w>', print_win_filenames, opts)
-
-local function close_unused_buffers()
-  local keep = {}
-  local windows = vim.api.nvim_list_wins()
-  for _, window in pairs(windows) do
-    local buf = vim.api.nvim_win_get_buf(window)
-    table.insert(keep, buf)
-  end
-
-  local bufs = vim.api.nvim_list_bufs()
-  for _, buf in pairs(bufs) do
-    local found = false
-    for _, k in pairs(keep) do
-      if buf == k then
-        found = true
-      end
-    end
-    if not found then
-      vim.api.nvim_buf_delete(buf, {})
-    end
-  end
-end
-
-vim.keymap.set({ 'n' }, '<A-b>', close_unused_buffers, opts)
+vim.keymap.set({ 'n' }, '<A-b>', require('buffers').close_unused_buffers, opts)
 
 -- *** Setup Signs ***
 local sign_marks = require('signs')
@@ -585,12 +562,12 @@ vim.keymap.set('n', '<c-e>', '10<C-e>')
 vim.keymap.set('n', '<c-y>', '10<C-y>')
 
 local indents = require('indents')
-vim.keymap.set('n', '<c-u>', indents.up_same_indent)
-vim.keymap.set('n', '<c-f>', indents.down_same_indent)
-vim.keymap.set('n', '<a-n>', indents.up_out_indent)
-vim.keymap.set('n', '<a-e>', indents.up_in_indent)
-vim.keymap.set('n', '<a-m>', indents.down_out_indent)
-vim.keymap.set('n', '<a-,>', indents.down_in_indent)
+vim.keymap.set({ 'n', 'v' }, '<c-u>', indents.up_same_indent)
+vim.keymap.set({ 'n', 'v' }, '<c-f>', indents.down_same_indent)
+vim.keymap.set({ 'n', 'v' }, '<a-n>', indents.up_out_indent)
+vim.keymap.set({ 'n', 'v' }, '<a-e>', indents.up_in_indent)
+vim.keymap.set({ 'n', 'v' }, '<a-m>', indents.down_out_indent)
+vim.keymap.set({ 'n', 'v' }, '<a-,>', indents.down_in_indent)
 
 -- diag
 vim.keymap.set('n', '<a-s>', indents.diag_up_out)
