@@ -8,7 +8,9 @@ local M = {
 ---@param direction integer # An integer, either 1 or -1 indicating to move down or up, respectively
 ---@return integer[] # A list containing the line number as the first element and column number as the second
 local function find(type, direction)
-  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
+  local winnr = vim.api.nvim_get_current_win()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(winnr))
   local indent = vim.fn.indent(lnum)
 
   while true do
@@ -21,7 +23,7 @@ local function find(type, direction)
       break
     end
 
-    if utils.is_empty(lnum) then
+    if utils.is_empty(bufnr, lnum) then
       goto continue
     end
 
