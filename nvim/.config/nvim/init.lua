@@ -297,11 +297,10 @@ vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("LuaSpecific", { clear = true }),
   pattern = "*.lua",
   callback = function()
-    -- https://superuser.com/questions/836784/in-vim-dont-store-motions-in-jumplist
-    -- vim.keymap.set('n', '}', '}w', opts)
-    -- vim.keymap.set('n', '{', '{{w', opts)
     vim.keymap.set('n', '}', require('movement').paragraph_down, opts)
     vim.keymap.set('n', '{', require('movement').paragraph_up, opts)
+    vim.keymap.set('n', 'w', require('movement').forward_word, opts)
+    vim.keymap.set('n', 'b', require('movement').backward_word, opts)
 
     vim.keymap.set('n', '<leader>pd',
       function()
@@ -603,3 +602,8 @@ vim.keymap.set('n', '<leader>es', require('stacktraces').stacktrace_to_qflist)
 
 local function_picker = require('function_picker')
 vim.keymap.set('n', '<leader>su', function_picker.functions)
+
+vim.keymap.set('n', '<leader>qq', '<cmd>mksession! | qa<cr>')
+-- vim.keymap.set('n', '<leader>qo', '<cmd>mksession! | qa<cr>')
+
+-- could be moved: q, r, s, u, z, x, m
