@@ -194,6 +194,10 @@ vim.keymap.set('n', '<leader>pf', '<cmd>PrettierAsync<cr>', opts)
 vim.keymap.set('v', 'ew', 'vel', opts)
 vim.keymap.set('o', 'ew', '<cmd>normal Vew<cr>')
 
+local coding = require('coding')
+vim.keymap.set({ 'n', 'v', 'o', 'i' }, '<A-f>', coding.print_function, opts)
+vim.keymap.set({ 'n', 'v', 'o', 'i' }, '<A-c>', coding.print_class, opts)
+
 -- *** AUTOGROUPS *** --
 
 -- Highlight on yank
@@ -428,49 +432,6 @@ vim.api.nvim_create_user_command('Redir', function(ctx)
 end, { nargs = '+', complete = 'command' })
 
 
--- Give the name of the current class or function
-local function find_parent_node(node, node_type)
-  while node do
-    if node:type() == node_type then
-      break
-    end
-    node = node:parent()
-  end
-  return node
-end
-
-local function get_node_by_type(node_type)
-  local ts_utils = require('nvim-treesitter.ts_utils')
-  local node = ts_utils.get_node_at_cursor()
-  return find_parent_node(node, node_type)
-end
-
-local function get_first_line_of_node_text(node, bufnr)
-  if not node then return "" end
-  local node_text = vim.treesitter.get_node_text(node, bufnr)
-  return node_text:match("([^\n]*)\n?")
-end
-
-local function print_function()
-  local node = get_node_by_type('function_definition')
-  if not node then
-    node = get_node_by_type('function_declaration')
-  end
-  if not node then
-    node = get_node_by_type('function_item')
-  end
-  local line = get_first_line_of_node_text(node, 0)
-  print(line)
-end
-
-local function print_class()
-  local node = get_node_by_type('class_definition')
-  local line = get_first_line_of_node_text(node, 0)
-  print(line)
-end
-
-vim.keymap.set({ 'n', 'v', 'o', 'i' }, '<A-f>', print_function, opts)
-vim.keymap.set({ 'n', 'v', 'o', 'i' }, '<A-c>', print_class, opts)
 
 
 local function get_win_filename(winnr)

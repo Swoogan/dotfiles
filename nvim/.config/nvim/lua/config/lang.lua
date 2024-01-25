@@ -176,6 +176,7 @@ M.setup = function()
     }
   end
 
+  -- Python
   if vim.fn.executable('pyright') == 1 then
     local cap = capabilities
     cap.textDocument.publishDiagnostics = { tagSupport = { valueSet = { 2 } } }
@@ -191,6 +192,40 @@ M.setup = function()
         python = {
           analysis = {
             typeCheckingMode = "off",
+          }
+        }
+      }
+    }
+  end
+
+  if false and vim.fn.executable('pylsp') == 1 then
+    nvim_lsp['pylsp'].setup {
+      capabilities = capabilities,
+      on_attach = on_attach,
+      settings = {
+        pylsp = {
+          configurationSources = { "flake8" },
+          plugins = {
+            jedi_completion = { enabled = true },
+            jedi_hover = { enabled = true },
+            jedi_references = { enabled = true },
+            jedi_signature_help = { enabled = true },
+            jedi_symbols = { enabled = true, all_scopes = true },
+            flake8 = {
+              enabled = true,
+              -- maxLineLength = 160
+            },
+            ruff = { enabled = true },
+            black = { enabled = true },
+            pycodestyle = { enabled = false },
+            mypy = { enabled = false },
+            isort = { enabled = false },
+            yapf = { enabled = false },
+            pylint = { enabled = false },
+            pydocstyle = { enabled = false },
+            mccabe = { enabled = false },
+            preload = { enabled = false },
+            rope_completion = { enabled = false }
           }
         }
       }
