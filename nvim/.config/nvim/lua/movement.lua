@@ -1,11 +1,13 @@
 local utils = require('utils')
 
 local M = {
-
+  word_match = "%w-_"
 }
 
+-- Paragraphs
+
 M.paragraph_down = function()
-  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
+  local lnum, _ = unpack(vim.api.nvim_win_get_cursor(0))
   local bufnr = vim.api.nvim_get_current_buf()
   if not utils.is_empty(bufnr, lnum) then
     lnum = utils.find_next_empty(bufnr, 1, lnum)
@@ -39,6 +41,8 @@ M.paragraph_up = function()
   vim.api.nvim_win_set_cursor(winnr, { lnum, cnum })
 end
 
+-- Words
+
 M.forward_word = function()
   local winnr = vim.api.nvim_get_current_win()
   local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(winnr))
@@ -48,14 +52,14 @@ M.forward_word = function()
   local line_content = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, false)[1]
 
   -- Find the next column without a character or digit
-  local next_column = string.find(line_content, '[^%w-_]', cnum + 1)
+  local next_column = string.find(line_content, '[^' .. M.word_match .. ']', cnum + 1)
 
   if next_column == nil then
     return
   end
 
   -- Find the next column with a character or a digit
-  next_column = string.find(line_content, '[%w-_]', next_column + 1)
+  next_column = string.find(line_content, '[' .. M.word_match .. ']', next_column + 1)
   if next_column == nil then
     return
   end
@@ -79,7 +83,7 @@ M.backward_word = function()
   -- Test if the character is a digit
   if string.match(char, '%w') then
     -- Find the next column without a character or digit
-    local first_non = string.find(reversed_line, '[^%w-_]', reversed_cnum)
+    local first_non = string.find(reversed_line, '[^' .. M.word_match .. ']', reversed_cnum)
 
     if first_non == nil then
       vim.api.nvim_win_set_cursor(winnr, { lnum, 0 })
@@ -92,7 +96,7 @@ M.backward_word = function()
   end
 
   -- Find the next column without a character or digit
-  local first_non = string.find(reversed_line, '[^%w-_]', reversed_cnum)
+  local first_non = string.find(reversed_line, '[^' .. M.word_match .. ']', reversed_cnum)
 
   if first_non == nil then
     vim.api.nvim_win_set_cursor(winnr, { lnum, 0 })
@@ -100,7 +104,7 @@ M.backward_word = function()
   end
 
   -- Find the next column with a character or a digit
-  local first_char = string.find(reversed_line, '[%w-_]', first_non + 1)
+  local first_char = string.find(reversed_line, '[' .. M.word_match .. ']', first_non + 1)
   if first_char == nil then
     local new_cnum = #line_content - (first_non - 1)
     vim.api.nvim_win_set_cursor(winnr, { lnum, new_cnum })
@@ -108,7 +112,7 @@ M.backward_word = function()
   end
 
   -- Find the next column without a character or digit
-  local second_non = string.find(reversed_line, '[^%w-_]', first_char + 1) or #line_content + 1
+  local second_non = string.find(reversed_line, '[^' .. M.word_match .. ']', first_char + 1) or #line_content + 1
 
   local new_cnum = #line_content - (second_non - 1)
   vim.api.nvim_win_set_cursor(winnr, { lnum, new_cnum })
