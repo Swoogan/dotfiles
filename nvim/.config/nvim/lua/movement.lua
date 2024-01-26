@@ -21,7 +21,7 @@ end
 
 M.paragraph_up = function()
   local winnr = vim.api.nvim_get_current_win()
-  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(winnr))
+  local lnum, _ = unpack(vim.api.nvim_win_get_cursor(winnr))
   local bufnr = vim.api.nvim_get_current_buf()
   if not utils.is_empty(bufnr, lnum) then
     lnum = utils.find_next_empty(bufnr, -1, lnum)
@@ -34,9 +34,9 @@ M.paragraph_up = function()
     return
   end
   lnum = utils.find_next_empty(bufnr, -1, lnum)
-  if lnum == -1 or lnum > 0 then
-    vim.api.nvim_win_set_cursor(winnr, { lnum + 1, vim.fn.indent(lnum + 1) })
-  end
+  lnum = math.max(lnum + 1, 1)
+  local cnum = math.max(vim.fn.indent(lnum), 0)
+  vim.api.nvim_win_set_cursor(winnr, { lnum, cnum })
 end
 
 M.forward_word = function()
