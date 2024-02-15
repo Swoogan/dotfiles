@@ -198,6 +198,12 @@ local coding = require('coding')
 vim.keymap.set({ 'n', 'v', 'o', 'i' }, '<A-f>', coding.print_function, opts)
 vim.keymap.set({ 'n', 'v', 'o', 'i' }, '<A-c>', coding.print_class, opts)
 
+local movement = require('movement')
+vim.keymap.set('n', '}', movement.paragraph_down, opts)
+vim.keymap.set('n', '{', movement.paragraph_up, opts)
+vim.keymap.set('n', 'w', movement.forward_word, opts)
+vim.keymap.set('n', 'b', movement.backward_word, opts)
+
 -- *** AUTOGROUPS *** --
 
 -- Highlight on yank
@@ -298,15 +304,12 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   -- callback = function() vim.cmd([[silent %!black -q --stdin-filename % -]]) end,
 })
 
+-- *** LUA *** --
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("LuaSpecific", { clear = true }),
   pattern = "*.lua",
   callback = function()
-    vim.keymap.set('n', '}', require('movement').paragraph_down, opts)
-    vim.keymap.set('n', '{', require('movement').paragraph_up, opts)
-    vim.keymap.set('n', 'w', require('movement').forward_word, opts)
-    vim.keymap.set('n', 'b', require('movement').backward_word, opts)
-
+    -- create debugging print statement
     vim.keymap.set('n', '<leader>pd',
       function()
         vim.cmd.normal('yiwoprint("" ')
@@ -318,19 +321,14 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end
 })
 
+-- *** Python *** --
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("PythonSpecific", { clear = true }),
   pattern = "*.py",
   callback = function()
-    -- https://superuser.com/questions/836784/in-vim-dont-store-motions-in-jumplist
-    -- vim.keymap.set('n', '}', '}w', opts)
-    -- vim.keymap.set('n', '{', '{{w', opts)
-    vim.keymap.set('n', '}', require('movement').paragraph_down, opts)
-    vim.keymap.set('n', '{', require('movement').paragraph_up, opts)
-    vim.keymap.set('n', 'w', require('movement').forward_word, opts)
-    vim.keymap.set('n', 'b', require('movement').backward_word, opts)
-
+    -- organize imports with ruff
     vim.keymap.set('n', '<leader>fi', '<cmd>!ruff check --fix --select=I001 %:p<cr>', opts)
+    -- start debugger
     vim.keymap.set('n', '<leader>ds',
       function()
         require('dap').attach(
@@ -338,6 +336,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
           { type = "python", request = "attach", mode = "remote" }
         )
       end, opts)
+    -- create debugging print statement
     vim.keymap.set('n', '<leader>pd',
       function()
         vim.cmd.normal('yiwoprint(f"" ')
@@ -345,6 +344,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
         vim.cmd.normal('a: {"}")')
         vim.api.nvim_buf_set_text(0, pos[1] - 1, pos[2] + 1, pos[1] - 1, pos[2] + 1, { '(' .. tostring(pos[1]) .. ')' })
       end, opts)
+    -- run ruff auto-fixer on the first error found on the current line
     vim.keymap.set('n', '<leader>pf',
       function()
         local lnum, _ = unpack(vim.api.nvim_win_get_cursor(0))
@@ -358,6 +358,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
           end
         end
       end, opts)
+    -- run ruff explainer on the first error on the current line
     vim.keymap.set('n', '<leader>pe',
       function()
         local lnum, _ = unpack(vim.api.nvim_win_get_cursor(0))
@@ -371,21 +372,25 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 
+-- *** Rust *** --
 vim.api.nvim_create_autocmd("FileType", {
   group = vim.api.nvim_create_augroup("Cargo", { clear = true }),
   pattern = "rust",
   callback = function()
+    -- setup cargo as the compiler
     vim.cmd([[compiler cargo]])
     vim.keymap.set('n', '<leader>bb', '<cmd>make build|cwindow<cr>', opts)
     vim.keymap.set('n', '<leader>bc', '<cmd>make clippy|cwindow<cr>', opts)
   end,
 })
 
+-- *** Rust (cont) *** --
 -- TODO: should be FileType event?
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("RustSpecific", { clear = true }),
   pattern = "*.rs",
   callback = function()
+    -- create debugging print statement
     vim.keymap.set('n', '<leader>pd',
       function()
         vim.cmd.normal('yiwoprintln!("" ')
@@ -430,8 +435,6 @@ vim.api.nvim_create_user_command('Redir', function(ctx)
   vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
   vim.opt_local.modified = false
 end, { nargs = '+', complete = 'command' })
-
-
 
 
 local function get_win_filename(winnr)
@@ -539,6 +542,8 @@ vim.keymap.set('n', '<a-r>', indents.diag_down_in)
 -- test
 vim.keymap.set('n', '<leader>es', require('stacktraces').stacktrace_to_qflist)
 
+-- Todo: functions and classes? and methods?
+-- Todo: make a hierarchy of functions, classes and methods (like the file tree plugin)
 local function_picker = require('function_picker')
 vim.keymap.set('n', '<leader>su', function_picker.functions)
 
@@ -546,6 +551,6 @@ local perforce_picker = require('perforce_picker')
 vim.keymap.set('n', '<leader>sy', perforce_picker.opened)
 
 vim.keymap.set('n', '<leader>qq', '<cmd>mksession! | qa<cr>')
--- vim.keymap.set('n', '<leader>qo', '<cmd>mksession! | qa<cr>')
+vim.keymap.set('n', '<leader>os', '<cmd>source Session.vim<cr>')
 
 -- could be moved: q, r, s, u, z, x, m

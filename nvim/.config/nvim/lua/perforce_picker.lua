@@ -13,7 +13,6 @@ M.opened = function(opts)
 
   pickers.new(opts, {
     prompt_title = "Perforce Opened",
-    -- finder = finders.new_table { results = results },
     finder = finders.new_oneshot_job(find_command, opts),
     sorter = conf.generic_sorter(opts)
   }):find()
