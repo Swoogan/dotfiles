@@ -238,9 +238,6 @@ M.setup = function()
     rust_analyzer = 'rust-analyzer-x86_64-pc-windows-msvc'
   end
 
-  -- vim.api.nvim_create_autocmd('LspAttach', {
-  --   pattern = "*.rs",
-  --   callback = function(_)
   if vim.fn.executable(rust_analyzer) == 1 then
     nvim_lsp['rust_analyzer'].setup {
       capabilities = capabilities,
@@ -248,8 +245,6 @@ M.setup = function()
       cmd = { rust_analyzer },
     }
   end
-  --   end
-  -- })
 
   -- PowerShell
   local bundle_path = vim.env.DEV_HOME .. '/.ls/PowerShellEditorServices'
