@@ -10,15 +10,16 @@ M.setup = function()
     show_stop_reason = true, -- show stop reason when stopped for exceptions
     commented = false, -- prefix virtual text with comment string
   }
-
-  -- DAP
-  local dap = require('dap')
+  require('dap-python').setup()
+  require("dapui").setup()
+  require("nvim-dap-virtual-text").setup()
+  -- adds loading of .vscode/launch.json files
+  -- require('dap.ext.vscode').load_launchjs()
 
   vim.fn.sign_define('DapBreakpoint', { text = '🛑', texthl = '', linehl = '', numhl = '' })
   vim.fn.sign_define('DapBreakpointRejected', { text = '⛔', texthl = '', linehl = '', numhl = '' })
 
-  require('dap-python').setup()
-
+  -- local dap = require('dap')
   -- dap.adapters.coreclr = {
   --   type = 'executable',
   --   command = vim.env.DEV_HOME .. '/.tools/netcoredbg/netcoredbg',
@@ -36,8 +37,6 @@ M.setup = function()
   --   },
   -- }
 
-  -- adds loading of .vscode/launch.json files
-  require('dap.ext.vscode').load_launchjs()
 end
 
 return M
