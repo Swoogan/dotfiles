@@ -335,14 +335,15 @@ vim.api.nvim_create_autocmd("LspAttach", {
           { type = "server", host = "127.0.0.1", port = 5678 },
           { type = "python", request = "attach", mode = "remote" }
         )
+        require('dapui').open()
       end, opts)
     -- create debugging print statement
     vim.keymap.set('n', '<leader>pd',
       function()
         vim.cmd.normal('yiwoprint(f"" ')
-        local pos = vim.api.nvim_win_get_cursor(0)
+        local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
         vim.cmd.normal('a: {"}")')
-        vim.api.nvim_buf_set_text(0, pos[1] - 1, pos[2] + 1, pos[1] - 1, pos[2] + 1, { '(' .. tostring(pos[1]) .. ')' })
+        vim.api.nvim_buf_set_text(0, lnum - 1, cnum + 1, lnum - 1, cnum + 1, { '(' .. tostring(lnum) .. ')' })
       end, opts)
     -- run ruff auto-fixer on the first error found on the current line
     vim.keymap.set('n', '<leader>pf',
@@ -394,9 +395,9 @@ vim.api.nvim_create_autocmd("LspAttach", {
     vim.keymap.set('n', '<leader>pd',
       function()
         vim.cmd.normal('yiwoprintln!("" ')
-        local pos = vim.api.nvim_win_get_cursor(0)
+        local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
         vim.cmd.normal('a: {}", ");')
-        vim.api.nvim_buf_set_text(0, pos[1] - 1, pos[2] + 1, pos[1] - 1, pos[2] + 1, { '(' .. tostring(pos[1]) .. ')' })
+        vim.api.nvim_buf_set_text(0, lnum - 1, cnum + 1, lnum - 1, cnum + 1, { '(' .. tostring(lnum) .. ')' })
       end, opts)
   end,
 })
