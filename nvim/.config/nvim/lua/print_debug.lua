@@ -7,7 +7,7 @@ end
 M.lua_print = function()
   vim.cmd.normal('yiwoprint("" ')
   local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
-  vim.cmd.normal('a:", ")')
+  vim.cmd.normal('a:", vim.inspect("))')
   set_line_number(lnum, cnum)
   vim.cmd.normal('^')
 end
