@@ -203,6 +203,7 @@ vim.keymap.set('n', '}', movement.paragraph_down, opts)
 vim.keymap.set('n', '{', movement.paragraph_up, opts)
 vim.keymap.set('n', 'w', movement.forward_word, opts)
 vim.keymap.set('n', 'b', movement.backward_word, opts)
+vim.keymap.set('n', 'e', movement.forward_end_word, opts)
 
 -- *** AUTOGROUPS *** --
 
@@ -397,13 +398,6 @@ if is_windows then
 else
   vim.keymap.set('n', '<leader>t', '<cmd>10split|term<Cr>a', opts)
 end
-
--- set swap folder
-local swap = vim.fn.expand("$HOME/.cache/nvim/swap")
-if not vim.fn.isdirectory(swap) then
-  vim.fn.mkdir(swap, "p")
-end
-vim.cmd([[set directory=$HOME/.cache/nvim/swap]])
 
 -- diff a file against the unchanged state
 vim.api.nvim_create_user_command('DiffOrig', function()

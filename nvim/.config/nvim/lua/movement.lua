@@ -118,4 +118,55 @@ M.backward_word = function()
   vim.api.nvim_win_set_cursor(winnr, { lnum, new_cnum })
 end
 
+M.forward_end_word = function()
+  local winnr = vim.api.nvim_get_current_win()
+  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(winnr))
+  local bufnr = vim.api.nvim_get_current_buf()
+
+  -- Get the content of the specified line
+  local line_content = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, false)[1]
+
+  cnum = cnum + 1
+  -- Find the next column without a character or digit
+  local char = line_content:sub(cnum, cnum)
+
+  -- Todo: bug: fails when we are on an _
+  if string.match(char, '%w') then
+    -- find the first non word character
+    local first_non = string.find(line_content, '[^' .. M.word_match .. ']', cnum)
+
+    if first_non == nil then
+      vim.api.nvim_win_set_cursor(winnr, { lnum, #line_content })
+      return
+    elseif first_non ~= cnum + 1 then
+      vim.api.nvim_win_set_cursor(winnr, { lnum, first_non - 2 })
+      return
+    end
+  end
+
+  -- Find the next column without a character or digit
+  local first_non = string.find(line_content, '[^' .. M.word_match .. ']', cnum)
+  print("first_non (149):", vim.inspect(first_non))
+
+  if first_non == nil then
+    return
+  end
+
+  -- Find the next column with a character or a digit
+  local first_char = string.find(line_content, '[' .. M.word_match .. ']', first_non + 1)
+  print("first_char (156):", vim.inspect(first_char))
+  if first_char == nil then
+    return
+  end
+
+  -- Find the next column without a character or digit
+  local second_non = string.find(line_content, '[^' .. M.word_match .. ']', first_char + 1)
+  if second_non == nil then
+    vim.api.nvim_win_set_cursor(winnr, { lnum, #line_content })
+    return
+  end
+
+  vim.api.nvim_win_set_cursor(winnr, { lnum, second_non - 2 })
+end
+
 return M
