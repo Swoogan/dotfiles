@@ -164,6 +164,18 @@ M.setup = function()
     }
   end
 
+  if false and vim.fn.executable('jedi_language_server') == 1 then
+    nvim_lsp['jedi_language_server'].setup {
+      capabilities = capabilities,
+      on_attach = function(client, buffer)
+        client.server_capabilities.documentFormattingProvider = false
+        client.server_capabilities.hoverProvider = false
+        client.server_capabilities.renameProvider = false
+        on_attach(client, buffer)
+      end,
+    }
+  end
+
   -- Rust
   local rust_analyzer = 'rust-analyzer'
   if vim.fn.executable('rust-analyzer-x86_64-pc-windows-msvc') == 1 then
