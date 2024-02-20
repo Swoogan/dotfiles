@@ -14,7 +14,7 @@ local function read_data()
   local file, _ = io.open(filepath, "r")
 
   if not file then
-    return nil
+    return {}
   end
 
   local data = {}
@@ -22,9 +22,7 @@ local function read_data()
   for line in file:lines() do
     local key, value = line:match("'([^']+)'%s*:%s*'(.[^']+)'")
     if key and value then
-      local row = {}
-      row[key] = value
-      table.insert(data, row)
+      data[key] = value
     end
   end
 
@@ -37,62 +35,86 @@ local function write_data(data)
   vim.fn.mkdir(M.data_dir, "p")
 
   local filepath = M.data_dir .. data_file
-  local file, err = io.open(filepath, "w")
+  local fh, err = io.open(filepath, "w")
 
-  if not file then
+  if not fh then
     print("Error opening file: " .. err)
   else
-    for _, row in pairs(data) do
-      for key, value in pairs(row) do
-        file:write("'" .. key .. "' : '" .. value .. "'\n")
-      end
+    for dir, file in pairs(data) do
+      fh:write("'" .. dir .. "' : '" .. file .. "'\n")
     end
 
-    file:close()
+    fh:close()
   end
 end
 
 M.add_dir = function(dir)
   local data = read_data()
   -- todo check to see if it doesn't exist properly
-  if data and data[dir] == nil then
-    table.insert(data, { [dir] = random_filename() })
+  if data[dir] == nil then
+    data[dir] = random_filename()
     write_data(data)
   end
 end
 
 M.remove_dir = function(directory)
   local data = read_data()
-  local remove = nil
-  if data then
-    for i, row in ipairs(data) do
-      print("i (66):", i)
-      print("row (66):", row)
-      for dir, _ in pairs(row) do
-        print("data (72):", vim.inspect(dir))
-        if dir == directory then
-          remove = i
-        end
-      end
-    end
-    if remove then
-      table.remove(data, remove)
-      print("data (72):", vim.inspect(data))
-      write_data(data)
-    end
+  if data[directory] ~= nil then
+    data[directory] = nil
+    write_data(data)
   end
 end
 
+M.save_session = function()
+  local dir = vim.fn.getcwd()
+  local data = read_data()
+  if data[dir] ~= nil then
+    local file = data[dir]
+    local filepath = M.data_dir .. file
+    vim.cmd('mksession! ' .. filepath)
+  end
+end
+
+M.load_session = function()
+  local dir = vim.fn.getcwd()
+  local data = read_data()
+  if data[dir] ~= nil then
+    local file = data[dir]
+    local filepath = M.data_dir .. file
+    vim.cmd('source ' .. filepath)
+  end
+end
+
+
 M.initialize = function()
+  vim.api.nvim_create_user_command('SessionTrack', function(ctx)
+    local dir = ctx.args
+    if dir == '' then
+      dir = vim.fn.getcwd()
+    end
+    M.add_dir(dir)
+  end, { nargs = '?', complete = 'command' })
+
+  vim.api.nvim_create_user_command('SessionUntrack', function(ctx)
+    local dir = ctx.args
+    if dir == '' then
+      dir = vim.fn.getcwd()
+    end
+    M.remove_dir(dir)
+  end, { nargs = '?', complete = 'command' })
+end
+
+M.test = function()
   M.add_dir("/home/swoogan/dev/dotfiles")
   M.add_dir("/home/swoogan/dev/wak")
   local data = read_data()
   print(vim.inspect(data))
 
-  -- M.remove_dir("/home/swoogan/dev/dotfiles")
-  -- data = read_data()
+  M.remove_dir("/home/swoogan/dev/dotfiles")
+  data = read_data()
+  print(vim.inspect(data))
 end
 
-M.initialize()
+-- M.test()
 
 return M

@@ -16,26 +16,26 @@ local is_windows = vim.loop.os_uname().sysname == "Windows_NT"
 
 -- Vim options
 vim.opt.termguicolors = true
-vim.opt.number = true             -- show the current line number (w/ relative on)
-vim.opt.relativenumber = true     -- show relative line numbers
-vim.opt.splitbelow = true         -- new horizontal windows appear on the bottom
-vim.opt.splitright = true         -- new vertical windows appear on the right
+vim.opt.number = true -- show the current line number (w/ relative on)
+vim.opt.relativenumber = true -- show relative line numbers
+vim.opt.splitbelow = true -- new horizontal windows appear on the bottom
+vim.opt.splitright = true -- new vertical windows appear on the right
 vim.opt.smartindent = true
-vim.opt.cursorline = true         -- highlights current line
-vim.opt.smartcase = true          -- searching case insensitive unless mixed case
+vim.opt.cursorline = true -- highlights current line
+vim.opt.smartcase = true -- searching case insensitive unless mixed case
 vim.opt.ignorecase = true
 vim.opt.clipboard = 'unnamedplus' -- make the default yank register shared with + register
 vim.opt.wrap = false
 vim.opt.tabstop = indent
 vim.opt.softtabstop = indent
 vim.opt.shiftwidth = indent
-vim.opt.expandtab = true        -- converts tab presses to spaces
-vim.opt.inccommand = 'nosplit'  -- shows effects of substitutions
-vim.opt.mouse = 'a'             -- enable mouse usage
-vim.opt.shortmess = "IF"        -- disable the intro screen (display with `:intro`)
+vim.opt.expandtab = true -- converts tab presses to spaces
+vim.opt.inccommand = 'nosplit' -- shows effects of substitutions
+vim.opt.mouse = 'a' -- enable mouse usage
+vim.opt.shortmess = "IF" -- disable the intro screen (display with `:intro`)
 vim.opt.signcolumn = 'auto:1-3' -- make the sign column have between 1 and 3 elements
-vim.opt.undofile = true         --Save undo history
-vim.opt.updatetime = 250        --Decrease update time
+vim.opt.undofile = true --Save undo history
+vim.opt.updatetime = 250 --Decrease update time
 vim.opt.scrolloff = 6
 
 -- experimental
@@ -204,6 +204,13 @@ vim.keymap.set('n', '{', movement.paragraph_up, opts)
 vim.keymap.set('n', 'w', movement.forward_word, opts)
 vim.keymap.set('n', 'b', movement.backward_word, opts)
 vim.keymap.set('n', 'e', movement.forward_end_word, opts)
+
+-- Stacktrace explorer
+vim.keymap.set('n', '<leader>es', require('stacktraces').stacktrace_to_qflist)
+
+-- Perforce open file picker
+vim.keymap.set('n', '<leader>sp', require('perforce_picker').opened)
+
 
 -- *** AUTOGROUPS *** --
 
@@ -515,18 +522,40 @@ vim.keymap.set('n', '<a-t>', indents.diag_up_in)
 vim.keymap.set('n', '<a-a>', indents.diag_down_out)
 vim.keymap.set('n', '<a-r>', indents.diag_down_in)
 
--- test
-vim.keymap.set('n', '<leader>es', require('stacktraces').stacktrace_to_qflist)
+-- could be moved: q, r, s, u, z, x, m
+
 
 -- Todo: functions and classes? and methods?
 -- Todo: make a hierarchy of functions, classes and methods (like the file tree plugin)
+-- Todo: make lua impl
 local function_picker = require('function_picker')
 vim.keymap.set('n', '<leader>su', function_picker.functions)
 
-local perforce_picker = require('perforce_picker')
-vim.keymap.set('n', '<leader>sy', perforce_picker.opened)
+-- vim.keymap.set('n', '<leader>qq', '<cmd>mksession! | qa<cr>')
+-- vim.keymap.set('n', '<leader>os', '<cmd>source Session.vim<cr>')
 
-vim.keymap.set('n', '<leader>qq', '<cmd>mksession! | qa<cr>')
-vim.keymap.set('n', '<leader>os', '<cmd>source Session.vim<cr>')
 
--- could be moved: q, r, s, u, z, x, m
+-- Session management
+local sessions = require('sessions')
+sessions.initialize()
+
+vim.keymap.set('n', '<leader>qq', function()
+  sessions.save_session()
+  vim.cmd('qa')
+end)
+
+vim.keymap.set('n', '<leader>os', sessions.load_session)
+
+-- Auto-save session
+vim.api.nvim_create_autocmd("VimLeavePre", {
+  group = vim.api.nvim_create_augroup("SessionManagement", { clear = true }),
+  pattern = "*",
+  callback = function() sessions.save_session() end,
+})
+
+-- Auto-load session
+-- vim.api.nvim_create_autocmd("VimEnter", {
+--   group = vim.api.nvim_create_augroup("SessionManagement2", { clear = true }),
+--   pattern = "*",
+--   callback = function() sessions.load_session() end,
+-- })
