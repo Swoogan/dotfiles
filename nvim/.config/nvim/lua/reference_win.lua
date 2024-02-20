@@ -10,7 +10,7 @@ local function single_window(window, definition)
   local file = vim.api.nvim_buf_get_name(buf)
 
   if string.lower(definition.filename) == string.lower(file) then
-    vim.cmd("normal m`")
+    vim.cmd.normal("m`")
     vim.api.nvim_win_set_cursor(window, { definition.lnum, definition.col - 1 })
   else
     vim.cmd.vsplit()
@@ -31,7 +31,7 @@ local function multiple_windows(windows, definition)
   local cur_file = vim.api.nvim_buf_get_name(cur_buf)
 
   if string.lower(definition.filename) == string.lower(cur_file) then
-    vim.cmd("normal m`")
+    vim.cmd.normal("m`")
     vim.api.nvim_win_set_cursor(cur_win, { definition.lnum, definition.col - 1 })
     return
   end
@@ -41,7 +41,7 @@ local function multiple_windows(windows, definition)
     local buf = vim.api.nvim_win_get_buf(window)
     local file = vim.api.nvim_buf_get_name(buf)
     if definition.filename == file then
-      vim.cmd("normal m`")
+      vim.cmd.normal("m`")
       vim.api.nvim_win_set_cursor(window, { definition.lnum, definition.col - 1 })
       done = true
       break
