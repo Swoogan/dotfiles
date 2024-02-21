@@ -531,15 +531,12 @@ vim.keymap.set('n', '<a-r>', indents.diag_down_in)
 local function_picker = require('function_picker')
 vim.keymap.set('n', '<leader>su', function_picker.functions)
 
--- vim.keymap.set('n', '<leader>qq', '<cmd>mksession! | qa<cr>')
--- vim.keymap.set('n', '<leader>os', '<cmd>source Session.vim<cr>')
-
-
 -- Session management
 local sessions = require('sessions')
 sessions.initialize()
 
-vim.keymap.set('n', '<leader>qq', function()
+vim.keymap.set('n', '<leader>qq', '<cmd>qa<cr>')
+vim.keymap.set('n', '<leader>qs', function()
   sessions.save_session()
   vim.cmd('qa')
 end)
@@ -554,8 +551,9 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
 })
 
 -- Auto-load session
--- vim.api.nvim_create_autocmd("VimEnter", {
---   group = vim.api.nvim_create_augroup("SessionManagement2", { clear = true }),
---   pattern = "*",
---   callback = function() sessions.load_session() end,
--- })
+vim.api.nvim_create_autocmd("VimEnter", {
+  group = vim.api.nvim_create_augroup("SessionManagement2", { clear = true }),
+  pattern = "*",
+  callback = function() sessions.load_session() end,
+  nested = true
+})

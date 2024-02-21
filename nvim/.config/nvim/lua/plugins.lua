@@ -101,7 +101,7 @@ M.spec = {
   { "jose-elias-alvarez/null-ls.nvim", dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
   { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
 
-  -- DAP (set lazy to true on dap-ui to not load anything, aka disable dap until I have a workflow established)
+  -- DAP
   {
     "mfussenegger/nvim-dap",
     dependencies = { "theHamsta/nvim-dap-virtual-text" },
@@ -338,7 +338,7 @@ function M.init()
   vim.opt.rtp:prepend(lazypath)
 end
 
----Loads packer spec defined above and applies the lockfile if it should apply
+-- Configure Lazy
 function M.load()
   require("lazy").setup({
     spec = M.spec,
