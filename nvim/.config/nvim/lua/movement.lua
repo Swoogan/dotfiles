@@ -88,7 +88,7 @@ M.forward_word = function()
   local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(winnr))
   local line_content = get_line(lnum)
 
-  -- Find the next word
+  -- Find the start of the next word
   cnum = next_token(line_content, cnum)
   if cnum == nil then
     return
