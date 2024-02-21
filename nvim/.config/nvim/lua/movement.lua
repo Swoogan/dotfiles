@@ -6,6 +6,7 @@ local M = {
 
 -- Paragraphs
 
+---Move to the first line in the next paragraph
 M.paragraph_down = function()
   local lnum, _ = unpack(vim.api.nvim_win_get_cursor(0))
   local bufnr = vim.api.nvim_get_current_buf()
@@ -21,7 +22,9 @@ M.paragraph_down = function()
   end
 end
 
+---Move to the first line in the current/previous paragraph
 M.paragraph_up = function()
+  -- Bug: doesn't move to the beginning of the current paragraph
   local winnr = vim.api.nvim_get_current_win()
   local lnum, _ = unpack(vim.api.nvim_win_get_cursor(winnr))
   local bufnr = vim.api.nvim_get_current_buf()
@@ -83,6 +86,7 @@ local function get_line(lnum)
   return vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, false)[1]
 end
 
+---Move to the beginning of the current/next word
 M.forward_word = function()
   local winnr = vim.api.nvim_get_current_win()
   local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(winnr))
@@ -97,6 +101,7 @@ M.forward_word = function()
   vim.api.nvim_win_set_cursor(winnr, { lnum, cnum })
 end
 
+---Move to the beginning of the current/previous word
 M.backward_word = function()
   local winnr = vim.api.nvim_get_current_win()
   local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(winnr))
@@ -144,6 +149,7 @@ M.backward_word = function()
   vim.api.nvim_win_set_cursor(winnr, { lnum, new_cnum })
 end
 
+---Move to the end of the current/next word
 M.forward_end_word = function()
   local winnr = vim.api.nvim_get_current_win()
   local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(winnr))
@@ -177,6 +183,10 @@ M.forward_end_word = function()
   end
 
   vim.api.nvim_win_set_cursor(winnr, { lnum, cnum - 2 })
+end
+
+---Move to the end of the previous/current word
+M.backward_end_word = function()
 end
 
 return M
