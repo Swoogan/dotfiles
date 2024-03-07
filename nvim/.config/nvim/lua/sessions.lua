@@ -76,12 +76,21 @@ M.save_session = function()
 end
 
 M.load_session = function()
+  local focus = nil
+  if vim.fn.argc() > 0 then
+    focus = vim.fn.argv()[1]
+  end
   local dir = vim.fn.getcwd()
   local data = read_data()
   if data[dir] ~= nil then
     local file = data[dir]
     local filepath = M.data_dir .. file
     vim.cmd('source ' .. filepath)
+  end
+  if focus ~= nil then
+    local bufnr = vim.fn.bufnr(focus, true)
+    vim.api.nvim_win_set_buf(0, bufnr)
+    -- also consider just not doing the session restore
   end
 end
 

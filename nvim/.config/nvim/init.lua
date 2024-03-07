@@ -543,16 +543,17 @@ end)
 
 vim.keymap.set('n', '<leader>os', sessions.load_session)
 
+local session_group = vim.api.nvim_create_augroup("SessionManagement", { clear = true })
 -- Auto-save session
 vim.api.nvim_create_autocmd("VimLeavePre", {
-  group = vim.api.nvim_create_augroup("SessionManagement", { clear = true }),
+  group = session_group,
   pattern = "*",
   callback = function() sessions.save_session() end,
 })
 
 -- Auto-load session
 vim.api.nvim_create_autocmd("VimEnter", {
-  group = vim.api.nvim_create_augroup("SessionManagement2", { clear = true }),
+  group = session_group,
   pattern = "*",
   callback = function() sessions.load_session() end,
   nested = true
