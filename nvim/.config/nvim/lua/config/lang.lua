@@ -178,8 +178,8 @@ M.setup = function()
 
   -- Rust
   local rust_analyzer = 'rust-analyzer'
-  if vim.fn.executable('rust-analyzer-x86_64-pc-windows-msvc') == 1 then
-    rust_analyzer = 'rust-analyzer-x86_64-pc-windows-msvc'
+  if vim.fn.executable(vim.env.RUST_ANALYZER) == 1 then
+    rust_analyzer = vim.env.RUST_ANALYZER
   end
 
   if vim.fn.executable(rust_analyzer) == 1 then
