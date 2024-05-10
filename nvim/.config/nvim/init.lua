@@ -377,6 +377,7 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.cmd([[compiler cargo]])
     vim.keymap.set('n', '<leader>bb', '<cmd>make build|cwindow<cr>', opts)
     vim.keymap.set('n', '<leader>bc', '<cmd>make clippy|cwindow<cr>', opts)
+    vim.keymap.set('n', '<leader>br', '<cmd>make run|cwindow<cr>', opts)
   end,
 })
 
