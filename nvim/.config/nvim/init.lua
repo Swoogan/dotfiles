@@ -375,9 +375,11 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function()
     -- setup cargo as the compiler
     vim.cmd([[compiler cargo]])
-    vim.keymap.set('n', '<leader>bb', '<cmd>make build|cwindow<cr>', opts)
+    -- vim.keymap.set('n', '<leader>bb', '<cmd>make build|cwindow<cr>', opts)
+    -- vim.keymap.set('n', '<leader>br', '<cmd>make run<cr>', opts)
+    vim.keymap.set('n', '<leader>bb', require('rust_mono').build, opts)
+    vim.keymap.set('n', '<leader>br', require('rust_mono').run, opts)
     vim.keymap.set('n', '<leader>bc', '<cmd>make clippy|cwindow<cr>', opts)
-    vim.keymap.set('n', '<leader>br', '<cmd>make run|cwindow<cr>', opts)
   end,
 })
 

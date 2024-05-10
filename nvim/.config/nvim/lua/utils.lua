@@ -68,4 +68,23 @@ M.transform_test_name = function()
   vim.api.nvim_win_set_cursor(win, { start_row + 1, new_col })
 end
 
+
+---Converts parsed errors to quickfix entries
+---@param parsed_results { file: string, line: integer, column: integer, description: string}
+---@return { lnum: integer, type: string, filename: string, text: string}
+M.create_qf_entries = function(parsed_results)
+  local entries = {}
+
+  for _, result in ipairs(parsed_results) do
+    table.insert(entries, {
+      lnum = result.line, -- Line number
+      type = "E", -- Error type
+      filename = result.file,
+      text = result.description
+    })
+  end
+
+  return entries
+end
+
 return M

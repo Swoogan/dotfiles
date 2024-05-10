@@ -1,3 +1,4 @@
+local utils = require("utils")
 local M = {}
 
 ---Parse the Python stacktrace into entries
@@ -43,22 +44,6 @@ M.parse_lua_stack_trace = function(stack_trace)
   return results
 end
 
----Create quick fix entries from the parsed results
-M.create_entries = function(parsed_results)
-  local entries = {}
-
-  for _, result in ipairs(parsed_results) do
-    table.insert(entries, {
-      lnum = result.line, -- Line number
-      type = "E",         -- Error type
-      filename = result.file,
-      text = result.description
-    })
-  end
-
-  return entries
-end
-
 M.stacktrace_to_qflist = function()
   local stack_trace = vim.fn.getreg('+')
   local filetype = vim.bo.filetype
@@ -77,10 +62,10 @@ M.stacktrace_to_qflist = function()
     return
   end
 
-  local entries = M.create_entries(parsed_results)
+  local entries = utils.create_qf_entries(parsed_results)
 
   if #entries > 0 then
-    -- Add the diagnostic entry to the quick fix list
+    -- Add the diagnostic entries to the quick fix list
     vim.fn.setqflist(entries)
 
     -- Open the quick fix window
@@ -101,7 +86,7 @@ Exception: something happened
 ]]
 
   local parsed_results = M.parse_python_stack_trace(stack_trace)
-  local entries = M.create_entries(parsed_results)
+  local entries = utils.create_qf_entries(parsed_results)
 
   -- Add the diagnostic entry to the quick fix list
   vim.fn.setqflist(entries)
