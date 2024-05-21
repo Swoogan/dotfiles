@@ -8,6 +8,8 @@ local M = {
   }
 }
 
+---Set a mark with the given name
+---@param name string # The name of the mark to set (eg: 'start', 'end', etc...)
 M.set_mark = function(name)
   local bufnr = vim.api.nvim_get_current_buf()
   local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
@@ -17,6 +19,7 @@ M.set_mark = function(name)
   vim.api.nvim_buf_set_mark(bufnr, sign.mark, lnum, cnum, {})
 end
 
+---Get all the marks for the given buffer
 M.get_all = function()
   local bufnr = vim.api.nvim_get_current_buf()
 
@@ -44,8 +47,9 @@ M.get_all = function()
   return result
 end
 
+---Reset all marks for the current buffer
+---@param placed_signs { bufnr: integer, signs: {id: integer, group: string, name: string, lnum: integer, cnum: integer} }[] # The signs for each buffer
 M.set_all = function(placed_signs)
-  -- Todo: unhardcode name, get the cnum somehow
   for _, placed_sign in pairs(placed_signs) do
     local bufnr = placed_sign.bufnr
     local signs = placed_sign.signs
