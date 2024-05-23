@@ -15,9 +15,7 @@ local function find(type, direction)
 
   while true do
     lnum = lnum + direction
-    -- print("lnum ", lnum)
     local ind = vim.fn.indent(lnum)
-    -- print("ind ", ind)
 
     if ind == -1 then
       break
@@ -28,7 +26,6 @@ local function find(type, direction)
     end
 
     local delta = ind - indent
-    print(lnum, delta)
     if type == 'same' and delta == 0 then
       return { lnum, cnum }
     elseif type == 'out' and delta < 0 then
@@ -107,7 +104,7 @@ local function find_next(type, direction)
       break
     end
 
-    if utils.is_empty(lnum) then
+    if utils.is_empty(0, lnum) then
       goto continue
     end
 
@@ -135,7 +132,7 @@ local function find_next_not_empty(direction)
       break
     end
 
-    if utils.is_empty(lnum) ~= true then
+    if utils.is_empty(0, lnum) ~= true then
       return { lnum, ind }
     end
   end
@@ -143,6 +140,7 @@ local function find_next_not_empty(direction)
   return { -1, cnum }
 end
 
+--- Move the cursor diagonally up and out on indentation level
 M.diag_up_out = function()
   -- local indent = vim.fn.indent(lnum)
   -- lnum, cnum = unpack(find_next_not_empty(-1))
@@ -150,6 +148,7 @@ M.diag_up_out = function()
   -- if cnum <= indent then
   --   vim.api.nvim_win_set_cursor(0, { lnum, cnum })
   -- end
+
   local lnum, cnum = unpack(find_next('out', -1))
   print(lnum, cnum)
   if lnum ~= -1 then
