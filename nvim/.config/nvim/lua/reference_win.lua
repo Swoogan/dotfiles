@@ -6,10 +6,11 @@ local M = {
 ---@param window integer # The window to open the definition in
 ---@param definition { col: integer, filename: string, lnum: integer } # The location of the definition
 local function single_window(window, definition)
-  local buf = vim.api.nvim_win_get_buf(window)
-  local file = vim.api.nvim_buf_get_name(buf)
+  local bufnr = vim.api.nvim_win_get_buf(window)
+  local cur_file = string.lower(vim.api.nvim_buf_get_name(bufnr))
+  local def_file = string.lower(vim.fs.normalize(definition.filename)) -- This is the filename coming from the LSP
 
-  if string.lower(definition.filename) == string.lower(file) then
+  if def_file == cur_file then
     vim.cmd.normal("m`")
     vim.api.nvim_win_set_cursor(window, { definition.lnum, definition.col - 1 })
   else
@@ -28,9 +29,10 @@ end
 local function multiple_windows(windows, definition)
   local cur_win = vim.api.nvim_get_current_win()
   local cur_buf = vim.api.nvim_win_get_buf(cur_win)
-  local cur_file = vim.api.nvim_buf_get_name(cur_buf)
+  local cur_file = string.lower(vim.api.nvim_buf_get_name(cur_buf))
+  local def_file = string.lower(vim.fs.normalize(definition.filename)) -- This is the filename coming from the LSP
 
-  if string.lower(definition.filename) == string.lower(cur_file) then
+  if def_file == cur_file then
     vim.cmd.normal("m`")
     vim.api.nvim_win_set_cursor(cur_win, { definition.lnum, definition.col - 1 })
     return
@@ -40,7 +42,7 @@ local function multiple_windows(windows, definition)
   for _, window in pairs(windows) do
     local buf = vim.api.nvim_win_get_buf(window)
     local file = vim.api.nvim_buf_get_name(buf)
-    if string.lower(definition.filename) == string.lower(file) then
+    if def_file == string.lower(file) then
       vim.cmd.normal("m`")
       vim.api.nvim_win_set_cursor(window, { definition.lnum, definition.col - 1 })
       done = true
@@ -49,7 +51,7 @@ local function multiple_windows(windows, definition)
     local ok, refs = pcall(vim.api.nvim_win_get_var, window, "references")
     if ok and refs then
       vim.api.nvim_set_current_win(window)
-      vim.cmd.edit(definition.filename)
+      vim.cmd.edit(def_file)
       vim.api.nvim_win_set_cursor(window, { definition.lnum, definition.col - 1 })
       done = true
       break
@@ -58,7 +60,7 @@ local function multiple_windows(windows, definition)
 
   if not done then
     vim.cmd.vsplit()
-    vim.cmd.edit(definition.filename)
+    vim.cmd.edit(def_file)
     local new_win = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_var(new_win, "references", true)
     vim.api.nvim_win_set_cursor(new_win, { definition.lnum, definition.col - 1 })
