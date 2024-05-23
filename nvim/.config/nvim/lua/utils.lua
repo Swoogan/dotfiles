@@ -22,17 +22,28 @@ end
 
 
 ---Is the given line empty
----@param lnum integer
----@return boolean
+---@param bufnr integer # The buffer to perform the operation on
+---@param lnum integer # The line number to perform the operation on
+---@return boolean # True if the line is empty
 M.is_empty = function(bufnr, lnum)
   local text = vim.api.nvim_buf_get_text(bufnr, lnum - 1, 0, lnum - 1, -1, {})
   return unpack(text) == ""
 end
 
+---Find the next non-empty line
+---@param bufnr integer # The buffer to perform the operation on
+---@param direction integer # The direction to search in. -1 is up and 1 is down
+---@param start integer # The line number to start the search from
+---@return integer # The line number of the next non-empty line
 M.find_next_not_empty = function(bufnr, direction, start)
   return find_next_line(bufnr, direction, start, function(lnum) return not M.is_empty(bufnr, lnum) end)
 end
 
+---Find the next empty line
+---@param bufnr integer # The buffer to perform the operation on
+---@param direction integer # The direction to search in. -1 is up and 1 is down
+---@param start integer # The line number to start the search from
+---@return integer # The line number of the next empty line
 M.find_next_empty = function(bufnr, direction, start)
   return find_next_line(bufnr, direction, start, function(lnum) return M.is_empty(bufnr, lnum) end)
 end
