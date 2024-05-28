@@ -47,11 +47,10 @@ local function show_errors(_, output)
       vim.fn.setqflist(entries)
       vim.cmd("copen")
     else
-      print("Cargo command successful")
+      vim.api.nvim_echo({ { "Cargo command successful", 'MsgArea' } }, true, {})
       vim.cmd("cclose")
     end
   end
-
 end
 
 local function test(_, data)
@@ -67,20 +66,29 @@ end
 --- Call `cargo build`
 M.build = function()
   save_buffer()
-
-  local build_command = { "cargo", "build", "--message-format=short" }
   -- Todo: make this show the build output live
-  vim.fn.jobstart(build_command, { stderr_buffered = true, on_stderr = show_errors })
   -- vim.fn.jobstart(build_command, { stderr_buffered = true, on_stdout = test, on_stderr = show_errors })
   -- vim.fn.jobstart(build_command, { on_stderr = show_errors })
+  vim.api.nvim_echo({ { "Starting `cargo build`", 'MsgArea' } }, true, {})
+  local build_command = { "cargo", "build", "--message-format=short" }
+  local job_id = vim.fn.jobstart(build_command, { stderr_buffered = true, on_stderr = show_errors })
+  if job_id <= 0 then
+    vim.api.nvim_echo({ { 'Failed to start the job!', 'ErrorMsg' } }, true, {})
+    return
+  end
 end
 
 --- Call `cargo run`
 M.run = function()
   save_buffer()
 
+  vim.api.nvim_echo({ { "Starting `cargo run`", 'MsgArea' } }, true, {})
   local build_command = { "cargo", "run", "--message-format=short" }
-  vim.fn.jobstart(build_command, { stderr_buffered = true, on_stderr = show_errors })
+  local job_id = vim.fn.jobstart(build_command, { stderr_buffered = true, on_stderr = show_errors })
+  if job_id <= 0 then
+    vim.api.nvim_echo({ { 'Failed to start the job!', 'ErrorMsg' } }, true, {})
+    return
+  end
 end
 
 return M
