@@ -37,6 +37,7 @@ Install
     New-Symlink -Link ~/.vsvimrc C:\dev\dotfiles\windows\_vsvimrc
     New-Symlink -Link ~\AppData\Local\nvim\init.lua C:\dev\dotfiles\nvim\.config\nvim\init.lua
     New-Symlink -Link ~\AppData\Local\nvim\lua C:\dev\dotfiles\nvim\.config\nvim\lua
+    New-Symlink -Link ~\AppData\Local\nvim\lazy-lock.json C:\dev\dotfiles\nvim\.config\nvim\lazy-lock.json
 
     $compiler = "~\AppData\Local\nvim\compiler"
     if (-not (test-path $compiler)) { mkdir $compiler }
