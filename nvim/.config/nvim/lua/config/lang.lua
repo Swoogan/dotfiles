@@ -265,10 +265,6 @@ M.setup = function()
         table.insert(null_ls_sources, null_ls.builtins.formatting.black)
       end
 
-      if vim.fn.executable('flake8') == 1 then
-        table.insert(null_ls_sources, null_ls.builtins.diagnostics.flake8)
-      end
-
       if vim.fn.executable('ruff') == 1 then
         table.insert(null_ls_sources, null_ls.builtins.diagnostics.ruff)
       end
