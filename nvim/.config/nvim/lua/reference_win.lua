@@ -19,7 +19,7 @@ local function single_window(window, definition)
     local new_win = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_var(new_win, "references", true)
     vim.api.nvim_win_set_cursor(new_win, { definition.lnum, definition.col - 1 })
-    vim.api.nvim_win_set_hl_ns(0, M.namespace_id)
+    vim.api.nvim_win_set_hl_ns(new_win, M.namespace_id)
   end
 end
 
@@ -64,7 +64,7 @@ local function multiple_windows(windows, definition)
     local new_win = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_var(new_win, "references", true)
     vim.api.nvim_win_set_cursor(new_win, { definition.lnum, definition.col - 1 })
-    vim.api.nvim_win_set_hl_ns(0, M.namespace_id)
+    vim.api.nvim_win_set_hl_ns(new_win, M.namespace_id)
   end
 end
 
