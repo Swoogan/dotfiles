@@ -3,7 +3,7 @@ local M = {
 
 M.spec = {
   { "EdenEast/nightfox.nvim" }, -- theme
-  { "neovim/nvim-lspconfig" }, -- Easy configuration of LSP
+  { "neovim/nvim-lspconfig" },  -- Easy configuration of LSP
   {
     "nvim-treesitter/nvim-treesitter",
     event = { "BufReadPost", "BufNewFile" },
@@ -64,7 +64,7 @@ M.spec = {
               ['ib'] = '@block.inner',
             },
             selection_modes = {
-              ['@block.outer'] = 'V', -- linewise
+              ['@block.outer'] = 'V',    -- linewise
               ['@function.outer'] = 'V', -- linewise
             },
           },
@@ -97,8 +97,8 @@ M.spec = {
         },
       }
     end
-  }, -- incremental language parser
-  { "jose-elias-alvarez/null-ls.nvim", dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
+  },                                                                                                  -- incremental language parser
+  { "jose-elias-alvarez/null-ls.nvim",   dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
   { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
 
   -- DAP
@@ -117,10 +117,39 @@ M.spec = {
       vim.keymap.set('n', '<leader>de', dap.close, opts)
       vim.keymap.set('n', '<leader>dro', dap.repl.open, opts)
       vim.keymap.set('n', '<leader>drc', dap.repl.close, opts)
+
+      vim.fn.sign_define('DapBreakpoint', { text = '🛑', texthl = '', linehl = '', numhl = '' })
+      vim.fn.sign_define('DapBreakpointRejected', { text = '⛔', texthl = '', linehl = '', numhl = '' })
+
+      -- dap virtual text
+      require('nvim-dap-virtual-text').setup {
+        enabled_commands = true,            -- create commands DapVirtualTextEnable, DapVirtualTextDisable, DapVirtualTextToggle, (DapVirtualTextForceRefresh for refreshing when debug adapter did not notify its termination)
+        highlight_changed_variables = true, -- highlight changed values with NvimDapVirtualTextChanged, else always NvimDapVirtualText
+        highlight_new_as_changed = false,   -- highlight new variables in the same way as changed variables (if highlight_changed_variables)
+        show_stop_reason = true,            -- show stop reason when stopped for exceptions
+        commented = false,                  -- prefix virtual text with comment string
+      }
+      -- adds loading of .vscode/launch.json files
+      -- require('dap.ext.vscode').load_launchjs()
     end,
   },
-  { "mfussenegger/nvim-dap-python", ft = "python", dependencies = { "mfussenegger/nvim-dap" } },
-  { "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap" } },
+  {
+    "mfussenegger/nvim-dap-python",
+    ft = "python",
+    dependencies = { "mfussenegger/nvim-dap" },
+    lazy = true,
+    config = function()
+      require('dap-python').setup()
+    end
+  },
+  {
+    "rcarriga/nvim-dap-ui",
+    dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio" },
+    lazy = true,
+    config = function()
+      require("dapui").setup()
+    end
+  },
 
   {
     "hrsh7th/nvim-cmp", -- Autocomplete
@@ -154,8 +183,8 @@ M.spec = {
             { name = 'nvim_lsp' },
             { name = 'luasnip' },
           }, {
-          { name = 'buffer' },
-        }
+            { name = 'buffer' },
+          }
         ),
         -- Todo: switch to debounce time instead?
         completion = { keyword_length = 2 }
@@ -254,7 +283,7 @@ M.spec = {
       vim.g['prettier#autoformat'] = 1
       vim.g['prettier#autoformat_require_pragma'] = 0
     end
-  }, -- Autoformatting
+  },                               -- Autoformatting
   {
     "nvim-tree/nvim-web-devicons", -- Pretty Icons
     lazy = true,
@@ -311,7 +340,7 @@ M.spec = {
     "L3MON4D3/LuaSnip",
     event = "InsertEnter",
     dependencies = {
-      "saadparwaiz1/cmp_luasnip", -- luasnip to nvim-cmp integration
+      "saadparwaiz1/cmp_luasnip",    -- luasnip to nvim-cmp integration
       "rafamadriz/friendly-snippets" -- Premade snippets
     },
     config = function()
