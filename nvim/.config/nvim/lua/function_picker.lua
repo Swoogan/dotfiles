@@ -1,5 +1,10 @@
 local M = {}
 
+-- Todo: functions and classes? and methods?
+-- Todo: make a hierarchy of functions, classes and methods (like the file tree plugin)
+-- Todo: make lua impl
+
+
 -- Define the function to find lines containing a string
 M.find_lines_containing_string = function(bufnr, target)
   local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
