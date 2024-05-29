@@ -7,7 +7,7 @@ local M = {
 ---@param definition { col: integer, filename: string, lnum: integer } # The location of the definition
 local function single_window(window, definition)
   local bufnr = vim.api.nvim_win_get_buf(window)
-  local cur_file = string.lower(vim.api.nvim_buf_get_name(bufnr))
+  local cur_file = string.lower(vim.fs.normalize(vim.api.nvim_buf_get_name(bufnr)))
   local def_file = string.lower(vim.fs.normalize(definition.filename)) -- This is the filename coming from the LSP
 
   if def_file == cur_file then
@@ -29,7 +29,7 @@ end
 local function multiple_windows(windows, definition)
   local cur_win = vim.api.nvim_get_current_win()
   local cur_buf = vim.api.nvim_win_get_buf(cur_win)
-  local cur_file = string.lower(vim.api.nvim_buf_get_name(cur_buf))
+  local cur_file = string.lower(vim.fs.normalize(vim.api.nvim_buf_get_name(cur_buf)))
   local def_file = string.lower(vim.fs.normalize(definition.filename)) -- This is the filename coming from the LSP
 
   if def_file == cur_file then
