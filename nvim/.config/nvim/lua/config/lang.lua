@@ -71,11 +71,9 @@ M.setup = function()
       bufopts)
     vim.keymap.set('n', 'gi', require('telescope.builtin').lsp_incoming_calls, bufopts)
     vim.keymap.set('n', 'go', require('telescope.builtin').lsp_outgoing_calls, bufopts)
-    -- vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
     vim.keymap.set('n', 'gr',
       function() require('telescope.builtin').lsp_references({ path_display = { "tail" } }) end
       , bufopts)
-    -- vim.keymap.set('n', '<leader>lt', vim.lsp.buf.type_definition, bufopts)
     vim.keymap.set('n', 'gt', require('telescope.builtin').lsp_type_definitions, bufopts)
 
     vim.keymap.set('n', '<leader>lh', vim.lsp.buf.hover, bufopts)
@@ -83,7 +81,6 @@ M.setup = function()
     vim.keymap.set('n', '<leader>lf', function() vim.lsp.buf.format({ async = true }) end, bufopts)
     vim.keymap.set('n', '<leader>lr', vim.lsp.buf.rename, bufopts)
     vim.keymap.set('n', '<leader>lc', code_action_func, bufopts)
-    -- vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
     vim.keymap.set('n', '<leader>li', require('telescope.builtin').lsp_implementations, bufopts)
   end
 
