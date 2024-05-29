@@ -7,7 +7,7 @@ vim.g.maplocalleader = ','
 plugins.load() -- Load lazy with the spec
 
 require('config.lang').setup()
-require('config.debuggers').setup()
+require('reference_win').setup()
 
 -- *** CONFIG *** --
 
@@ -16,27 +16,29 @@ local is_windows = vim.loop.os_uname().sysname == "Windows_NT"
 
 -- Vim options
 vim.opt.termguicolors = true
-vim.opt.number = true -- show the current line number (w/ relative on)
-vim.opt.relativenumber = true -- show relative line numbers
-vim.opt.splitbelow = true -- new horizontal windows appear on the bottom
-vim.opt.splitright = true -- new vertical windows appear on the right
+vim.opt.number = true             -- show the current line number (w/ relative on)
+vim.opt.relativenumber = true     -- show relative line numbers
+vim.opt.splitbelow = true         -- new horizontal windows appear on the bottom
+vim.opt.splitright = true         -- new vertical windows appear on the right
 vim.opt.smartindent = true
-vim.opt.cursorline = true -- highlights current line
-vim.opt.smartcase = true -- searching case insensitive unless mixed case
+vim.opt.cursorline = true         -- highlights current line
+vim.opt.smartcase = true          -- searching case insensitive unless mixed case
 vim.opt.ignorecase = true
 vim.opt.clipboard = 'unnamedplus' -- make the default yank register shared with + register
 vim.opt.wrap = false
 vim.opt.tabstop = indent
 vim.opt.softtabstop = indent
 vim.opt.shiftwidth = indent
-vim.opt.expandtab = true -- converts tab presses to spaces
-vim.opt.inccommand = 'nosplit' -- shows effects of substitutions
-vim.opt.mouse = 'a' -- enable mouse usage
-vim.opt.shortmess = "IF" -- disable the intro screen (display with `:intro`)
+vim.opt.expandtab = true        -- converts tab presses to spaces
+vim.opt.inccommand = 'nosplit'  -- shows effects of substitutions
+vim.opt.mouse = 'a'             -- enable mouse usage
+vim.opt.shortmess = "IF"        -- disable the intro screen (display with `:intro`)
 vim.opt.signcolumn = 'auto:1-3' -- make the sign column have between 1 and 3 elements
-vim.opt.undofile = true --Save undo history
-vim.opt.updatetime = 250 --Decrease update time
+vim.opt.undofile = true         --Save undo history
+vim.opt.updatetime = 250        --Decrease update time
 vim.opt.scrolloff = 6
+vim.opt.sessionoptions = "buffers,curdir,folds,help,tabpages,winsize,terminal"
+vim.opt.shada = "'100,f1,<50,:100,/100,h"
 
 -- experimental
 vim.opt.jumpoptions = 'stack'
@@ -278,8 +280,7 @@ vim.api.nvim_create_autocmd("FileType", {
   group = vim.api.nvim_create_augroup("ReferenceColours", { clear = true }),
   pattern = { "help" },
   callback = function()
-    vim.api.nvim_set_hl(55, "Normal", { bg = "#222730" })
-    vim.api.nvim_win_set_hl_ns(0, 55)
+    vim.api.nvim_win_set_hl_ns(0, require('reference_win').namespace_id)
   end,
 })
 
@@ -302,14 +303,25 @@ vim.api.nvim_create_autocmd("BufWritePre", {
     -- store sign_marks
     local placed_signs = sign_marks.get_all()
 
+    -- local bufnr = vim.api.nvim_win_get_buf(0)
+    -- local old_location = vim.api.nvim_win_get_cursor(0)
+
     -- actual autoformat (wipes signs and marks)
     vim.lsp.buf.format({ async = false })
+
+    -- local windows = vim.api.nvim_list_wins()
+    --
+    -- for _, win in ipairs(windows) do
+    --   if vim.api.nvim_win_get_buf(win) == bufnr then
+    --     -- why pcall?
+    --     -- pcall(vim.api.nvim_win_set_cursor, win, old_location)
+    --     vim.api.nvim_win_set_cursor(win, old_location)
+    --   end
+    -- end
 
     -- restore sign_marks
     sign_marks.set_all(placed_signs)
   end,
-  -- Works, but errors are written to the buffer and cursor is moved
-  -- callback = function() vim.cmd([[silent %!black -q --stdin-filename % -]]) end,
 })
 
 -- *** LUA *** --
@@ -446,71 +458,11 @@ vim.keymap.set('n', 'mm', sign_marks.set_anchor)
 vim.keymap.set('n', 'ms', sign_marks.set_start)
 vim.keymap.set('n', 'me', sign_marks.set_end)
 
--- *** Setup Auto Marks ***
-
-local index = 1
-local letters = { 'W', 'X', 'Y', 'Z' }
-local mark_count = 0
-local curr_index = 0
-
-local function set_mark()
-  local letter = letters[index]
-  index = index + 1
-  if index > 4 then
-    index = 1
-  end
-
-  local bufnr = vim.api.nvim_get_current_buf()
-  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
-  vim.api.nvim_buf_set_mark(bufnr, letter, lnum, cnum, {})
-  mark_count = math.min(mark_count + 1, 4)
-end
-
-vim.api.nvim_create_autocmd("InsertLeave", {
-  pattern = "*",
-  callback = set_mark
-})
-
-local function previous_mark()
-  if mark_count <= 1 then
-    return
-  end
-
-  -- cycle down
-  curr_index = curr_index - 1
-  if curr_index < 1 then
-    curr_index = mark_count
-  end
-
-  local letter = letters[curr_index]
-  vim.cmd.normal("'" .. letter)
-end
-
-local function next_mark()
-  if mark_count <= 1 then
-    return
-  end
-
-  -- cycle up
-  curr_index = curr_index + 1
-  if curr_index > mark_count then
-    curr_index = 1
-  end
-
-  local letter = letters[curr_index]
-  print(letter)
-  vim.cmd.normal("'" .. letter)
-end
-
--- Note: there is also, jump to sign, so maybe don't need the marks
-vim.keymap.set('n', '<leader>mp', previous_mark, opts)
-vim.keymap.set('n', '<leader>mn', next_mark, opts)
-vim.keymap.set('n', '<leader>ms', set_mark, opts)
-
--- replaces <c-f> <c-u> <c-b> <c-d> { } j k [* ]*
+-- *** Setup Scrolling ***
 vim.keymap.set('n', '<c-e>', '10<C-e>')
 vim.keymap.set('n', '<c-y>', '10<C-y>')
 
+-- *** Setup Indent-base Movement ***
 local indents = require('indents')
 vim.keymap.set({ 'n', 'v' }, '<c-u>', indents.up_same_indent)
 vim.keymap.set({ 'n', 'v' }, '<c-f>', indents.down_same_indent)
@@ -525,16 +477,10 @@ vim.keymap.set('n', '<a-t>', indents.diag_up_in)
 vim.keymap.set('n', '<a-a>', indents.diag_down_out)
 vim.keymap.set('n', '<a-r>', indents.diag_down_in)
 
--- could be moved: q, r, s, u, z, x, m
-
-
--- Todo: functions and classes? and methods?
--- Todo: make a hierarchy of functions, classes and methods (like the file tree plugin)
--- Todo: make lua impl
 local function_picker = require('function_picker')
 vim.keymap.set('n', '<leader>su', function_picker.functions)
 
--- Session management
+--- *** Session Management ***
 local sessions = require('sessions')
 sessions.initialize()
 
@@ -543,8 +489,6 @@ vim.keymap.set('n', '<leader>qs', function()
   sessions.save_session()
   vim.cmd('qa')
 end)
-
-vim.keymap.set('n', '<leader>os', sessions.load_session)
 
 local session_group = vim.api.nvim_create_augroup("SessionManagement", { clear = true })
 -- Auto-save session
