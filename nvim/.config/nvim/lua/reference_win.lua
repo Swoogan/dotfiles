@@ -2,13 +2,31 @@ local M = {
   namespace_id = 55
 }
 
+--- Normalize the format of a path string
+--- @param path string # The path to normalize
+local function normalize(path)
+  local is_windows = vim.loop.os_uname().sysname == "Windows_NT"
+  local norm = vim.fs.normalize(path)
+  if is_windows then
+    return string.lower(norm)
+  end
+  return norm
+end
+
+---Return the buffer name as a normalized path
+---@param bufnr integer # The number of the buffer to return the normalized path for
+---@return string # The normalized path of the buffer
+local function get_normalized_buf_name(bufnr)
+  return normalize(vim.api.nvim_buf_get_name(bufnr))
+end
+
 ---Open the definition when only one window is open
 ---@param window integer # The window to open the definition in
 ---@param definition { col: integer, filename: string, lnum: integer } # The location of the definition
 local function single_window(window, definition)
   local bufnr = vim.api.nvim_win_get_buf(window)
-  local cur_file = string.lower(vim.fs.normalize(vim.api.nvim_buf_get_name(bufnr)))
-  local def_file = string.lower(vim.fs.normalize(definition.filename)) -- This is the filename coming from the LSP
+  local cur_file = get_normalized_buf_name(bufnr)
+  local def_file = normalize(definition.filename) -- This is the filename coming from the LSP
 
   if def_file == cur_file then
     vim.cmd.normal("m`")
@@ -29,8 +47,8 @@ end
 local function multiple_windows(windows, definition)
   local cur_win = vim.api.nvim_get_current_win()
   local cur_buf = vim.api.nvim_win_get_buf(cur_win)
-  local cur_file = string.lower(vim.fs.normalize(vim.api.nvim_buf_get_name(cur_buf)))
-  local def_file = string.lower(vim.fs.normalize(definition.filename)) -- This is the filename coming from the LSP
+  local cur_file = get_normalized_buf_name(cur_buf)
+  local def_file = normalize(definition.filename) -- This is the filename coming from the LSP
 
   if def_file == cur_file then
     vim.cmd.normal("m`")
@@ -40,9 +58,9 @@ local function multiple_windows(windows, definition)
 
   local done = false
   for _, window in pairs(windows) do
-    local buf = vim.api.nvim_win_get_buf(window)
-    local file = vim.api.nvim_buf_get_name(buf)
-    if def_file == string.lower(file) then
+    local bufnr = vim.api.nvim_win_get_buf(window)
+    local file = get_normalized_buf_name(bufnr)
+    if def_file == file then
       vim.cmd.normal("m`")
       vim.api.nvim_win_set_cursor(window, { definition.lnum, definition.col - 1 })
       done = true
