@@ -3,7 +3,7 @@ local M = {}
 
 ---Parse the Python stacktrace into entries
 ---@param stack_trace string
----@return { file: string, line: integer, description: string}
+---@return { file: string, line: integer, column: integer, description: string}
 M.parse_python_stack_trace = function(stack_trace)
   local lines = {}
   for line in stack_trace:gmatch("[^\r\n]+") do
@@ -28,7 +28,7 @@ end
 
 ---Parse a Lua stacktrace into entries
 ---@param stack_trace string
----@return { file: string, line: integer, description: string}
+---@return { file: string, line: integer, column: integer, description: string}
 M.parse_lua_stack_trace = function(stack_trace)
   local lines = vim.split(stack_trace, '\n')
 
