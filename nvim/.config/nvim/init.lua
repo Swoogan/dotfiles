@@ -11,34 +11,46 @@ require('reference_win').setup()
 
 -- *** CONFIG *** --
 
-local indent = 4
-local is_windows = vim.loop.os_uname().sysname == "Windows_NT"
+local indent           = 4
+local is_windows       = vim.loop.os_uname().sysname == "Windows_NT"
 
 -- Vim options
-vim.opt.termguicolors = true
-vim.opt.number = true             -- show the current line number (w/ relative on)
-vim.opt.relativenumber = true     -- show relative line numbers
-vim.opt.splitbelow = true         -- new horizontal windows appear on the bottom
-vim.opt.splitright = true         -- new vertical windows appear on the right
-vim.opt.smartindent = true
-vim.opt.cursorline = true         -- highlights current line
-vim.opt.smartcase = true          -- searching case insensitive unless mixed case
-vim.opt.ignorecase = true
-vim.opt.clipboard = 'unnamedplus' -- make the default yank register shared with + register
-vim.opt.wrap = false
-vim.opt.tabstop = indent
-vim.opt.softtabstop = indent
-vim.opt.shiftwidth = indent
-vim.opt.expandtab = true        -- converts tab presses to spaces
-vim.opt.inccommand = 'nosplit'  -- shows effects of substitutions
-vim.opt.mouse = 'a'             -- enable mouse usage
-vim.opt.shortmess = "IF"        -- disable the intro screen (display with `:intro`)
-vim.opt.signcolumn = 'auto:1-3' -- make the sign column have between 1 and 3 elements
-vim.opt.undofile = true         --Save undo history
-vim.opt.updatetime = 250        --Decrease update time
-vim.opt.scrolloff = 6
+vim.opt.termguicolors  = true
+vim.opt.number         = true          -- show the current line number (w/ relative on)
+vim.opt.relativenumber = true          -- show relative line numbers
+vim.opt.splitbelow     = true          -- new horizontal windows appear on the bottom
+vim.opt.splitright     = true          -- new vertical windows appear on the right
+vim.opt.smartindent    = true
+vim.opt.cursorline     = true          -- highlights current line
+vim.opt.smartcase      = true          -- searching case insensitive unless mixed case
+vim.opt.ignorecase     = true
+vim.opt.clipboard      = 'unnamedplus' -- make the default yank register shared with + register
+vim.opt.wrap           = false
+vim.opt.tabstop        = indent
+vim.opt.softtabstop    = indent
+vim.opt.shiftwidth     = indent
+vim.opt.expandtab      = true       -- converts tab presses to spaces
+vim.opt.inccommand     = 'nosplit'  -- shows effects of substitutions
+vim.opt.mouse          = 'a'        -- enable mouse usage
+vim.opt.shortmess      = "IF"       -- disable the intro screen (display with `:intro`)
+vim.opt.signcolumn     = 'auto:1-3' -- make the sign column have between 1 and 3 elements
+vim.opt.undofile       = true       --Save undo history
+vim.opt.updatetime     = 250        --Decrease update time
+vim.opt.scrolloff      = 6
 vim.opt.sessionoptions = "buffers,curdir,folds,help,tabpages,winsize,terminal"
-vim.opt.shada = "'100,f1,<50,:100,/100,h"
+vim.opt.shada          = "'100,f1,<50,:100,/100,h"
+
+-- Use pwsh as "shell"
+if is_windows then
+  vim.opt.shell        = 'pwsh'
+  vim.opt.shellcmdflag =
+  '-NoLogo -NonInteractive -Command $PSStyle.OutputRendering = [System.Management.Automation.OutputRendering]::PlainText;'
+  vim.opt.shellredir   = '2>&1 | %%{ "$_" } | Out-File %s; exit $LastExitCode'
+  vim.opt.shellpipe    = '2>&1 | %%{ "$_" } | Tee-Object %s; exit $LastExitCode'
+  vim.opt.shellquote   = ''
+  vim.opt.shellxquote  = ''
+end
+
 
 -- experimental
 vim.opt.jumpoptions = 'stack'
@@ -143,7 +155,7 @@ vim.keymap.set('n', '<leader>,', '<cmd>b#<CR>', opts)
 vim.keymap.set('n', '<leader>bq', '<cmd>b#|bd#<CR>', opts)
 
 -- Open Blender (this should be moved to a local file)
-vim.keymap.set('n', '<leader>ob', '<cmd>!pwsh -nologo -c Start-Blender<CR><CR>', opts)
+vim.keymap.set('n', '<leader>ob', '<cmd>!Start-Blender<CR>', opts)
 
 -- quickfix hotkeys
 vim.keymap.set('n', '<leader>qc', '<cmd>cclose<CR>', opts)
@@ -179,10 +191,6 @@ vim.keymap.set('n', '<leader>tp', '<cmd>tabprevious<cr>', opts)
 
 -- Edit vim config in split
 vim.keymap.set('n', '<leader>ec', '<cmd>vsplit $MYVIMRC<cr>', opts)
-
--- Remap keys in terminal mode
-vim.keymap.set('t', '<esc>', '<c-\\><c-n>', opts)
-vim.keymap.set('t', '<c-v><esc>', '<esc>', opts)
 
 -- Nvim Tree
 vim.keymap.set('n', '<c-n>', '<cmd>NvimTreeToggle<cr>', opts)
@@ -392,19 +400,15 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.keymap.set('n', '<leader>bb', require('rust_mono').build, opts)
     vim.keymap.set('n', '<leader>br', require('rust_mono').run, opts)
     vim.keymap.set('n', '<leader>bc', '<cmd>make clippy|cwindow<cr>', opts)
-  end,
-})
 
--- *** Rust (cont) *** --
--- TODO: should be FileType event?
-vim.api.nvim_create_autocmd("LspAttach", {
-  group = vim.api.nvim_create_augroup("RustSpecific", { clear = true }),
-  pattern = "*.rs",
-  callback = function()
     -- create debugging print statement
     vim.keymap.set('n', '<leader>pd', require('print_debug').print_rust, opts)
   end,
 })
+
+-- *** Terminal ***
+-- launch a terminal
+vim.keymap.set('n', '<leader>t', '<cmd>10split|term<Cr>a', opts)
 
 -- Hide exit code on terminal close
 vim.api.nvim_create_autocmd("TermClose", {
@@ -412,14 +416,12 @@ vim.api.nvim_create_autocmd("TermClose", {
   callback = function() vim.cmd([[if !v:event.status | exe 'bdelete! '..expand('<abuf>') | endif]]) end,
 })
 
--- *** MISCELLANEOUS *** --
+-- Remap keys in terminal mode
+vim.keymap.set('t', '<esc>', '<c-\\><c-n>', opts)
+vim.keymap.set('t', '<c-v><esc>', '<esc>', opts)
 
--- launch a terminal
-if is_windows then
-  vim.keymap.set('n', '<leader>t', '<cmd>10split|term pwsh -NoLogo<Cr>a', opts)
-else
-  vim.keymap.set('n', '<leader>t', '<cmd>10split|term<Cr>a', opts)
-end
+
+-- *** MISCELLANEOUS *** --
 
 -- diff a file against the unchanged state
 vim.api.nvim_create_user_command('DiffOrig', function()
