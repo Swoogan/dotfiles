@@ -305,13 +305,23 @@ vim.api.nvim_create_autocmd('BufRead', {
 })
 
 -- Set background colour for help
+local reference_colours = vim.api.nvim_create_augroup("ReferenceColours", { clear = true })
 vim.api.nvim_create_autocmd("FileType", {
-  group = vim.api.nvim_create_augroup("ReferenceColours", { clear = true }),
+  group = reference_colours,
   pattern = { "help" },
   callback = function()
     vim.api.nvim_win_set_hl_ns(0, require('reference_win').namespace_id)
   end,
 })
+
+-- Clear reference window background colour on insert
+vim.api.nvim_create_autocmd({ "InsertEnter" }, {
+  group = reference_colours,
+  callback = function()
+    vim.api.nvim_win_set_hl_ns(0, 0)
+  end,
+})
+
 
 -- Set indentation to 2 for lua and html
 vim.api.nvim_create_autocmd("FileType", {
