@@ -241,12 +241,18 @@ M.spec = {
     config = function()
       local telescope = require("telescope")
       local builtin = require("telescope.builtin")
+      local actions = require("telescope.actions")
 
       telescope.setup {
         defaults = {
           file_ignore_patterns = { "__pycache__" },
           -- path_display = { shorten = { len = 1, exclude = { -1, -2 } } }
-          path_display = { "truncate" }
+          path_display = { "truncate" },
+          mappings = {
+            i = {
+              ["<CR>"] = actions.select_default + actions.center
+            }
+          }
         },
       }
 
@@ -258,10 +264,7 @@ M.spec = {
         opts)
       vim.keymap.set('n', '<leader>sb', builtin.current_buffer_fuzzy_find, opts)
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, opts)
-      vim.keymap.set('n', '<leader>sg', function()
-        builtin.live_grep()
-        vim.cmd.normal('zz')
-      end, opts)
+      vim.keymap.set('n', '<leader>sg', builtin.live_grep, opts)
       vim.keymap.set('n', '<leader>sd', builtin.grep_string, opts)
       vim.keymap.set('n', '<leader>sc', builtin.command_history, opts)
       vim.keymap.set('n', '<leader>ss', builtin.search_history, opts)

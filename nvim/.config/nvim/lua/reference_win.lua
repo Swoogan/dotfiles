@@ -95,7 +95,7 @@ M.on_list = function(def_list)
   if #def_list > 1 then
     -- double call to lsp :(
     require('telescope.builtin').lsp_definitions()
-  else
+  elseif #def_list == 1 then
     local tabnr = vim.api.nvim_get_current_tabpage()
     local windows = vim.api.nvim_tabpage_list_wins(tabnr)
     local item = def_list['items'][1]
@@ -104,6 +104,7 @@ M.on_list = function(def_list)
     else
       multiple_windows(windows, item)
     end
+    vim.cmd.normal("zz")
   end
 end
 
