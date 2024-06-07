@@ -1,5 +1,5 @@
 local M = {
-  namespace_id = 55
+  namespace_id = 1000
 }
 
 --- Normalize the format of a path string
