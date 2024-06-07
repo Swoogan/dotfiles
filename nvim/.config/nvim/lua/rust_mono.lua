@@ -45,7 +45,7 @@ local function show_errors(_, output)
 
     if #entries > 0 then
       vim.fn.setqflist(entries)
-      vim.cmd("copen")
+      vim.cmd("botright cwindow")
     else
       vim.api.nvim_echo({ { "Cargo command successful", 'MsgArea' } }, true, {})
       vim.cmd("cclose")
