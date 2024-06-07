@@ -67,13 +67,16 @@ M.setup = function()
     -- Mappings.
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
     vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
-    vim.keymap.set('n', 'gd', function() vim.lsp.buf.definition({ on_list = require('reference_win').on_list }) end,
-      bufopts)
+    vim.keymap.set('n', 'gd', function()
+      vim.lsp.buf.definition({ on_list = require('reference_win').on_list })
+      vim.cmd.normal("zz")
+    end, bufopts)
     vim.keymap.set('n', 'gi', require('telescope.builtin').lsp_incoming_calls, bufopts)
     vim.keymap.set('n', 'go', require('telescope.builtin').lsp_outgoing_calls, bufopts)
-    vim.keymap.set('n', 'gr',
-      function() require('telescope.builtin').lsp_references({ path_display = { "tail" } }) end
-      , bufopts)
+    vim.keymap.set('n', 'gr', function()
+      vim.cmd.normal("m'")
+      require('telescope.builtin').lsp_references({ path_display = { "tail" } })
+    end, bufopts)
     vim.keymap.set('n', 'gt', require('telescope.builtin').lsp_type_definitions, bufopts)
 
     vim.keymap.set('n', '<leader>lh', vim.lsp.buf.hover, bufopts)
