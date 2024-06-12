@@ -318,7 +318,10 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.api.nvim_create_autocmd({ "InsertEnter" }, {
   group = reference_colours,
   callback = function()
-    vim.api.nvim_win_set_hl_ns(0, 0)
+    local winnr = vim.api.nvim_get_current_win()
+    if require('reference_win').is_references_win(winnr) then
+      require('reference_win').clear_reference_state(winnr)
+    end
   end,
 })
 
