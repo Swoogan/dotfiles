@@ -1,5 +1,6 @@
 local M = {
-  namespace_id = 1000
+  namespace_id = 1000,
+  win_var = "references"
 }
 
 --- Normalize the format of a path string
@@ -35,7 +36,7 @@ local function single_window(window, definition)
     vim.cmd.vsplit()
     vim.cmd.edit(definition.filename)
     local new_win = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_set_var(new_win, "references", true)
+    vim.api.nvim_win_set_var(new_win, M.win_var, true)
     vim.api.nvim_win_set_cursor(new_win, { definition.lnum, definition.col - 1 })
     vim.api.nvim_win_set_hl_ns(new_win, M.namespace_id)
   end
@@ -66,7 +67,7 @@ local function multiple_windows(windows, definition)
       done = true
       break
     end
-    local ok, refs = pcall(vim.api.nvim_win_get_var, window, "references")
+    local ok, refs = pcall(vim.api.nvim_win_get_var, window, M.win_var)
     if ok and refs then
       vim.api.nvim_set_current_win(window)
       vim.cmd.edit(def_file)
@@ -80,7 +81,7 @@ local function multiple_windows(windows, definition)
     vim.cmd.vsplit()
     vim.cmd.edit(def_file)
     local new_win = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_set_var(new_win, "references", true)
+    vim.api.nvim_win_set_var(new_win, M.win_var, true)
     vim.api.nvim_win_set_cursor(new_win, { definition.lnum, definition.col - 1 })
     vim.api.nvim_win_set_hl_ns(new_win, M.namespace_id)
   end
@@ -95,7 +96,7 @@ M.on_list = function(def_list)
   if #def_list > 1 then
     -- double call to lsp :(
     require('telescope.builtin').lsp_definitions()
-  elseif #def_list == 1 then
+  else
     local tabnr = vim.api.nvim_get_current_tabpage()
     local windows = vim.api.nvim_tabpage_list_wins(tabnr)
     local item = def_list['items'][1]
@@ -104,8 +105,20 @@ M.on_list = function(def_list)
     else
       multiple_windows(windows, item)
     end
-    vim.cmd.normal("zz")
   end
+  vim.cmd.normal("zz")
+end
+
+M.is_references_win = function(winnr)
+  winnr = winnr or 0
+  local success, result = pcall(vim.api.nvim_win_get_var, winnr, M.win_var)
+  return success and result
+end
+
+M.clear_reference_state = function(winnr)
+  winnr = winnr or 0
+  vim.api.nvim_win_set_hl_ns(winnr, 0)
+  vim.api.nvim_win_set_var(winnr, M.win_var, false)
 end
 
 return M
