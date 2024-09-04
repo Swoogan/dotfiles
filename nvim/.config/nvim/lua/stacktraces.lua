@@ -3,7 +3,7 @@ local M = {}
 
 ---Parse the Python stacktrace into entries
 ---@param stack_trace string
----@return { file: string, line: integer, column: integer, description: string}
+---@return { file: string, line: integer, column: integer, description: string, type: string}
 M.parse_python_stack_trace = function(stack_trace)
   local lines = {}
   for line in stack_trace:gmatch("[^\r\n]+") do
@@ -16,7 +16,7 @@ M.parse_python_stack_trace = function(stack_trace)
     local file, line_number = lines[i]:match('File "(.-)", line (%d+)')
     if file and line_number then
       local description = lines[i + 1]
-      table.insert(results, 1, { file = file, line = tonumber(line_number), description = description })
+      table.insert(results, 1, { file = file, line = tonumber(line_number), description = description, type = "E" })
     end
     i = i + 1
   end
@@ -28,7 +28,7 @@ end
 
 ---Parse a Lua stacktrace into entries
 ---@param stack_trace string
----@return { file: string, line: integer, column: integer, description: string}
+---@return { file: string, line: integer, column: integer, description: string, type: string}
 M.parse_lua_stack_trace = function(stack_trace)
   local lines = vim.split(stack_trace, '\n')
 
@@ -37,7 +37,8 @@ M.parse_lua_stack_trace = function(stack_trace)
   for _, line in ipairs(lines) do
     local file, line_number, description = line:match("([^:]+):(%d+):%s(.+)")
     if file and line_number and description then
-      table.insert(results, { file = file:gsub("%s", ""), line = tonumber(line_number), description = description })
+      table.insert(results,
+        { file = file:gsub("%s", ""), line = tonumber(line_number), description = description, type = "E" })
     end
   end
 
