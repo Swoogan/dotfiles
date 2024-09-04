@@ -315,7 +315,7 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- Clear reference window background colour on insert
-vim.api.nvim_create_autocmd({ "InsertEnter" }, {
+vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
   group = reference_colours,
   callback = function()
     local winnr = vim.api.nvim_get_current_win()
