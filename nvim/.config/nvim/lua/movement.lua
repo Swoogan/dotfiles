@@ -110,7 +110,7 @@ M.backward_word = function()
   local reversed_line = string.reverse(line_content)
   local reversed_cnum = #line_content - cnum
 
-  -- Test if the character is a digit
+  -- Test if the character is a char
   if is_char(reversed_line, reversed_cnum - 1) then
     -- Find the next column without a character or digit
     local first_non = next_non_char(reversed_line, reversed_cnum)
@@ -127,8 +127,20 @@ M.backward_word = function()
   end
 
   -- Find the next column without a character or digit
-  local first_non = next_non_char(reversed_line, reversed_cnum)
+  local next = next_char(reversed_line, reversed_cnum - 1)
+  if next == reversed_cnum + 1 then
+    local first_non = next_non_char(reversed_line, next)
+    if first_non == nil then
+      vim.api.nvim_win_set_cursor(winnr, { lnum, 0 })
+      return
+    else
+      local new_cnum = #line_content - (first_non - 1)
+      vim.api.nvim_win_set_cursor(winnr, { lnum, new_cnum })
+      return
+    end
+  end
 
+  local first_non = next_non_char(reversed_line, reversed_cnum)
   if first_non == nil then
     vim.api.nvim_win_set_cursor(winnr, { lnum, 0 })
     return
