@@ -216,10 +216,10 @@ vim.keymap.set('n', 'b', movement.backward_word, opts)
 vim.keymap.set('n', 'e', movement.forward_end_word, opts)
 
 -- Stacktrace explorer
-vim.keymap.set('n', '<leader>es', require('stacktraces').stacktrace_to_qflist)
+vim.keymap.set('n', '<leader>es', require('stacktraces').stacktrace_to_qflist, opts)
 
 -- Perforce open file picker
-vim.keymap.set('n', '<leader>sp', require('perforce_picker').opened)
+vim.keymap.set('n', '<leader>sp', require('perforce_picker').opened, opts)
 
 
 -- *** AUTOGROUPS *** --
@@ -486,6 +486,14 @@ end
 
 vim.keymap.set({ 'n' }, '<A-w>', print_win_filenames, opts)
 vim.keymap.set({ 'n' }, '<A-b>', require('buffers').close_unused_buffers, opts)
+
+-- Perforce open file picker
+vim.keymap.set('n', '<leader>cp', function()
+  local path = get_win_filename(0)
+  local lnum, _ = unpack(vim.api.nvim_win_get_cursor(0))
+  local location = path .. ":" .. lnum
+  vim.cmd([[let @*=']] .. location .. [[']])
+end, opts)
 
 -- *** Setup Signs ***
 local sign_marks = require('signs')
