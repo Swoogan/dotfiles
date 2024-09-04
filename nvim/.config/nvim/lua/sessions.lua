@@ -76,6 +76,11 @@ M.save_session = function()
 end
 
 M.load_session = function()
+  -- turn off session loading when diffing
+  if vim.opt.diff:get() then
+    return
+  end
+
   local focus = nil
   if vim.fn.argc() > 0 then
     focus = vim.fn.argv()[1]
