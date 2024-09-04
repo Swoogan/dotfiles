@@ -81,7 +81,7 @@ end
 
 
 ---Converts parsed errors to quickfix entries
----@param parsed_results { file: string, line: integer, column: integer, description: string}
+---@param parsed_results { file: string, line: integer, column: integer, description: string, type: string}
 ---@return { lnum: integer, type: string, filename: string, text: string}
 M.create_qf_entries = function(parsed_results)
   local entries = {}
@@ -89,7 +89,7 @@ M.create_qf_entries = function(parsed_results)
   for _, result in ipairs(parsed_results) do
     table.insert(entries, {
       lnum = result.line, -- Line number
-      type = "E", -- Error type
+      type = result.type, -- Error type
       filename = result.file,
       text = result.description
     })
