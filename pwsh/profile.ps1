@@ -97,6 +97,10 @@ function Get-Environment {
     Get-ChildItem env:\
 }
 
+function Get-Path {
+    Get-Environment | Where-Object name -eq path | Select-Object -ExpandProperty value | ForEach-Object { $_ -split ";" }
+}
+
 function Set-Environment {
     [CmdletBinding()]
     param (
@@ -121,7 +125,7 @@ function Invoke-NvimQt {
 }
 
 function Edit-Profile {
-    nvim-qt --maximized $HOME/Documents/Powershell/profile.ps1
+    nvim $HOME/Documents/Powershell/profile.ps1
 }
 
 function Read-Profile {
@@ -187,6 +191,55 @@ function Set-Development ([string]$location) {
     }
 }
 
+function Edit-Line {
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline)]
+        [string[]]
+        $Line
+    )
+
+    process {
+        $parts = $Line -split ":" | Select-Object -First 2
+        $parts[1] = "+{0}" -f $parts[1]
+        nvim $parts
+    }
+}
+
+function Edit-All {
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline)]
+        [string]
+        $InputObject
+    )
+
+    process {
+        nvim $InputObject
+    }
+}
+
+function Select-RuffFiles {
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline)]
+        [string]
+        $InputObject,
+        [string]
+        $SkipLast = 1
+    )
+
+    begin {
+        $allInputs = @()
+    }
+
+    process {
+        $allInputs += $InputObject
+    }
+
+    end {
+        $allInputs | Select-Object -SkipLast $SkipLast | ForEach-Object {
+            $_ -split ":" | Select-Object -First 1 
+        } | Sort-Object -Unique | Write-Output
+    }
+}
 
 #######################
 ### Aliases
@@ -197,6 +250,7 @@ Set-Alias ep Edit-Profile
 Set-Alias spp Read-Profile
 Set-Alias rc Reset-Colors
 Set-Alias env Get-Environment
+Set-Alias path Get-Path
 Set-Alias rmr Remove-ItemsRecursive
 Set-Alias dev Set-Development
 Set-Alias ll Get-ChildItem
@@ -216,3 +270,5 @@ $perforce = "$($Env:DEV_HOME)\dotfiles\perforce\perforce.ps1"
 if (Test-Path $perforce) {
     . $perforce
 }
+
+$PSStyle.FileInfo.Directory = "`e[34m"
