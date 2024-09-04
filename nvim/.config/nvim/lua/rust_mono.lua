@@ -9,7 +9,9 @@ local function parse_output(lines)
   local results = {}
 
   for _, line in ipairs(lines) do
-    local file_path, line_number, column_number, description = line:match("^(.*):(%d+):(%d+):%s*(.*)$")
+    local file_path, line_number, column_number, msg_level, description = line:match(
+      "^(.*):(%d+):(%d+):%s([^:]+):(.*)$"
+    )
     if file_path and line_number and column_number then
       local overlap = cwd:match("([^\\]-\\[^\\]-)$")
 
@@ -17,11 +19,17 @@ local function parse_output(lines)
         file_path = file_path:gsub("^" .. overlap .. "\\", "")
       end
 
+      local level = "E"
+      if vim.startswith(msg_level, "warning") then
+        level = "W"
+      end
+
       table.insert(results, {
         file = file_path:gsub("%s", ""),
         line = tonumber(line_number),
         column = tonumber(column_number),
-        description = description
+        description = description,
+        type = level
       })
     end
   end
