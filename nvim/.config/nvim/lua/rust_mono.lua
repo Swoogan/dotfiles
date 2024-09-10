@@ -41,7 +41,7 @@ end
 local function save_buffer()
   local bufnr = vim.api.nvim_get_current_buf()
   if vim.api.nvim_buf_get_option(bufnr, 'modified') then
-    vim.api.nvim_command('write')
+    vim.cmd('write')
   end
 end
 

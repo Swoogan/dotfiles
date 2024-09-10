@@ -88,12 +88,12 @@ end
 vim.o.completeopt = 'menu,menuone,noselect'
 
 -- treat - seperated words as a word object
-vim.api.nvim_exec2([[ set iskeyword+=- ]], { output = false })
+vim.cmd([[ set iskeyword+=- ]])
 -- treat _ seperated words as a word object
-vim.api.nvim_exec2([[ set iskeyword+=_ ]], { output = false })
+vim.cmd([[ set iskeyword+=_ ]])
 
 -- Add cute icons for the left margin
-local signs = { Error = '', Warn = '', Hint = '', Info = '' }
+local signs = { Error = '', Warn = '', Hint = '', Info = '' }
 for type, icon in pairs(signs) do
   local hl = "DiagnosticSign" .. type
   vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
@@ -464,7 +464,8 @@ end, {})
 
 -- redirect command output to a buffer
 vim.api.nvim_create_user_command('Redir', function(ctx)
-  local lines = vim.split(vim.api.nvim_exec(ctx.args, true), '\n', { plain = true })
+  local result = vim.api.nvim_exec2(ctx.args, { output = true })
+  local lines = vim.split(result.output, '\r?\n')
   vim.cmd('enew')
   vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
   vim.opt_local.modified = false
