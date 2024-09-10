@@ -54,24 +54,20 @@ local function next_non_char(content, cnum)
   return string.find(content, '[^' .. M.word_match .. ']', cnum + 1)
 end
 
---- Find the next token
---- @param content string Text to search in
---- @param cnum integer Starting position
---- @return integer|nil Location of the token if found
 local function next_token(content, cnum)
   -- Find the next column without a character or digit
-  local next = next_non_char(content, cnum)
-  if next == nil then
+  cnum = next_non_char(content, cnum)
+  if cnum == nil then
     return nil
   end
 
   -- Find the next column with a character or a digit
-  next = next_char(content, cnum)
-  if next == nil then
+  cnum = next_char(content, cnum)
+  if cnum == nil then
     return nil
   end
 
-  return next - 1
+  return cnum - 1
 end
 
 local function curr_char(content, cnum)
@@ -90,19 +86,19 @@ local function get_line(lnum)
   return vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, false)[1]
 end
 
---- Move to the beginning of the current/next word
+---Move to the beginning of the current/next word
 M.forward_word = function()
   local winnr = vim.api.nvim_get_current_win()
   local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(winnr))
   local line_content = get_line(lnum)
 
   -- Find the start of the next word
-  local next = next_token(line_content, cnum)
-  if next == nil then
+  cnum = next_token(line_content, cnum)
+  if cnum == nil then
     return
   end
 
-  vim.api.nvim_win_set_cursor(winnr, { lnum, next })
+  vim.api.nvim_win_set_cursor(winnr, { lnum, cnum })
 end
 
 ---Move to the beginning of the current/previous word
