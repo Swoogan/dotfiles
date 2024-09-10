@@ -6,7 +6,7 @@ local M = {
 --- Normalize the format of a path string
 --- @param path string # The path to normalize
 local function normalize(path)
-  local is_windows = vim.loop.os_uname().sysname == "Windows_NT"
+  local is_windows = vim.uv.os_uname().sysname == "Windows_NT"
   local norm = vim.fs.normalize(path)
   if is_windows then
     return string.lower(norm)

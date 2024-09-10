@@ -196,7 +196,7 @@ M.spec = {
           {
             {
               name = 'nvim_lsp',
-              entry_filter = function(entry, ctx)
+              entry_filter = function(entry, _ctx)
                 local match = string.match(entry:get_word(), '__(%w+)__')
                 return match == nil
               end
@@ -329,7 +329,7 @@ M.spec = {
       -- Add: Press sa{motion/textobject}{addition}. For example, a key sequence saiw( makes foo to (foo).
       -- Delete: Press sdb or sd{deletion}. For example, key sequences sdb or sd( makes (foo) to foo. sdb searches a set of surrounding automatically.
       -- Replace: Press srb{addition} or sr{deletion}{addition}. For example, key sequences srb" or sr(" makes (foo) to "foo".
-      vim.api.nvim_exec([[ let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes) ]], false)
+      vim.api.nvim_exec2([[ let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes) ]], { output = false })
     end
   },
   {
@@ -356,24 +356,26 @@ M.spec = {
   { "AndrewRadev/tagalong.vim", ft = "html" },
 }
 
+--- Bootstrap lazy.nvim
 function M.init()
-  -- Install lazy.nvim if necessary
-
   local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-  if not vim.loop.fs_stat(lazypath) then
-    vim.fn.system({
-      "git",
-      "clone",
-      "--filter=blob:none",
-      "https://github.com/folke/lazy.nvim.git",
-      "--branch=stable", -- latest stable release
-      lazypath,
-    })
+  if not vim.uv.fs_stat(lazypath) then
+    local lazyrepo = "https://github.com/folke/lazy.nvim.git"
+    local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+    if vim.v.shell_error ~= 0 then
+      vim.api.nvim_echo({
+        { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
+        { out,                            "WarningMsg" },
+        { "\nPress any key to exit..." },
+      }, true, {})
+      vim.fn.getchar()
+      os.exit(1)
+    end
   end
   vim.opt.rtp:prepend(lazypath)
 end
 
--- Configure Lazy
+--- Setup lazy.nvim
 function M.load()
   require("lazy").setup({
     spec = M.spec,

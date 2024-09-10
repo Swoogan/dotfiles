@@ -12,7 +12,7 @@ require('reference_win').setup()
 -- *** CONFIG *** --
 
 local indent           = 4
-local is_windows       = vim.loop.os_uname().sysname == "Windows_NT"
+local is_windows       = vim.uv.os_uname().sysname == "Windows_NT"
 
 -- Vim options
 vim.opt.termguicolors  = true
@@ -88,9 +88,9 @@ end
 vim.o.completeopt = 'menu,menuone,noselect'
 
 -- treat - seperated words as a word object
-vim.api.nvim_exec([[ set iskeyword+=- ]], false)
+vim.api.nvim_exec2([[ set iskeyword+=- ]], { output = false })
 -- treat _ seperated words as a word object
-vim.api.nvim_exec([[ set iskeyword+=_ ]], false)
+vim.api.nvim_exec2([[ set iskeyword+=_ ]], { output = false })
 
 -- Add cute icons for the left margin
 local signs = { Error = '', Warn = '', Hint = '', Info = '' }

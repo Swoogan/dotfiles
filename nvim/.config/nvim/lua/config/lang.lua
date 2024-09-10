@@ -30,15 +30,9 @@ M.setup = function()
     },
     severity_sort = true,
     float = {
-      source = "always", -- Or "if_many"
+      source = true, -- Or "if_many"
     },
   })
-
-  local code_action_func = function()
-    vim.lsp.buf.code_action({
-      filter = function(client) return client.name ~= "pyright" end
-    })
-  end
 
   vim.api.nvim_create_autocmd('LspAttach', {
     pattern = "*.py",
@@ -54,16 +48,16 @@ M.setup = function()
         },
         severity_sort = true,
         float = {
-          source = "always", -- Or "if_many"
+          source = true, -- Or "if_many"
         },
       })
     end,
   })
 
   local on_attach = function(_, bufnr)
-    --Enable completion triggered by <c-x><c-o>
-    vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
-
+    -- Todo: use mappings from
+    -- https://neovim.io/doc/user/lsp.html#lsp-quickstart
+    -- Also use `client.supports_method('...')` guards from there
     -- Mappings.
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
     vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
@@ -82,7 +76,7 @@ M.setup = function()
     vim.keymap.set('n', '<leader>ls', vim.lsp.buf.signature_help, bufopts)
     vim.keymap.set('n', '<leader>lf', function() vim.lsp.buf.format({ async = true }) end, bufopts)
     vim.keymap.set('n', '<leader>lr', vim.lsp.buf.rename, bufopts)
-    vim.keymap.set('n', '<leader>lc', code_action_func, bufopts)
+    vim.keymap.set('n', '<leader>lc', vim.lsp.buf.code_action, bufopts)
     vim.keymap.set('n', '<leader>li', require('telescope.builtin').lsp_implementations, bufopts)
   end
 
@@ -99,7 +93,7 @@ M.setup = function()
 
   -- Use a loop to conveniently call 'setup' on multiple servers and
   -- map buffer local keybindings when the language server attaches
-  local servers = { "tsserver", "clangd" }
+  local servers = { "ts_ls", "clangd" }
   for _, lsp in ipairs(servers) do
     nvim_lsp[lsp].setup {
       capabilities = capabilities,
@@ -118,6 +112,9 @@ M.setup = function()
         client.server_capabilities.renameProvider = false
         client.handlers["textDocument/publishDiagnostics"] = function(...) end
         on_attach(client, buffer)
+      end,
+      root_dir = function()
+        return vim.fn.getcwd()
       end,
       settings = {
         python = {
@@ -206,24 +203,33 @@ M.setup = function()
     nvim_lsp['lua_ls'].setup {
       on_init = function(client)
         local path = client.workspace_folders[1].name
-        if not vim.loop.fs_stat(path .. '/.luarc.json') and not vim.loop.fs_stat(path .. '/.luarc.jsonc') then
-          client.config.settings = vim.tbl_deep_extend('force', client.config.settings, {
-            Lua = {
-              runtime = {
-                version = 'LuaJIT'
+        if not vim.uv.fs_stat(path .. '/.luarc.json') and not vim.uv.fs_stat(path .. '/.luarc.jsonc') then
+          client.config.settings.Lua = vim.tbl_deep_extend('force', client.config.settings.Lua, {
+            runtime = {
+              version = 'LuaJIT'
+            },
+            diagnostics = {
+              -- Get the language server to recognize the `vim` global
+              globals = {
+                'vim',
+                'require'
               },
-              -- Make the server aware of Neovim runtime files
-              workspace = {
-                checkThirdParty = false,
-                library = { vim.env.VIMRUNTIME }
-              }
+            },
+            -- Make the server aware of Neovim runtime files
+            workspace = {
+              checkThirdParty = false,
+              library = { vim.env.VIMRUNTIME }
             }
-          })
+          }
+          )
 
           client.notify("workspace/didChangeConfiguration", { settings = client.config.settings })
         end
         return true
       end,
+      settings = {
+        Lua = {}
+      },
       cmd = { lua_language_server },
       capabilities = capabilities,
       on_attach = on_attach,
