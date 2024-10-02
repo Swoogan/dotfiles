@@ -1,5 +1,6 @@
 local M = {
-  data_dir = vim.fn.expand(vim.fn.stdpath("state") .. "/sessions/")
+  data_dir = vim.fn.expand(vim.fn.stdpath("state") .. "/sessions/"),
+  session_set = false
 }
 
 local data_file = "sessions.data"
@@ -81,10 +82,21 @@ M.load_session = function()
     return
   end
 
+  if M.session_set then
+    return
+  end
+
+  -- if v:vim_did_enter
+  --   call s:init()
+  -- else
+  --   au VimEnter * call s:init()
+  -- endif
+
   local focus = nil
   if vim.fn.argc() > 0 then
     focus = vim.fn.argv()[1]
   end
+
   local dir = vim.fn.getcwd()
   local data = read_data()
   if data[dir] ~= nil then
@@ -92,30 +104,87 @@ M.load_session = function()
     local filepath = M.data_dir .. file
     vim.cmd('source ' .. filepath)
   end
+
   if focus ~= nil then
     local bufnr = vim.fn.bufnr(focus, true)
     vim.api.nvim_win_set_buf(0, bufnr)
     -- also consider just not doing the session restore
   end
+
+  M.session_set = true
 end
 
+---@class SessionSubcommand
+---@field impl fun(args:string[], opts: table) The command implementation
+---@field complete? fun(subcmd_arg_lead: string): string[] (optional) Command completions callback, taking the lead of the subcommand's arguments
+
+---@type table<string, SessionSubcommand>
+local subcommand_tbl = {
+  track = {
+    impl = function(args, opts)
+      local dir = args[0]
+      if dir == nil then
+        dir = vim.fn.getcwd()
+      end
+      M.add_dir(dir)
+    end,
+    -- This subcommand has no completions
+  },
+  untrack = {
+    impl = function(args, opts)
+      local dir = args[0]
+      if dir == nil then
+        dir = vim.fn.getcwd()
+      end
+      M.remove_dir(dir)
+    end,
+    -- This subcommand has no completions
+  },
+}
+
+---@param opts table :h lua-guide-commands-create
+local function session_cmd(opts)
+  local fargs = opts.fargs
+  local subcommand_key = fargs[1]
+  -- Get the subcommand's arguments, if any
+  local args = #fargs > 1 and vim.list_slice(fargs, 2, #fargs) or {}
+  local subcommand = subcommand_tbl[subcommand_key]
+  if not subcommand then
+    vim.notify("SessionMan: Unknown command: " .. subcommand_key, vim.log.levels.ERROR)
+    return
+  end
+  -- Invoke the subcommand
+  subcommand.impl(args, opts)
+end
 
 M.initialize = function()
-  vim.api.nvim_create_user_command('SessionTrack', function(ctx)
-    local dir = ctx.args
-    if dir == '' then
-      dir = vim.fn.getcwd()
-    end
-    M.add_dir(dir)
-  end, { nargs = '?', complete = 'command' })
-
-  vim.api.nvim_create_user_command('SessionUntrack', function(ctx)
-    local dir = ctx.args
-    if dir == '' then
-      dir = vim.fn.getcwd()
-    end
-    M.remove_dir(dir)
-  end, { nargs = '?', complete = 'command' })
+  vim.api.nvim_create_user_command("SessionMan", session_cmd, {
+    nargs = "+",
+    desc = "Track sessions for certain folders",
+    complete = function(arg_lead, cmdline, _)
+      -- Get the subcommand.
+      local subcmd_key, subcmd_arg_lead = cmdline:match("^['<,'>]*SessionMan[!]*%s(%S+)%s(.*)$")
+      if subcmd_key
+          and subcmd_arg_lead
+          and subcommand_tbl[subcmd_key]
+          and subcommand_tbl[subcmd_key].complete
+      then
+        -- The subcommand has completions. Return them.
+        return subcommand_tbl[subcmd_key].complete(subcmd_arg_lead)
+      end
+      -- Check if cmdline is a subcommand
+      if cmdline:match("^['<,'>]*SessionMan[!]*%s+%w*$") then
+        -- Filter subcommands that match
+        local subcommand_keys = vim.tbl_keys(subcommand_tbl)
+        return vim.iter(subcommand_keys)
+            :filter(function(key)
+              return key:find(arg_lead) ~= nil
+            end)
+            :totable()
+      end
+    end,
+    bang = true, -- If you want to support ! modifiers
+  })
 end
 
 M.test = function()
