@@ -1,7 +1,11 @@
 local M = {
 }
 
-M.setup = function()
+M.setup = function(opts)
+  opts = opts or {
+    code_format = function() vim.lsp.buf.format({ async = true }) end
+  }
+
   -- turn off all code diagnostics when diffing
   if vim.opt.diff:get() then
     return
@@ -54,13 +58,12 @@ M.setup = function()
     end,
   })
 
-  local on_attach = function(_, bufnr)
-    -- Todo: use mappings from
-    -- https://neovim.io/doc/user/lsp.html#lsp-quickstart
-    -- Also use `client.supports_method('...')` guards from there
-    -- Mappings.
+  local on_attach = function(client, bufnr)
+    -- Mappings
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
-    vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
+    if client.supports_method('textDocument/declaration') then
+      vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
+    end
     vim.keymap.set('n', 'gd', function()
       vim.lsp.buf.definition({ on_list = require('reference_win').on_list })
     end, bufopts)
@@ -74,10 +77,12 @@ M.setup = function()
 
     vim.keymap.set('n', '<leader>lh', vim.lsp.buf.hover, bufopts)
     vim.keymap.set('n', '<leader>ls', vim.lsp.buf.signature_help, bufopts)
-    vim.keymap.set('n', '<leader>lf', function() vim.lsp.buf.format({ async = true }) end, bufopts)
+    vim.keymap.set('n', '<leader>lf', opts.code_format, bufopts)
     vim.keymap.set('n', '<leader>lr', vim.lsp.buf.rename, bufopts)
-    vim.keymap.set('n', '<leader>lc', vim.lsp.buf.code_action, bufopts)
     vim.keymap.set('n', '<leader>li', require('telescope.builtin').lsp_implementations, bufopts)
+    if client.supports_method('textDocument/codeAction') then
+      vim.keymap.set('n', '<leader>lc', vim.lsp.buf.code_action, bufopts)
+    end
   end
 
   local capabilities = require('cmp_nvim_lsp').default_capabilities()
@@ -91,13 +96,59 @@ M.setup = function()
     }
   }
 
+  local function run_clang_format(contents)
+    local clang_format = 'clang-format'
+    if vim.fn.executable(vim.env.CLANG_FORMAT or "") == 1 then
+      clang_format = vim.env.CLANG_FORMAT
+    end
+    local assume_file = "--assume-filename=" .. vim.fn.expand("%:p")
+    local cmd = vim.system({ clang_format, assume_file }, { stdin = true }, function(obj)
+      -- replace the buffer content with the command results
+      if obj.code == 0 then
+        vim.schedule(function()
+          local new_text = vim.split(obj.stdout, '\n')
+          vim.api.nvim_buf_set_lines(0, 0, -1, false, new_text)
+        end)
+      end
+    end)
+    cmd:write(contents)
+    cmd:write(nil)
+  end
+
   -- Use a loop to conveniently call 'setup' on multiple servers and
   -- map buffer local keybindings when the language server attaches
-  local servers = { "ts_ls", "clangd" }
+  -- local servers = { "ts_ls", "clangd" }
+  local servers = { "ts_ls" }
   for _, lsp in ipairs(servers) do
     nvim_lsp[lsp].setup {
       capabilities = capabilities,
       on_attach = on_attach,
+    }
+  end
+
+  if vim.fn.executable('clangd') == 1 then
+    nvim_lsp['clangd'].setup {
+      capabilities = capabilities,
+      on_attach = function(_, bufnr)
+        -- Todo: only set any of this up for work config
+        opts.code_format = function()
+          local pos = vim.api.nvim_win_get_cursor(0)
+
+          -- Get the current buffer data
+          local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+          local input_str = table.concat(lines, '\n')
+          run_clang_format(input_str)
+
+          vim.api.nvim_win_set_cursor(0, pos)
+        end
+        on_attach(_, bufnr)
+      end,
+      cmd = {
+        "clangd",
+        "--background-index",
+        "--background-index-priority=low",
+        "--clang-tidy",
+      },
     }
   end
 
@@ -220,8 +271,7 @@ M.setup = function()
               checkThirdParty = false,
               library = { vim.env.VIMRUNTIME }
             }
-          }
-          )
+          })
 
           client.notify("workspace/didChangeConfiguration", { settings = client.config.settings })
         end
