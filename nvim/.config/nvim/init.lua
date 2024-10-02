@@ -221,6 +221,8 @@ vim.keymap.set('n', '<leader>es', require('stacktraces').stacktrace_to_qflist, o
 -- Perforce open file picker
 vim.keymap.set('n', '<leader>sp', require('perforce_picker').opened, opts)
 
+-- C++ Toggle header
+vim.keymap.set('n', '<leader>gh', require('cpp').toggle_header, opts)
 
 -- *** AUTOGROUPS *** --
 
