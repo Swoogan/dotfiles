@@ -48,7 +48,7 @@ M.get_all = function()
 end
 
 ---Reset all marks for the current buffer
----@param placed_signs { bufnr: integer, signs: {id: integer, group: string, name: string, lnum: integer, cnum: integer} }[] # The signs for each buffer
+---@param placed_signs { bufnr: integer, signs: {id: integer, group: string, name: string, lnum: integer, cnum: integer}[] } # The signs for each buffer
 M.set_all = function(placed_signs)
   for _, placed_sign in pairs(placed_signs) do
     local bufnr = placed_sign.bufnr
