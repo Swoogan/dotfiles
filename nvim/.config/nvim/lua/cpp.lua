@@ -9,7 +9,7 @@ M.toggle_header = function()
 
   local cmd = { "fd", "--search-path=" .. up_one, header_pattern }
   vim.system(cmd, {}, function(obj)
-    -- replace the buffer content with the command results
+    -- Open the first matching header
     if obj.code == 0 then
       local lines = vim.split(obj.stdout, "\n")
       -- For now, just assume the first is correct

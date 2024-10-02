@@ -162,9 +162,6 @@ vim.keymap.set('n', '<leader>qc', '<cmd>cclose<CR>', opts)
 vim.keymap.set('n', '<leader>qn', '<cmd>cnext<CR>', opts)
 vim.keymap.set('n', '<leader>qp', '<cmd>cprev<CR>', opts)
 
--- Repeats the character under the cursor
-vim.keymap.set('n', '<leader>r', 'ylp', opts)
-
 -- Removes search highlighting
 vim.keymap.set('n', '<leader>nl', '<cmd>nohl<cr>', opts)
 -- Save file
@@ -221,8 +218,19 @@ vim.keymap.set('n', '<leader>es', require('stacktraces').stacktrace_to_qflist, o
 -- Perforce open file picker
 vim.keymap.set('n', '<leader>sp', require('perforce_picker').opened, opts)
 
--- C++ Toggle header
+-- C++
 vim.keymap.set('n', '<leader>gh', require('cpp').toggle_header, opts)
+
+-- Clean paths
+
+vim.keymap.set('v', '<leader>rs', function()
+  vim.cmd.normal(vim.keycode("<Esc>")) -- Need to do this so the visual marks are set
+  vim.cmd([[silent '<,'>s;\\\\;\\;g]])
+  vim.cmd([[silent '<,'>s;\\;/;g]])
+  -- set the cursor back to where we started the visual mark
+  local pos = vim.api.nvim_buf_get_mark(0, "<")
+  vim.api.nvim_win_set_cursor(0, pos)
+end, opts)
 
 -- *** AUTOGROUPS *** --
 
@@ -236,14 +244,12 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 
 local group = vim.api.nvim_create_augroup("NumberToggle", { clear = true })
 -- Turn on relativenumber for focused buffer
--- vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave" }, {
 vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "InsertLeave" }, {
   group = group,
   command = [[set relativenumber]]
 })
 
 -- Turn off relativenumber for unfocused buffers
--- vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter" }, {
 vim.api.nvim_create_autocmd({ "BufLeave", "WinLeave", "InsertEnter" }, {
   group = group,
   command = [[set norelativenumber]]
