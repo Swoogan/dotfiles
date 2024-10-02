@@ -332,7 +332,7 @@ M.spec = {
       vim.cmd([[ let g:sandwich#recipes = deepcopy(g:sandwich#default_recipes) ]])
     end
   },
-  {
+  { -- Fancier statusline
     "nvim-lualine/lualine.nvim",
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     event = "VeryLazy",
@@ -341,8 +341,8 @@ M.spec = {
         options = { theme = "nightfox" }
       }
     end
-  }, -- Fancier statusline
-  {
+  },
+  { -- Snippets plugin
     "L3MON4D3/LuaSnip",
     event = "InsertEnter",
     dependencies = {
@@ -352,7 +352,7 @@ M.spec = {
     config = function()
       require('config.snippets').setup()
     end
-  }, -- Snippets plugin,
+  },
   { "AndrewRadev/tagalong.vim", ft = "html" },
 }
 
