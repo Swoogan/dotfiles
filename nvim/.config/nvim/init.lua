@@ -154,8 +154,9 @@ vim.keymap.set('n', '<leader>,', '<cmd>b#<CR>', opts)
 -- Close current buffer and switch to last used
 vim.keymap.set('n', '<leader>bq', '<cmd>b#|bd#<CR>', opts)
 
--- Open Blender (this should be moved to a local file)
+-- Open Apps (these should be moved to a local file)
 vim.keymap.set('n', '<leader>ob', '<cmd>!Start-Blender<CR>', opts)
+vim.keymap.set('n', '<leader>oe', '<cmd>!Start-Editor<CR>', opts)
 
 -- quickfix hotkeys
 vim.keymap.set('n', '<leader>qc', '<cmd>cclose<CR>', opts)
@@ -219,7 +220,7 @@ vim.keymap.set('n', '<leader>es', require('stacktraces').stacktrace_to_qflist, o
 vim.keymap.set('n', '<leader>sp', require('perforce_picker').opened, opts)
 
 -- C++
-vim.keymap.set('n', '<leader>gh', require('cpp').toggle_header, opts)
+-- vim.keymap.set('n', '<leader>gh', require('cpp').toggle_header, opts)
 
 -- Clean paths
 
@@ -469,6 +470,25 @@ vim.keymap.set('t', '<c-v><esc>', '<esc>', opts)
 vim.api.nvim_create_user_command('DiffOrig', function()
   vim.cmd([[vertical new | set buftype=nofile | read # | 0d_ | diffthis | wincmd p | diffthis ]])
 end, {})
+
+-- Copy the full path of the current file to the clipboard
+vim.api.nvim_create_user_command('CopyPath', function()
+  vim.fn.setreg('+', vim.fn.expand('%:p'))
+end, {})
+
+-- Copy the full path of the current file to the clipboard
+vim.api.nvim_create_user_command('EditLine', function(ctx)
+  local file_with_line = ctx.args
+  if not file_with_line then
+    print("Error: must specify a file")
+  else
+    local parts = vim.split(file_with_line, ":")
+    local path = parts[1]
+    local line = parts[2]
+    vim.print(string.format("edit +%s %s", line, path))
+    vim.cmd(string.format("edit +%s %s", line, path))
+  end
+end, { nargs = 1, complete = 'file' })
 
 -- redirect command output to a buffer
 vim.api.nvim_create_user_command('Redir', function(ctx)
