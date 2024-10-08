@@ -130,14 +130,18 @@ M.setup = function(opts)
     nvim_lsp['clangd'].setup {
       capabilities = capabilities,
       on_attach = function(_, bufnr)
+        local bufopts = { noremap = true, silent = true, buffer = bufnr }
+        vim.keymap.set('n', 'gh', function() vim.cmd("ClangdSwitchSourceHeader") end, bufopts)
+        vim.keymap.set('n', '<leader>bb', require("cpp").build_editor, bufopts)
+
         -- Todo: only set any of this up for work config
         opts.code_format = function()
           local pos = vim.api.nvim_win_get_cursor(0)
 
           -- Get the current buffer data
           local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-          local input_str = table.concat(lines, '\n')
-          run_clang_format(input_str)
+          local contents = table.concat(lines, '\n')
+          run_clang_format(contents)
 
           vim.api.nvim_win_set_cursor(0, pos)
         end
