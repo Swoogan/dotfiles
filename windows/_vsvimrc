@@ -11,8 +11,8 @@ set clipboard=unnamed
 nmap ]m :vsc Edit.NextMethod<CR>
 nmap [m :vsc Edit.PreviousMethod<CR>
 
-nmap <C-o> :vsc View.NavigateBackward<CR>
-nmap <C-i> :vsc View.NavigateForward<CR>
+map <C-o> :vsc View.NavigateBackward<CR>
+map <C-i> :vsc View.NavigateForward<CR>
 
 map <Leader>nl :nohl<CR>
 map <Leader>w :w<CR>
