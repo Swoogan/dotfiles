@@ -32,6 +32,7 @@ map gcc :vsc Edit.ToggleLineComment<CR>
 map gd :vsc Edit.GotoDefinition<CR>
 map gD :vsc Edit.GotoDeclaration<CR>
 map gr :vsc Edit.FindAllReferences<CR>
+map gh :vsc EditorContextMenus.CodeWindow.ToggleHeaderCodeFile<CR>
 
 vmap gc :vsc Edit.ToggleLineComment<CR>
 
