@@ -90,67 +90,94 @@ end
 
 -- *** Diagonal movement ***
 
-local function find_next(type, direction)
-  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
-  local indent = vim.fn.indent(lnum)
-
+local function jump_block(direction, lnum, indent)
   while true do
-    lnum = lnum + direction
-    local ind = vim.fn.indent(lnum)
-
-    if ind == -1 then
-      break
+    local next = lnum + direction
+    if utils.is_empty(0, next) or vim.fn.indent(next) ~= indent then
+      return lnum
     end
-
-    if utils.is_empty(0, lnum) then
-      goto continue
-    end
-
-    local delta = ind - indent
-    -- vim.print("delta (112):", delta)
-    -- vim.print("lnum (113):", lnum)
-    if type == 'out' then
-      if delta <= 0 then
-        return { lnum, ind }
-      else
-        return { lnum - direction, indent }
-      end
-    elseif type == 'in' then
-      if delta >= 0 then
-        return { lnum, ind }
-      else
-        return { lnum - direction, indent }
-      end
-    end
-
-    ::continue::
+    lnum = next
   end
-
-  return { -1, cnum }
 end
 
-local function find_next_not_empty(direction)
-  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
+local function find_next(type, direction)
+  local original_lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
+  local indent = vim.fn.indent(original_lnum)
 
-  while true do
-    lnum = lnum + direction
-    local ind = vim.fn.indent(lnum)
+  if type == 'out' then
+    local next = original_lnum + direction
+    local ind = vim.fn.indent(next)
     if ind == -1 then
-      break
-    end
-
-    if utils.is_empty(0, lnum) ~= true then
+      return { -1, cnum }
+    elseif utils.is_empty(0, next) then
+      local lnum = next
+      while true do
+        lnum = lnum + direction
+        ind = vim.fn.indent(lnum)
+        if ind == -1 then
+          return { -1, cnum }
+        elseif ind <= indent then
+          break
+        end
+      end
+      return { lnum, ind }
+    elseif ind == indent then
+      local jump = jump_block(direction, original_lnum, indent)
+      return { jump, indent }
+    elseif ind < indent then
+      return { next, ind }
+    elseif ind > indent then
+      local lnum = next
+      while true do
+        lnum = lnum + direction
+        ind = vim.fn.indent(lnum)
+        if utils.is_empty(0, lnum) then
+          goto continue
+        elseif ind == -1 then
+          return { -1, cnum }
+        elseif ind <= indent then
+          break
+        end
+        ::continue::
+      end
       return { lnum, ind }
     end
-  end
 
-  return { -1, cnum }
+    return { -1, cnum }
+  elseif type == 'in' then
+    local next = original_lnum + direction
+    local ind = vim.fn.indent(next)
+    if ind == -1 then
+      return { -1, cnum }
+    elseif utils.is_empty(0, next) then
+      local lnum = next
+      while true do
+        lnum = lnum + direction
+        ind = vim.fn.indent(lnum)
+        if ind == -1 then
+          return { -1, cnum }
+        elseif ind >= indent then
+          break
+        end
+      end
+      return { lnum, ind }
+    elseif ind == indent then
+      local jump = jump_block(direction, original_lnum, indent)
+      return { jump, indent }
+    elseif ind > indent then
+      return { next, ind }
+    elseif ind < indent then
+      return { original_lnum, cnum }
+    end
+
+    return { -1, cnum }
+  end
 end
 
 --- Move the cursor diagonally up and out on indentation level
 M.diag_up_out = function()
   local lnum, cnum = unpack(find_next('out', -1))
-  print(lnum, cnum)
+  -- print(lnum, cnum)
   if lnum ~= -1 then
     vim.api.nvim_win_set_cursor(0, { lnum, cnum })
   end
@@ -158,7 +185,7 @@ end
 
 M.diag_up_in = function()
   local lnum, cnum = unpack(find_next('in', -1))
-  print(lnum, cnum)
+  -- print(lnum, cnum)
   if lnum ~= -1 then
     vim.api.nvim_win_set_cursor(0, { lnum, cnum })
   end
@@ -166,7 +193,7 @@ end
 
 M.diag_down_out = function()
   local lnum, cnum = unpack(find_next('out', 1))
-  print(lnum, cnum)
+  -- print(lnum, cnum)
   if lnum ~= -1 then
     vim.api.nvim_win_set_cursor(0, { lnum, cnum })
   end
@@ -174,10 +201,24 @@ end
 
 M.diag_down_in = function()
   local lnum, cnum = unpack(find_next('in', 1))
-  print(lnum, cnum)
+  -- print(lnum, cnum)
   if lnum ~= -1 then
     vim.api.nvim_win_set_cursor(0, { lnum, cnum })
   end
+end
+
+M.test = function()
+  local lnum = jump_block(1, 175)
+  vim.print("lnum (192): " .. lnum)
+  assert(lnum == 177, "New line should be 177")
+
+  lnum = jump_block(-1, 177)
+  vim.print("lnum (192): " .. lnum)
+  assert(lnum == 175, "New line should be 175")
+
+  lnum = jump_block(-1, 175)
+  vim.print("lnum (192): " .. lnum)
+  assert(lnum == 175, "New line should be 175")
 end
 
 return M
