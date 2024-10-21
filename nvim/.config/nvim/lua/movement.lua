@@ -46,14 +46,20 @@ end
 
 
 -- Words
+---@return integer|nil
 local function next_char(content, cnum)
   return string.find(content, '[' .. M.word_match .. ']', cnum + 1)
 end
 
+---@return integer|nil
 local function next_non_char(content, cnum)
   return string.find(content, '[^' .. M.word_match .. ']', cnum + 1)
 end
 
+--- Find the next non-space character
+---@param content string The text to search
+---@param cnum integer|nil The position to search from
+---@return integer|nil cnum The position of the next token
 local function next_token(content, cnum)
   -- Find the next column without a character or digit
   cnum = next_non_char(content, cnum)

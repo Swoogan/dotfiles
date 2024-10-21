@@ -27,7 +27,7 @@ local function find(type, direction)
 
     local delta = ind - indent
     if type == 'same' and delta == 0 then
-      return { lnum, cnum }
+      return { lnum - direction, ind }
     elseif type == 'out' and delta < 0 then
       return { lnum, ind }
     elseif type == 'in' and delta > 0 then
@@ -96,9 +96,7 @@ local function find_next(type, direction)
 
   while true do
     lnum = lnum + direction
-    -- print("lnum ", lnum)
     local ind = vim.fn.indent(lnum)
-    -- print("ind ", ind)
 
     if ind == -1 then
       break
@@ -109,11 +107,20 @@ local function find_next(type, direction)
     end
 
     local delta = ind - indent
-    print(lnum, delta)
-    if type == 'out' and delta <= 0 then
-      return { lnum, ind }
-    elseif type == 'in' and delta >= 0 then
-      return { lnum, ind }
+    -- vim.print("delta (112):", delta)
+    -- vim.print("lnum (113):", lnum)
+    if type == 'out' then
+      if delta <= 0 then
+        return { lnum, ind }
+      else
+        return { lnum - direction, indent }
+      end
+    elseif type == 'in' then
+      if delta >= 0 then
+        return { lnum, ind }
+      else
+        return { lnum - direction, indent }
+      end
     end
 
     ::continue::
@@ -142,13 +149,6 @@ end
 
 --- Move the cursor diagonally up and out on indentation level
 M.diag_up_out = function()
-  -- local indent = vim.fn.indent(lnum)
-  -- lnum, cnum = unpack(find_next_not_empty(-1))
-  -- -- print(vim.inspect(find_next_empty(-1)))
-  -- if cnum <= indent then
-  --   vim.api.nvim_win_set_cursor(0, { lnum, cnum })
-  -- end
-
   local lnum, cnum = unpack(find_next('out', -1))
   print(lnum, cnum)
   if lnum ~= -1 then
