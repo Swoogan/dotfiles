@@ -181,6 +181,10 @@ M.setup = function(opts)
     }
   end
 
+  if vim.fn.executable('ruff') == 1 then
+    require('lspconfig').ruff.setup({})
+  end
+
   if false and vim.fn.executable('pylsp') == 1 then
     nvim_lsp['pylsp'].setup {
       capabilities = capabilities,
@@ -322,10 +326,6 @@ M.setup = function(opts)
       local null_ls_sources = {}
       if vim.fn.executable('black') == 1 then
         table.insert(null_ls_sources, null_ls.builtins.formatting.black)
-      end
-
-      if vim.fn.executable('ruff') == 1 then
-        table.insert(null_ls_sources, null_ls.builtins.diagnostics.ruff)
       end
 
       null_ls.setup({
