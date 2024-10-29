@@ -442,7 +442,7 @@ vim.api.nvim_create_autocmd("FileType", {
     -- vim.keymap.set('n', '<leader>br', '<cmd>make run<cr>', opts)
     vim.keymap.set('n', '<leader>bb', require('rust_mono').build, opts)
     vim.keymap.set('n', '<leader>br', require('rust_mono').run, opts)
-    vim.keymap.set('n', '<leader>bc', '<cmd>make clippy|cwindow<cr>', opts)
+    vim.keymap.set('n', '<leader>bc', require('rust_mono').clippy, opts)
 
     -- create debugging print statement
     vim.keymap.set('n', '<leader>pd', require('print_debug').print_rust, opts)
