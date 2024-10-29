@@ -27,9 +27,9 @@ M.toggle_header = function()
 end
 
 M.build_editor = function()
-  -- Todo: this is unreal specific :(
+  -- Todo: this is Unreal specific :(
   local build_command = { "pwsh", "-c", "Invoke-EditorBuild" }
-  utils.run_buffered(build_command, 'Build Complete')
+  utils.run_buffered(build_command, 'Build Complete', 'Build Output', utils.OutputTargets.Stdout)
 end
 
 return M

@@ -102,16 +102,10 @@ M.create_qf_entries = function(parsed_results)
   return entries
 end
 
---- Run an application in the background and write its output to a new buffer
----@param command string[] The command and its arguments
----@param completion_msg string The message to display upon success
----@param output_source integer Output for the command 1: stdout, 2: stderr
-M.run_buffered = function(command, completion_msg, output_source)
-  output_source = output_source or M.OutputTargets.Stdout
-
-  -- first save your current window's id, so that we can restore the size later
-  local initial_win_id = vim.api.nvim_get_current_win()
-
+--- Makes a new small horizontal split at the bottom of the given window
+---@param initial_win_id integer The id of the window to split
+---@return integer new_win_id The id of the new split
+M.make_output_window = function(initial_win_id)
   -- Create a new horizontal split new window at the bottom of the current window
   vim.cmd('botright split')
 
@@ -123,13 +117,49 @@ M.run_buffered = function(command, completion_msg, output_source)
 
   -- Set the height of our new window to be approximately 40% of the total height.
   -- cgs: there's no way this is 40% of the window...
-  vim.api.nvim_win_set_height(new_win_id, math.floor(total_height * 0.4))
+  local SPLIT_SIZE = 0.4
+  vim.api.nvim_win_set_height(new_win_id, math.floor(total_height * SPLIT_SIZE))
 
-  -- Create a new buffer
-  local buf = vim.api.nvim_create_buf(false, true)
+  return new_win_id
+end
 
-  -- Set that buffer in the new window we have created
-  vim.api.nvim_win_set_buf(new_win_id, buf)
+--- Get the id of an existing output window, or make a new one
+---@param bufnr integer The id of the buffer to find
+---@param initial_win_id integer The id of the window to split
+---@return integer new_win_id The id of the new split
+M.find_or_make_output_window = function(bufnr, initial_win_id)
+  local win_ids = vim.fn.win_findbuf(bufnr)
+  if #win_ids > 0 then
+    return win_ids[1]
+  else
+    local new_win_id = M.make_output_window(initial_win_id)
+    vim.api.nvim_win_set_buf(new_win_id, bufnr)
+    return new_win_id
+  end
+end
+
+--- Run an application in the background and write its output to a new buffer
+---@param command string[] The command and its arguments
+---@param completion_msg string The message to display upon success
+---@param output_source integer Output for the command 1: stdout, 2: stderr
+M.run_buffered = function(command, completion_msg, window_name, output_source)
+  output_source = output_source or M.OutputTargets.Stdout
+
+  -- first save your current window's id, so that we can restore the size later
+  local initial_win_id = vim.api.nvim_get_current_win()
+
+  local buf, new_win_id
+  if vim.fn.bufexists(window_name) == 1 then
+    buf = vim.fn.bufnr(window_name)
+    new_win_id = M.find_or_make_output_window(buf, initial_win_id)
+    -- clear the buffer
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
+  else
+    new_win_id = M.make_output_window(initial_win_id)
+    buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_name(buf, window_name)
+    vim.api.nvim_win_set_buf(new_win_id, buf)
+  end
 
   local function write_output(_, output)
     if output then
@@ -160,7 +190,5 @@ M.run_buffered = function(command, completion_msg, output_source)
     vim.api.nvim_echo({ { 'Failed to start the job!', 'ErrorMsg' } }, true, {})
   end
 end
-
-
 
 return M

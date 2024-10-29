@@ -72,44 +72,6 @@ local function show_errors(errors)
   end
 end
 
-local function test(_, data)
-  if data then
-    for _, line in ipairs(data) do
-      if line then
-        vim.api.nvim_echo({ { line, 'MsgArea' } }, true, {})
-      end
-    end
-  end
-end
-
-local function make_window(initial_win_id)
-  -- Create a new horizontal split new window at the bottom of the current window
-  vim.cmd('botright split')
-
-  -- Get the new window's id
-  local new_win_id = vim.api.nvim_get_current_win()
-
-  -- Get the maximum window height, we will use this to calculate 40%
-  local total_height = vim.api.nvim_win_get_height(initial_win_id)
-
-  -- Set the height of our new window to be approximately 40% of the total height.
-  -- cgs: there's no way this is 40% of the window...
-  vim.api.nvim_win_set_height(new_win_id, math.floor(total_height * 0.4))
-
-  return new_win_id
-end
-
-local function find_or_make_window(bufnr, initial_win_id)
-  local win_ids = vim.fn.win_findbuf(bufnr)
-  if #win_ids > 0 then
-    return win_ids[1]
-  else
-    local new_win_id = make_window(initial_win_id)
-    vim.api.nvim_win_set_buf(new_win_id, bufnr)
-    return new_win_id
-  end
-end
-
 local function run_cargo(command)
   -- Todo: unify with `utils.run_buffered`?
   save_buffer()
@@ -125,11 +87,11 @@ local function run_cargo(command)
   local buf, new_win_id
   if vim.fn.bufexists(BUFFER_NAME) == 1 then
     buf = vim.fn.bufnr(BUFFER_NAME)
-    new_win_id = find_or_make_window(buf, initial_win_id)
+    new_win_id = utils.find_or_make_output_window(buf, initial_win_id)
     -- clear the buffer
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
   else
-    new_win_id = make_window(initial_win_id)
+    new_win_id = utils.make_output_window(initial_win_id)
     buf = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_name(buf, BUFFER_NAME)
     vim.api.nvim_win_set_buf(new_win_id, buf)
@@ -172,7 +134,7 @@ end
 M.clippy = function()
   save_buffer()
   local build_command = { "cargo", "clippy", "--message-format=short" }
-  utils.run_buffered(build_command, "Build Complete", utils.OutputTargets.Stderr)
+  utils.run_buffered(build_command, "Build Complete", BUFFER_NAME, utils.OutputTargets.Stderr)
 end
 
 --- Call `cargo build`
