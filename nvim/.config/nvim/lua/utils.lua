@@ -166,8 +166,10 @@ M.run_buffered = function(command, completion_msg, window_name, output_source)
       vim.schedule(function()
         local new_text = vim.split(output, '\r?\n', { trimempty = true })
         vim.api.nvim_buf_set_lines(buf, -1, -1, false, new_text)
-        local last_line = vim.api.nvim_buf_line_count(buf)
-        vim.api.nvim_win_set_cursor(new_win_id, { last_line, 0 })
+        if vim.api.nvim_win_is_valid(new_win_id) then
+          local last_line = vim.api.nvim_buf_line_count(buf)
+          vim.api.nvim_win_set_cursor(new_win_id, { last_line, 0 })
+        end
       end)
     end
   end
