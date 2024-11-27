@@ -115,6 +115,25 @@ M.setup = function(opts)
     cmd:write(nil)
   end
 
+  local function run_black(contents)
+    -- Todo: unify this with clang-format above
+    local black_format = 'black'
+    -- if vim.fn.executable(vim.env.black_FORMAT or "") == 1 then
+    --   black_format = vim.env.black_FORMAT
+    -- end
+    local function on_exit(obj)
+      -- replace the buffer content with the command results
+      if obj.code == 0 then
+        vim.schedule(function()
+          local new_text = vim.split(obj.stdout, '\n')
+          vim.api.nvim_buf_set_lines(0, 0, -1, false, new_text)
+        end)
+      end
+    end
+    local command = { black_format, "--stdin-filename", vim.fs.normalize(vim.fn.expand("%:p")), "--code", contents }
+    vim.system(command, {}, on_exit)
+  end
+
   -- Use a loop to conveniently call 'setup' on multiple servers and
   -- map buffer local keybindings when the language server attaches
   -- local servers = { "ts_ls", "clangd" }
@@ -129,7 +148,7 @@ M.setup = function(opts)
   if vim.fn.executable('clangd') == 1 then
     nvim_lsp['clangd'].setup {
       capabilities = capabilities,
-      on_attach = function(_, bufnr)
+      on_attach = function(client, bufnr)
         local bufopts = { noremap = true, silent = true, buffer = bufnr }
         vim.keymap.set('n', 'gh', function() vim.cmd("ClangdSwitchSourceHeader") end, bufopts)
         vim.keymap.set('n', '<leader>bb', require("cpp").build_editor, bufopts)
@@ -145,7 +164,7 @@ M.setup = function(opts)
 
           vim.api.nvim_win_set_cursor(0, pos)
         end
-        on_attach(_, bufnr)
+        on_attach(client, bufnr)
       end,
       cmd = {
         "clangd",
@@ -162,13 +181,26 @@ M.setup = function(opts)
     cap.textDocument.publishDiagnostics = { tagSupport = { valueSet = { 2 } } }
     nvim_lsp['pyright'].setup {
       capabilities = cap,
-      on_attach = function(client, buffer)
+      on_attach = function(client, bufnr)
         client.server_capabilities.codeActionProvider = false
         client.server_capabilities.renameProvider = false
-        client.handlers["textDocument/publishDiagnostics"] = function(...) end
-        on_attach(client, buffer)
+        -- client.handlers["textDocument/publishDiagnostics"] = function(...) end
+
+        -- Todo: unify this with clang-format
+        opts.code_format = function()
+          local pos = vim.api.nvim_win_get_cursor(0)
+
+          -- Get the current buffer data
+          local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+          local contents = table.concat(lines, '\n')
+          run_black(contents)
+
+          vim.api.nvim_win_set_cursor(0, pos)
+        end
+        on_attach(client, bufnr)
       end,
       root_dir = function()
+        -- This is a hack because pyright is dog slow otherwise
         return vim.fn.getcwd()
       end,
       settings = {
