@@ -1,12 +1,13 @@
+local pickers = require("telescope.pickers")
+local finders = require("telescope.finders")
+local conf = require("telescope.config").values
+local previewers = require("telescope.previewers")
+local make_entry = require("telescope.make_entry")
+
 local M = {}
 
 M.opened = function(opts)
   opts = opts or {}
-
-  local pickers = require("telescope.pickers")
-  local finders = require("telescope.finders")
-  local conf = require("telescope.config").values
-  local make_entry = require("telescope.make_entry")
 
   local find_command = { "p4", "-F", "%clientFile%", "fstat", "-Ro", "..." }
   opts.entry_maker = opts.entry_maker or make_entry.gen_from_file(opts)
@@ -15,6 +16,83 @@ M.opened = function(opts)
     prompt_title = "Perforce Opened",
     finder = finders.new_oneshot_job(find_command, opts),
     sorter = conf.generic_sorter(opts)
+  }):find()
+end
+
+M.changelists = function(opts)
+  opts = opts or {}
+
+  --  p4 changes -u (p4 -ztag -F "%userName%" info) -s pending -r
+  local find_command = { "p4", "changes", "-u", "(p4 -ztag -F %userName% info)", "-s", "pending", "-r" }
+  opts.entry_maker = opts.entry_maker or make_entry.gen_from_file(opts)
+
+  pickers.new(opts, {
+    prompt_title = "Perforce Changelists",
+    finder = finders.new_oneshot_job(find_command, opts),
+    sorter = conf.generic_sorter(opts)
+  }):find()
+end
+
+M.diff_locations = function()
+  local cached_diff = vim.env.P4DIFF
+  vim.env.P4DIFF = 'git --no-pager diff --unified=0'
+  local current_file = vim.fn.expand('%:p')
+  local diff_content = vim.fn.system('p4 diff ' .. current_file)
+  vim.env.P4DIFF = cached_diff
+  local locations = {}
+
+  -- Parse the diff to get locations
+  for line in diff_content:gmatch("[^\r?\n]+") do
+    local start_line, chunk_size = line:match("@@ .-%+(%d+),(%d+)")
+    if start_line then
+      table.insert(locations, {
+        line = line,
+        lnum = tonumber(start_line),
+        chunk_size = tonumber(chunk_size)
+      })
+    end
+  end
+
+  local ns = vim.api.nvim_create_namespace("")
+
+  local jump_to_line = function(self, bufnr, entry)
+    vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+    vim.api.nvim_buf_add_highlight(bufnr, ns, "TelescopePreviewLine", entry.lnum - 1, 0, -1)
+    vim.api.nvim_win_set_cursor(self.state.winid, { entry.lnum, 0 })
+    vim.api.nvim_buf_call(bufnr, function()
+      vim.cmd('normal! zz')
+    end)
+  end
+
+  -- Create the picker
+  pickers.new({}, {
+    prompt_title = "Diff Locations",
+    finder = finders.new_table({
+      results = locations,
+      entry_maker = function(entry)
+        return {
+          value = entry,
+          display = entry.line,
+          ordinal = entry.line,
+          path = current_file,
+          lnum = entry.lnum,
+        }
+      end,
+    }),
+    sorter = conf.generic_sorter({}),
+    previewer = previewers.new_buffer_previewer({
+      title = "Diff Preview",
+      define_preview = function(self, entry)
+        local p = entry.path
+        return conf.buffer_previewer_maker(p, self.state.bufnr, {
+          bufname = self.state.bufname,
+          winid = self.state.winid,
+          callback = function(bufnr)
+            jump_to_line(self, bufnr, entry)
+          end,
+        })
+      end,
+    }),
   }):find()
 end
 
