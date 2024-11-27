@@ -216,18 +216,17 @@ vim.keymap.set('n', 'e', movement.forward_end_word, opts)
 -- Stacktrace explorer
 vim.keymap.set('n', '<leader>es', require('stacktraces').stacktrace_to_qflist, opts)
 
--- Perforce open file picker
+-- Perforce file pickers
 vim.keymap.set('n', '<leader>sp', require('perforce_picker').opened, opts)
-
--- C++
--- vim.keymap.set('n', '<leader>gh', require('cpp').toggle_header, opts)
+vim.keymap.set('n', '<leader>sa', require('perforce_picker').changelists, opts)
+vim.keymap.set("n", "<leader>si", require('perforce_picker').diff_locations, opts)
 
 -- Clean paths
-
+-- Todo: different keymap
 vim.keymap.set('v', '<leader>rs', function()
   vim.cmd.normal(vim.keycode("<Esc>")) -- Need to do this so the visual marks are set
-  vim.cmd([[silent '<,'>s;\\\\;\\;g]])
-  vim.cmd([[silent '<,'>s;\\;/;g]])
+  vim.cmd([[silent! '<,'>s;\\\\;\\;g]])
+  vim.cmd([[silent! '<,'>s;\\;/;g]])
   -- set the cursor back to where we started the visual mark
   local pos = vim.api.nvim_buf_get_mark(0, "<")
   vim.api.nvim_win_set_cursor(0, pos)
@@ -239,7 +238,6 @@ end, opts)
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
   pattern = "*",
-  -- callback = function() vim.highlight.on_yank() end,
   callback = function() vim.highlight.on_yank() end,
 })
 
@@ -423,7 +421,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
         local lnum, _ = unpack(vim.api.nvim_win_get_cursor(0))
         local errors = vim.diagnostic.get(0, { lnum = lnum - 1 })
         for _, err in pairs(errors) do
-          if err.source == "ruff" then
+          if string.lower(err.source) == "ruff" then
             vim.cmd('!ruff rule ' .. err.code)
           end
         end
@@ -516,7 +514,7 @@ end
 vim.keymap.set({ 'n' }, '<A-w>', print_win_filenames, opts)
 vim.keymap.set({ 'n' }, '<A-b>', require('buffers').close_unused_buffers, opts)
 
--- Perforce open file picker
+-- Copy file name with line number
 vim.keymap.set('n', '<leader>cp', function()
   local path = get_win_filename(0)
   local lnum, _ = unpack(vim.api.nvim_win_get_cursor(0))
@@ -537,18 +535,18 @@ vim.keymap.set('n', '<c-y>', '10<C-y>')
 
 -- *** Setup Indent-base Movement ***
 local indents = require('indents')
-vim.keymap.set({ 'n', 'v' }, '<c-u>', indents.up_same_indent)
-vim.keymap.set({ 'n', 'v' }, '<c-f>', indents.down_same_indent)
-vim.keymap.set({ 'n', 'v' }, '<a-n>', indents.up_out_indent)
-vim.keymap.set({ 'n', 'v' }, '<a-e>', indents.up_in_indent)
-vim.keymap.set({ 'n', 'v' }, '<a-m>', indents.down_out_indent)
-vim.keymap.set({ 'n', 'v' }, '<a-,>', indents.down_in_indent)
+-- vim.keymap.set({ 'n', 'v' }, '<c-u>', indents.up_same_indent)
+-- vim.keymap.set({ 'n', 'v' }, '<c-f>', indents.down_same_indent)
+-- vim.keymap.set({ 'n', 'v' }, '<a-n>', indents.up_out_indent)
+-- vim.keymap.set({ 'n', 'v' }, '<a-e>', indents.up_in_indent)
+-- vim.keymap.set({ 'n', 'v' }, '<a-m>', indents.down_out_indent)
+-- vim.keymap.set({ 'n', 'v' }, '<a-,>', indents.down_in_indent)
 
 -- diag
-vim.keymap.set('n', '<a-s>', indents.diag_up_out)
-vim.keymap.set('n', '<a-t>', indents.diag_up_in)
-vim.keymap.set('n', '<a-a>', indents.diag_down_out)
-vim.keymap.set('n', '<a-r>', indents.diag_down_in)
+vim.keymap.set({ 'n', 'v' }, '<a-n>', indents.diag_up_out)
+vim.keymap.set({ 'n', 'v' }, '<a-e>', indents.diag_up_in)
+vim.keymap.set({ 'n', 'v' }, '<a-m>', indents.diag_down_out)
+vim.keymap.set({ 'n', 'v' }, '<a-,>', indents.diag_down_in)
 
 local function_picker = require('function_picker')
 vim.keymap.set('n', '<leader>su', function_picker.functions)
@@ -578,3 +576,8 @@ vim.api.nvim_create_autocmd("VimEnter", {
   callback = function() sessions.load_session() end,
   nested = true
 })
+
+-- Perforce mappings
+vim.keymap.set('n', '<leader>ro', '<cmd>!p4 open %<cr>')
+vim.keymap.set('n', '<leader>ra', '<cmd>!p4 add %<cr>')
+vim.keymap.set('n', '<leader>rl', '<cmd>!p4 login<cr>')
