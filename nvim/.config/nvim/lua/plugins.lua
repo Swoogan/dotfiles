@@ -186,8 +186,7 @@ M.spec = {
             { name = 'buffer' },
           }
         ),
-        -- Todo: switch to debounce time instead?
-        completion = { keyword_length = 2 }
+        performance = { debounce = 250 }
       })
 
       -- Set configuration for Python.
@@ -350,6 +349,7 @@ M.spec = {
       "rafamadriz/friendly-snippets" -- Premade snippets
     },
     config = function()
+      require("luasnip").config.setup({ store_selection_keys = "<Tab>" })
       require('config.snippets').setup()
     end
   },
