@@ -21,6 +21,8 @@ map <Leader>b :vsc Build.BuildSolution<CR>
 map <Leader>r :vsc Debug.Start<CR>
 map <Leader>lf :vsc Edit.FormatDocument<CR>
 map <Leader>lh :vsc Edit.QuickInfo<CR>
+map <Leader>lc :vsc EditorContextMenus.CodeWindow.QuickActionsForPosition<CR>
+map <Leader>lr :vsc Refactor.Rename<CR>
 map <Leader>sf :vsc Edit.GotoFile<CR>
 map <Leader>sg :vsc Edit.GotoAll<CR>
 " map <Leader><Space> :vsc Window.ShowEZMDIFileList<CR>
