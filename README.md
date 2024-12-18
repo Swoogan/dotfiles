@@ -21,6 +21,7 @@ Install
 
 ### Install software
 
+    winget install Git.Git neovim rustup
     scoop install git neovim zig fd ripgrep bat
     PowerShellGet\Install-Module posh-git -Scope CurrentUser -Force
     PowerShellGet\Install-Module posh-sshell -Scope CurrentUser
