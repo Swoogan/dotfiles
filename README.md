@@ -21,8 +21,11 @@ Install
 
 ### Install software
 
-    winget install Git.Git neovim rustup
-    scoop install git neovim zig fd ripgrep bat
+    winget install Microsoft.Powershell Git.Git neovim rustup Microsoft.WindowsSDK.10.0.26100 Microsoft.VisualStudio.2022.BuildTools
+    # rustup toolchain install stable-x86_64-pc-windows-gnu
+    # rustup default stable-x86_64-pc-windows-gnu
+    cargo install fd-find bat ripgrep kanata
+    # scoop install git neovim zig fd ripgrep bat
     PowerShellGet\Install-Module posh-git -Scope CurrentUser -Force
     PowerShellGet\Install-Module posh-sshell -Scope CurrentUser
 
