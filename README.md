@@ -46,16 +46,18 @@ Install
     # In admin console (must manually source profile.ps1)
     . /dev/dotfiles/pwsh/profile.ps1
 
-    New-SymLink -Link ~/.gitconfig C:\dev\dotfiles\git\dot-gitconfig
-    New-Symlink -Link ~/Documents\PowerShell\profile.ps1 C:\dev\dotfiles\pwsh\profile.ps1
-    New-Symlink -Link ~/.vsvimrc C:\dev\dotfiles\windows\_vsvimrc
-    New-Symlink -Link ~\AppData\Local\nvim\init.lua C:\dev\dotfiles\nvim\.config\nvim\init.lua
-    New-Symlink -Link ~\AppData\Local\nvim\lua C:\dev\dotfiles\nvim\.config\nvim\lua
-    New-Symlink -Link ~\AppData\Local\nvim\lazy-lock.json C:\dev\dotfiles\nvim\.config\nvim\lazy-lock.json
+    $non_admin_home = "???"
+    New-SymLink -Link $non_admin_home/.gitconfig C:\dev\dotfiles\git\dot-gitconfig
+    New-Symlink -Link $non_admin_home/Documents\PowerShell\profile.ps1 C:\dev\dotfiles\pwsh\profile.ps1
+    New-Symlink -Link $non_admin_home/.vsvimrc C:\dev\dotfiles\windows\_vsvimrc
+    New-Symlink -Link $non_admin_home\AppData\Local\nvim\init.lua C:\dev\dotfiles\nvim\.config\nvim\init.lua
+    New-Symlink -Link $non_admin_home\AppData\Local\nvim\lua C:\dev\dotfiles\nvim\.config\nvim\lua
+    New-Symlink -Link $non_admin_home\AppData\Local\nvim\lazy-lock.json C:\dev\dotfiles\nvim\.config\nvim\lazy-lock.json
 
     $compiler = "~\AppData\Local\nvim\compiler"
     if (-not (test-path $compiler)) { mkdir $compiler }
     New-Symlink -Link $compiler\dotnet.vim C:\dev\dotfiles\nvim\.config\nvim\compiler\dotnet.vim
 
+    # this didn't work, just set them manually
     Set-Environment -Name DEV_HOME -Value "C:\dev"
     Set-Environment -Name OMNISHARP -Value "$($env:DEV_HOME)/.ls/omnisharp/OmniSharp.exe"
