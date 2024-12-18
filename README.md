@@ -21,9 +21,8 @@ Install
 
 ### Install software
 
-    winget install Microsoft.Powershell Git.Git neovim rustup Microsoft.WindowsSDK.10.0.26100 Microsoft.VisualStudio.2022.BuildTools
-    # rustup toolchain install stable-x86_64-pc-windows-gnu
-    # rustup default stable-x86_64-pc-windows-gnu
+    winget install Microsoft.Powershell Git.Git neovim rustup zig.zig Microsoft.VisualStudio.2022.BuildTools
+    # Run `Visual Studio Installer` and select "Desktop development with C++"
     cargo install fd-find bat ripgrep kanata
     # scoop install git neovim zig fd ripgrep bat
     PowerShellGet\Install-Module posh-git -Scope CurrentUser -Force
@@ -34,7 +33,18 @@ Install
     mkdir ~/AppData/Local/nvim
     mkdir ~/Documents/PowerShell
 
+    # Generate ssh key and upload to githib
+    ssh-keygen
+    cat ~/.ssh/id_ed25519.pub | Set-Clipboard
+    # paste into github
+
+    # Sync dotfiles
+    mkdir /dev
+    cd /dev
+    git clone git@github.com:Swoogan/dotfiles.git
+
     # In admin console (must manually source profile.ps1)
+    . /dev/dotfiles/pwsh/profile.ps1
 
     New-SymLink -Link ~/.gitconfig C:\dev\dotfiles\git\dot-gitconfig
     New-Symlink -Link ~/Documents\PowerShell\profile.ps1 C:\dev\dotfiles\pwsh\profile.ps1
