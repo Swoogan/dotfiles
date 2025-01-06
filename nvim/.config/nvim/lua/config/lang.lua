@@ -214,11 +214,19 @@ M.setup = function(opts)
   end
 
   if vim.fn.executable('ruff') == 1 then
-    require('lspconfig').ruff.setup({})
+    nvim_lsp['ruff'].setup({})
+  end
+
+  local pylyzer = vim.env.DEV_HOME .. '/.ls/pylyzer.exe'
+  if vim.fn.executable(pylyzer) == 1 then
+    nvim_lsp['pylyzer'].setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+    })
   end
 
   if false and vim.fn.executable('pylsp') == 1 then
-    nvim_lsp['pylsp'].setup {
+    nvim_lsp['pylsp'].setup({
       capabilities = capabilities,
       on_attach = on_attach,
       settings = {
@@ -248,11 +256,11 @@ M.setup = function(opts)
           }
         }
       }
-    }
+    })
   end
 
   if false and vim.fn.executable('jedi_language_server') == 1 then
-    nvim_lsp['jedi_language_server'].setup {
+    nvim_lsp['jedi_language_server'].setup({
       capabilities = capabilities,
       on_attach = function(client, buffer)
         client.server_capabilities.documentFormattingProvider = false
@@ -260,7 +268,7 @@ M.setup = function(opts)
         client.server_capabilities.renameProvider = false
         on_attach(client, buffer)
       end,
-    }
+    })
   end
 
   -- Rust
@@ -270,28 +278,28 @@ M.setup = function(opts)
   end
 
   if vim.fn.executable(rust_analyzer) == 1 then
-    nvim_lsp['rust_analyzer'].setup {
+    nvim_lsp['rust_analyzer'].setup({
       capabilities = capabilities,
       on_attach = on_attach,
       cmd = { rust_analyzer },
-    }
+    })
   end
 
   -- PowerShell
   local bundle_path = vim.env.DEV_HOME .. '/.ls/PowerShellEditorServices'
   if vim.fn.isdirectory(bundle_path) == 1 then
     -- Setup PowerShell Editor Extensions
-    nvim_lsp['powershell_es'].setup {
+    nvim_lsp['powershell_es'].setup({
       capabilities = capabilities,
       on_attach = on_attach,
       bundle_path = bundle_path,
-    }
+    })
   end
 
   -- Lua
   local lua_language_server = vim.env.DEV_HOME .. '/.ls/lua-language-server/bin/lua-language-server'
   if vim.fn.executable(lua_language_server) == 1 then
-    nvim_lsp['lua_ls'].setup {
+    nvim_lsp['lua_ls'].setup({
       on_init = function(client)
         local path = client.workspace_folders[1].name
         if not vim.uv.fs_stat(path .. '/.luarc.json') and not vim.uv.fs_stat(path .. '/.luarc.jsonc') then
@@ -323,23 +331,23 @@ M.setup = function(opts)
       cmd = { lua_language_server },
       capabilities = capabilities,
       on_attach = on_attach,
-    }
+    })
   end
 
   -- Zig
   local zls = vim.env.DEV_HOME .. '/.ls/zigtools-zls/bin/zls'
   if vim.fn.executable(zls) == 1 then
-    nvim_lsp['zls'].setup {
+    nvim_lsp['zls'].setup({
       cmd = { zls },
       capabilities = capabilities,
       on_attach = on_attach,
-    }
+    })
   end
 
   -- C#
   local omnisharp = vim.env.DEV_HOME .. '/.ls/omnisharp/OmniSharp.exe'
   if vim.fn.executable(omnisharp) == 1 then
-    nvim_lsp['omnisharp'].setup {
+    nvim_lsp['omnisharp'].setup({
       handlers = {
         ["textDocument/definition"] = require('omnisharp_extended').handler,
       },
@@ -347,7 +355,7 @@ M.setup = function(opts)
       on_attach = on_attach,
       cmd = { omnisharp, "--languageserver", "--hostPID", tostring(pid),
         "formattingOptions:EnableEditorConfigSupport=true" }
-    }
+    })
   end
 
   -- Setup null-ls
@@ -356,8 +364,14 @@ M.setup = function(opts)
     callback = function(_)
       local null_ls = require("null-ls")
       local null_ls_sources = {}
+
       if vim.fn.executable('black') == 1 then
         table.insert(null_ls_sources, null_ls.builtins.formatting.black)
+      end
+
+      -- disable for now, too many errors in code
+      if false and vim.fn.executable('mypy') == 1 then
+        table.insert(null_ls_sources, null_ls.builtins.diagnostics.mypy)
       end
 
       null_ls.setup({
