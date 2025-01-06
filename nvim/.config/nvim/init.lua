@@ -270,17 +270,17 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
   command = [[compiler dotnet]]
 })
 
-group = vim.api.nvim_create_augroup("ZigLang", { clear = true })
+local ziggroup = vim.api.nvim_create_augroup("ZigLang", { clear = true })
 -- Set zig files to zig filetype
 vim.api.nvim_create_autocmd("BufReadPost", {
-  group = group,
+  group = ziggroup,
   pattern = "*.zig",
   command = [[set ft=zig]]
 })
 
 -- Abbreviate oom to error.OutOfMemory in Zig
 vim.api.nvim_create_autocmd("FileType", {
-  group = group,
+  group = ziggroup,
   pattern = "zig",
   command = [[iabbrev <buffer> oom return error.OutOfMemory;]]
 })
