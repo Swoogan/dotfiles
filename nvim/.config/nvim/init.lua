@@ -179,7 +179,11 @@ vim.keymap.set('n', '<leader>dj', '<c-w>j<c-c>', opts)
 vim.keymap.set('n', '<leader>dk', '<c-w>k<c-c>', opts)
 
 -- Tabs
-vim.keymap.set('n', '<leader>to', '<cmd>tabnew<cr><c-6>', opts)
+vim.keymap.set('n', '<leader>to', function()
+  local lnum, cnum = unpack(vim.api.nvim_win_get_cursor(0))
+  vim.cmd('tabnew %')
+  vim.api.nvim_win_set_cursor(0, { lnum, cnum })
+end, opts)
 vim.keymap.set('n', '<leader>tc', '<cmd>tabclose<cr>', opts)
 vim.keymap.set('n', '<leader>tn', '<cmd>tabnext<cr>', opts)
 vim.keymap.set('n', '<leader>tp', '<cmd>tabprevious<cr>', opts)
@@ -219,7 +223,7 @@ vim.keymap.set('n', '<leader>sp', require('perforce_picker').opened, opts)
 vim.keymap.set('n', '<leader>sa', require('perforce_picker').changelists, opts)
 vim.keymap.set("n", "<leader>si", require('perforce_picker').diff_locations, opts)
 
--- Clean paths
+-- Clean (convert) paths
 -- Todo: different keymap
 vim.keymap.set('v', '<leader>rs', function()
   vim.cmd.normal(vim.keycode("<Esc>")) -- Need to do this so the visual marks are set
