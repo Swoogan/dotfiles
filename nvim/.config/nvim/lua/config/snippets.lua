@@ -70,7 +70,15 @@ local M = {
 M.setup = function()
   snippets()
 
-  vim.keymap.set({ "i", "s" }, "<Tab>", function() ls.jump(1) end, { silent = true })
+  vim.keymap.set({ "i", "s" }, "<Tab>", function()
+      if require("luasnip").expand_or_jumpable() then
+        return "<Plug>luasnip-expand-or-jump"
+      else
+        return "<Tab>"
+      end
+    end,
+    { expr = true, silent = true })
+
   vim.keymap.set({ "i", "s" }, "<S-Tab>", function() ls.jump(-1) end, { silent = true })
 
   vim.keymap.set({ "i", "v" }, "<C-k>", function()
