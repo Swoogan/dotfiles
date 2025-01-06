@@ -16,7 +16,6 @@ local is_windows       = vim.uv.os_uname().sysname == "Windows_NT"
 
 -- Vim options
 vim.opt.number         = true          -- show the current line number (w/ relative on)
-vim.opt.relativenumber = true          -- show relative line numbers
 vim.opt.splitbelow     = true          -- new horizontal windows appear on the bottom
 vim.opt.splitright     = true          -- new vertical windows appear on the right
 vim.opt.smartindent    = true
@@ -240,18 +239,18 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   callback = function() vim.highlight.on_yank() end,
 })
 
-local group = vim.api.nvim_create_augroup("NumberToggle", { clear = true })
--- Turn on relativenumber for focused buffer
-vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "InsertLeave" }, {
-  group = group,
-  command = [[set relativenumber]]
-})
-
--- Turn off relativenumber for unfocused buffers
-vim.api.nvim_create_autocmd({ "BufLeave", "WinLeave", "InsertEnter" }, {
-  group = group,
-  command = [[set norelativenumber]]
-})
+-- local group = vim.api.nvim_create_augroup("NumberToggle", { clear = true })
+-- -- Turn on relativenumber for focused buffer
+-- vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "InsertLeave" }, {
+--   group = group,
+--   command = [[set relativenumber]]
+-- })
+--
+-- -- Turn off relativenumber for unfocused buffers
+-- vim.api.nvim_create_autocmd({ "BufLeave", "WinLeave", "InsertEnter" }, {
+--   group = group,
+--   command = [[set norelativenumber]]
+-- })
 
 -- Various settings for markdown
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
