@@ -15,7 +15,6 @@ local indent           = 4
 local is_windows       = vim.uv.os_uname().sysname == "Windows_NT"
 
 -- Vim options
-vim.opt.termguicolors  = true
 vim.opt.number         = true          -- show the current line number (w/ relative on)
 vim.opt.relativenumber = true          -- show relative line numbers
 vim.opt.splitbelow     = true          -- new horizontal windows appear on the bottom
