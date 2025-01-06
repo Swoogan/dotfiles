@@ -248,6 +248,9 @@ M.spec = {
           -- path_display = { shorten = { len = 1, exclude = { -1, -2 } } }
           path_display = { "truncate" },
           mappings = {
+            n = {
+              ['<a-d>'] = actions.delete_buffer
+            },
             i = {
               ["<CR>"] = actions.select_default + actions.center
             }
