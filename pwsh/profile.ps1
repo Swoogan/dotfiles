@@ -199,9 +199,11 @@ function Edit-Line {
     )
 
     process {
-        $parts = $Line -split ":" | Select-Object -First 2
-        $parts[1] = "+{0}" -f $parts[1]
-        nvim $parts
+        $lastIndex = $Line.LastIndexOf(":")
+        $path = $Line.Substring(0, $lastIndex)
+        $path = Get-ChildItem $path | Select-Object -ExpandProperty FullName # normalize the path
+        $lineNbr = $Line.Substring($lastIndex + 1)
+        nvim $path "+$lineNbr"
     }
 }
 
