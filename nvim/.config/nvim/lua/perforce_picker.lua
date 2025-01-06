@@ -43,10 +43,12 @@ M.diff_locations = function()
 
   -- Parse the diff to get locations
   for line in diff_content:gmatch("[^\r?\n]+") do
-    local start_line, chunk_size = line:match("@@ .-%+(%d+),(%d+)")
+    local start_line, chunk_size = line:match("^@@ %-%d+,?%d+ %+(%d+),?(%d*)%s@@")
     if start_line then
+      local line_nbr = tonumber(start_line) or 1
+      local buf_line = vim.api.nvim_buf_get_lines(0, line_nbr - 1, line_nbr, false)[1]
       table.insert(locations, {
-        line = line,
+        line = string.format("%x, %s: %s", line_nbr, chunk_size, buf_line),
         lnum = tonumber(start_line),
         chunk_size = tonumber(chunk_size)
       })
