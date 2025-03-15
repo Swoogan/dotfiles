@@ -38,30 +38,30 @@ local function snippets()
     }
   }
 
-  ls.add_snippets("cs", {
-    s("sum", {
-      t({ "/// <summary>", "/// " }),
-      i(1),
-      t({ "", "/// </summary>" }),
-    }),
-    s("pra", {
-      t("<parameter name=\""),
-      i(2, "name"),
-      t("\">"),
-      i(1),
-      t("</parameter>"),
-    }),
-    s({ trig = "try", name = "Try log", dscr = "Try catch, log the exception" }, {
-      t({ "try", "{", "\t" }),
-      i(1),
-      t({ "", "}", "catch (" }),
-      i(2, "Exception"),
-      t(" e)"),
-      t({ "", "{", "\t_logger.LogError(e, \"" }),
-      i(3),
-      t({ "\");", "}" }),
-    }),
-  })
+  -- ls.add_snippets("cs", {
+  --   s("sum", {
+  --     t({ "/// <summary>", "/// " }),
+  --     i(1),
+  --     t({ "", "/// </summary>" }),
+  --   }),
+  --   s("pra", {
+  --     t("<parameter name=\""),
+  --     i(2, "name"),
+  --     t("\">"),
+  --     i(1),
+  --     t("</parameter>"),
+  --   }),
+  --   s({ trig = "try", name = "Try log", dscr = "Try catch, log the exception" }, {
+  --     t({ "try", "{", "\t" }),
+  --     i(1),
+  --     t({ "", "}", "catch (" }),
+  --     i(2, "Exception"),
+  --     t(" e)"),
+  --     t({ "", "{", "\t_logger.LogError(e, \"" }),
+  --     i(3),
+  --     t({ "\");", "}" }),
+  --   }),
+  -- })
 end
 
 local M = {
