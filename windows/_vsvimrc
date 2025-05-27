@@ -17,7 +17,7 @@ map <C-i> :vsc View.NavigateForward<CR>
 map <Leader>nl :nohl<CR>
 map <Leader>w :w<CR>
 map <Leader>x :x<CR>
-map <Leader>b :vsc Build.BuildSolution<CR>
+map <Leader>bb :vsc Build.BuildOnlyProject<CR>
 map <Leader>r :vsc Debug.Start<CR>
 map <Leader>lf :vsc Edit.FormatDocument<CR>
 map <Leader>lh :vsc Edit.QuickInfo<CR>
@@ -31,11 +31,15 @@ map <Leader>qn :vsc View.NextError<CR>
 map <Leader>qp :vsc View.PreviousError<CR>
 
 map gcc :vsc Edit.ToggleLineComment<CR>
+vmap gc :vsc Edit.ToggleLineComment<CR>
 map gd :vsc Edit.GotoDefinition<CR>
 map gD :vsc Edit.GotoDeclaration<CR>
 map gr :vsc Edit.FindAllReferences<CR>
 map gh :vsc EditorContextMenus.CodeWindow.ToggleHeaderCodeFile<CR>
 
-vmap gc :vsc Edit.ToggleLineComment<CR>
+vmap <Leader>ro :vsc Tools.ExternalCommand1<CR>
+vmap <Leader>ra :vsc Tools.ExternalCommand2<CR>
 
+nmap <Leader>pp viwP<CR>
+nmap <Leader>ec :vsplit|e ~/.vsvimrc<CR>
 " Todo: map a key to open this config.
