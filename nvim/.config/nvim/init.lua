@@ -236,6 +236,15 @@ end, opts)
 
 -- *** AUTOGROUPS *** --
 
+-- Set jump marks when buffer is modified (lol this already exists in `changelist`)
+-- vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+--   group = vim.api.nvim_create_augroup("TextChanged", { clear = true }),
+--   pattern = "*",
+--   callback = function() require('jumps').set_jump() end,
+-- })
+-- vim.keymap.set({ 'n', 'v' }, '<c-o>', require('jumps').jump_back, opts)
+-- vim.keymap.set({ 'n', 'v' }, '<c-i>', require('jumps').jump_forward, opts)
+
 -- Highlight on yank
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
