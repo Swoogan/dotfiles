@@ -8,28 +8,54 @@ if ($null -ne $env:WT_SESSION) {
     $PSStyle.Progress.View = "Classic"
 }
 
-#
-# another prompt sample
-# posh-p4 enabled, posh-git enabled and current folder in window's top bar
-#
-#function global:prompt {
-#
-#    $realLASTEXITCODE = $LASTEXITCODE
-#
-#    #perforce status
-#    Write-P4Prompt
-#
-#    #git status
-#    Write-VcsStatus
-#
-#    $global:LASTEXITCODE = $realLASTEXITCODE
-#
-#    #override window title with current folder
-#    $Host.UI.RawUI.WindowTitle = "$pwd - Windows Powershell"
-#
-#    return "$ "
-#}
+function prompt {
+    # Define colors
+    $green = "`e[32m"
+    $blue = "`e[34m"
+    $yellow = "`e[33m"
+    $reset = "`e[0m"
 
+    if (Test-Path .git) {
+        $branch = ""
+        git branch | ForEach-Object {
+            if ($_ -match "^\*(.*)") {
+                $branch += $matches[1]
+            }
+        }
+     
+        $git_create_count = 0
+        $git_update_count = 0
+        $git_delete_count = 0
+     
+        git status | ForEach-Object {
+            if ($_ -match "modified:") { 
+                $git_update_count += 1
+            }
+            elseif ($_ -match "deleted:") { 
+                $git_delete_count += 1
+            }
+            elseif($_ -match "added:") { 
+                $git_create_count += 1
+            }
+        }
+
+        $path = (Get-Location).Path
+        #$status_string = $path + " u:" + $git_update_count + " d:" + $git_delete_count + "> "
+        $total_changes = ($git_update_count + $git_create_count + $git_delete_count)
+        if ($total_changes -gt 0) {
+            $delta = " *"
+        } else {
+            $delta = ""
+        }
+        $status_string = "$path $yellow[$reset$($branch.Trim())$green$delta$reset$yellow]$reset> "
+    }
+    else {
+        $path = (Get-Location).Path
+        $status_string = $path + "> "
+    }
+  
+    Write-Output $status_string
+}
 
 if ($host.Name -eq 'ConsoleHost') {
     # Delete from the cursor to the beginning of the line
