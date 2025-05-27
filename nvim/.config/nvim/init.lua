@@ -597,4 +597,5 @@ vim.api.nvim_create_autocmd("VimEnter", {
 -- Perforce mappings
 vim.keymap.set('n', '<leader>ro', '<cmd>!p4 open %<cr>')
 vim.keymap.set('n', '<leader>ra', '<cmd>!p4 add %<cr>')
+vim.keymap.set('n', '<leader>rr', '<cmd>!p4 revert %<cr>')
 vim.keymap.set('n', '<leader>rl', '<cmd>!p4 login<cr>')
