@@ -272,6 +272,12 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
   command = [[setlocal wrap spell linebreak]]
 })
 
+vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
+  group = vim.api.nvim_create_augroup("CPP", { clear = true }),
+  pattern = { "*.cpp", "*.h" },
+  command = [[set indentexpr=]]
+})
+
 -- Set the compiler to dotnet for cs files
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
   group = vim.api.nvim_create_augroup("CSharp", { clear = true }),
