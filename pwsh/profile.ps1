@@ -88,7 +88,7 @@ Register-ArgumentCompleter -Native -CommandName git -ScriptBlock {
             New-Object System.Management.Automation.CompletionResult $_
         }
     }
-    elseif ($elements.Length -ge 1 -and $elements[1].ToString() -eq "add") {
+    elseif ($elements.Length -ge 1 -and @("add", "diff", "restore").Contains($elements[1].ToString())) {
         git ls-files --modified --others --deleted | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
             New-Object System.Management.Automation.CompletionResult $_
         }
