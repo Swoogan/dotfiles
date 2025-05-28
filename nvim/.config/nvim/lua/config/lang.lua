@@ -362,28 +362,6 @@ M.setup = function(opts)
         "formattingOptions:EnableEditorConfigSupport=true" }
     })
   end
-
-  -- Setup null-ls
-  vim.api.nvim_create_autocmd('LspAttach', {
-    pattern = "*.py",
-    callback = function(_)
-      local null_ls = require("null-ls")
-      local null_ls_sources = {}
-
-      if vim.fn.executable('black') == 1 then
-        table.insert(null_ls_sources, null_ls.builtins.formatting.black)
-      end
-
-      -- disable for now, too many errors in code
-      if false and vim.fn.executable('mypy') == 1 then
-        table.insert(null_ls_sources, null_ls.builtins.diagnostics.mypy)
-      end
-
-      null_ls.setup({
-        sources = null_ls_sources,
-      })
-    end
-  })
 end
 
 return M

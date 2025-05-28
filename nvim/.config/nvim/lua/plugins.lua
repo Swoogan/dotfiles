@@ -98,8 +98,7 @@ M.spec = {
         },
       }
     end
-  },                                                                                                  -- incremental language parser
-  { "jose-elias-alvarez/null-ls.nvim",   dependencies = { "nvim-lua/plenary.nvim" }, ft = "python" }, -- Easy configuration of LSP
+  }, -- incremental language parser
   { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
 
   -- DAP
@@ -357,7 +356,7 @@ M.spec = {
       require('config.snippets').setup()
     end
   },
-  { "AndrewRadev/tagalong.vim", ft = "html" },
+  { "AndrewRadev/tagalong.vim",          ft = "html" },
 }
 
 --- Bootstrap lazy.nvim
