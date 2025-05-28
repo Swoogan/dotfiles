@@ -8,6 +8,28 @@ if ($null -ne $env:WT_SESSION) {
     $PSStyle.Progress.View = "Classic"
 }
 
+
+function Find-Git { 
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true,
+            ValueFromPipeline=$true)]
+        [string]$Path
+    )
+    
+    process {
+        $path = "."
+        while ($true) {
+            if (Test-Path "$path/.git") {
+                return $true
+            } else {
+                $path = (Get-Item $path).Parent | Select-Object -ExpandProperty FullName
+                if ($null -eq $path) { return $false }
+            }
+        }
+    }
+}
+
 function prompt {
     # Define colors
     $green = "`e[32m"
@@ -15,7 +37,7 @@ function prompt {
     $yellow = "`e[33m"
     $reset = "`e[0m"
 
-    if (Test-Path .git) {
+    if (Find-Git .) {
         $branch = ""
         git branch | ForEach-Object {
             if ($_ -match "^\*(.*)") {
