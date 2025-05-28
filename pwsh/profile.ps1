@@ -88,6 +88,12 @@ Register-ArgumentCompleter -Native -CommandName git -ScriptBlock {
             New-Object System.Management.Automation.CompletionResult $_
         }
     }
+    elseif ($elements.Length -ge 1 -and $elements[1].ToString() -eq "add") {
+        git ls-files --modified --others --deleted | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
+            New-Object System.Management.Automation.CompletionResult $_
+        }
+    }
+
     else {
         git --list-cmds=main,others,alias | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
             New-Object System.Management.Automation.CompletionResult $_
