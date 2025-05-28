@@ -6,7 +6,8 @@ M.spec = {
   { "neovim/nvim-lspconfig" },  -- Easy configuration of LSP
   {
     "nvim-treesitter/nvim-treesitter",
-    event = { "BufReadPost", "BufNewFile" },
+    branch = 'master',
+    lazy = false,
     build = ":TSUpdate",
     dependencies = { "nvim-treesitter/nvim-treesitter-textobjects" }, -- Additional textobjects for treesitter
     opts = {
