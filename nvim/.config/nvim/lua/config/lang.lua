@@ -217,8 +217,8 @@ M.setup = function(opts)
     nvim_lsp['ruff'].setup({})
   end
 
-  local pylyzer = vim.env.DEV_HOME .. '/.ls/pylyzer.exe'
-  if vim.fn.executable(pylyzer) == 1 then
+  -- local pylyzer = vim.env.DEV_HOME .. '/.ls/pylyzer.exe'
+  if false and vim.fn.executable('pylyzer') == 1 then
     nvim_lsp['pylyzer'].setup({
       capabilities = capabilities,
       on_attach = on_attach,
