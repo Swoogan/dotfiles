@@ -61,7 +61,7 @@ M.setup = function(opts)
   local on_attach = function(client, bufnr)
     -- Mappings
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
-    if client.supports_method('textDocument/declaration') then
+    if client:supports_method('textDocument/declaration') then
       vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
     end
     vim.keymap.set('n', 'gd', function()
@@ -80,7 +80,7 @@ M.setup = function(opts)
     vim.keymap.set('n', '<leader>lf', opts.code_format, bufopts)
     vim.keymap.set('n', '<leader>lr', vim.lsp.buf.rename, bufopts)
     vim.keymap.set('n', '<leader>li', require('telescope.builtin').lsp_implementations, bufopts)
-    if client.supports_method('textDocument/codeAction') then
+    if client:supports_method('textDocument/codeAction') then
       vim.keymap.set('n', '<leader>lc', vim.lsp.buf.code_action, bufopts)
     end
   end
@@ -306,29 +306,39 @@ M.setup = function(opts)
   if vim.fn.executable(lua_language_server) == 1 then
     nvim_lsp['lua_ls'].setup({
       on_init = function(client)
-        local path = client.workspace_folders[1].name
-        if not vim.uv.fs_stat(path .. '/.luarc.json') and not vim.uv.fs_stat(path .. '/.luarc.jsonc') then
-          client.config.settings.Lua = vim.tbl_deep_extend('force', client.config.settings.Lua, {
-            runtime = {
-              version = 'LuaJIT'
-            },
-            diagnostics = {
-              -- Get the language server to recognize the `vim` global
-              globals = {
-                'vim',
-                'require'
-              },
-            },
-            -- Make the server aware of Neovim runtime files
-            workspace = {
-              checkThirdParty = false,
-              library = { vim.env.VIMRUNTIME }
-            }
-          })
-
-          client.notify("workspace/didChangeConfiguration", { settings = client.config.settings })
+        if client.workspace_folders then
+          local path = client.workspace_folders[1].name
+          if
+              path ~= vim.fn.stdpath('config')
+              and (vim.uv.fs_stat(path .. '/.luarc.json') or vim.uv.fs_stat(path .. '/.luarc.jsonc'))
+          then
+            return
+          end
         end
-        return true
+        client.config.settings.Lua = vim.tbl_deep_extend('force', client.config.settings.Lua, {
+          runtime = {
+            -- Tell the language server which version of Lua you're using (most
+            -- likely LuaJIT in the case of Neovim)
+            version = 'LuaJIT',
+            -- Tell the language server how to find Lua modules same way as Neovim
+            -- (see `:h lua-module-load`)
+            path = {
+              'lua/?.lua',
+              'lua/?/init.lua',
+            },
+          },
+          -- Make the server aware of Neovim runtime files
+          workspace = {
+            checkThirdParty = false,
+            library = {
+              vim.env.VIMRUNTIME
+              -- Depending on the usage, you might want to add additional paths
+              -- here.
+              -- '${3rd}/luv/library'
+              -- '${3rd}/busted/library'
+            }
+          }
+        })
       end,
       settings = {
         Lua = {}
