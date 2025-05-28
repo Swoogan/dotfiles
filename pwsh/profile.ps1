@@ -79,6 +79,22 @@ function prompt {
     Write-Output $status_string
 }
 
+Register-ArgumentCompleter -Native -CommandName git -ScriptBlock {
+    param($wordToComplete, $commandAst, $cursorPosition)
+
+    $elements = $commandAst.CommandElements
+    if ($elements.Length -ge 1 -and $elements[1].ToString() -eq "branch") {
+        git for-each-ref --format='%(refname:strip=2)' "refs/heads/$1" | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
+            New-Object System.Management.Automation.CompletionResult $_
+        }
+    }
+    else {
+        git --list-cmds=main,others,alias | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
+            New-Object System.Management.Automation.CompletionResult $_
+        }
+    }
+}
+
 if ($host.Name -eq 'ConsoleHost') {
     # Delete from the cursor to the beginning of the line
     Set-PSReadlineKeyHandler -Chord "Ctrl+u" -Function BackwardDeleteLine
