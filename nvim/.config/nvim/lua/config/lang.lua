@@ -291,7 +291,12 @@ M.setup = function(opts)
     -- Setup PowerShell Editor Extensions
     nvim_lsp['powershell_es'].setup({
       capabilities = capabilities,
-      on_attach = on_attach,
+      on_attach = function(client, bufnr)
+        on_attach(client, bufnr)
+        -- for some reason powershell_es says it doesn't support code actions, when it does
+        local bufopts = { noremap = true, silent = true, buffer = bufnr }
+        vim.keymap.set('n', '<leader>lc', vim.lsp.buf.code_action, bufopts)
+      end,
       bundle_path = bundle_path,
     })
   end
