@@ -83,7 +83,7 @@ Register-ArgumentCompleter -Native -CommandName git -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
 
     $elements = $commandAst.CommandElements
-    if ($elements.Length -ge 1 -and $elements[1].ToString() -eq "branch") {
+    if ($elements.Length -ge 1 -and @("branch", "switch").Contains($elements[1].ToString())) {
         git for-each-ref --format='%(refname:strip=2)' "refs/heads/$1" | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
             New-Object System.Management.Automation.CompletionResult $_
         }
