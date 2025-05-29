@@ -91,11 +91,21 @@ vim.cmd([[ set iskeyword+=- ]])
 vim.cmd([[ set iskeyword+=_ ]])
 
 -- Add cute icons for the left margin
-local signs = { Error = '', Warn = '', Hint = '', Info = '' }
-for type, icon in pairs(signs) do
-  local hl = "DiagnosticSign" .. type
-  vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
-end
+-- local signs = { Error = '', Warn = '', Hint = '', Info = '' }
+-- for type, icon in pairs(signs) do
+-- local hl = "DiagnosticSign" .. type
+-- vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
+vim.diagnostic.config({
+  signs = {
+    text = {
+      [vim.diagnostic.severity.ERROR] = '',
+      [vim.diagnostic.severity.WARN] = '',
+      [vim.diagnostic.severity.INFO] = '',
+      [vim.diagnostic.severity.HINT] = '',
+    }
+  }
+})
+-- end
 
 -- *** THEME *** --
 
@@ -453,8 +463,6 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function()
     -- setup cargo as the compiler
     vim.cmd([[compiler cargo]])
-    -- vim.keymap.set('n', '<leader>bb', '<cmd>make build|cwindow<cr>', opts)
-    -- vim.keymap.set('n', '<leader>br', '<cmd>make run<cr>', opts)
     vim.keymap.set('n', '<leader>bb', require('rust_mono').build, opts)
     vim.keymap.set('n', '<leader>br', require('rust_mono').run, opts)
     vim.keymap.set('n', '<leader>bc', require('rust_mono').clippy, opts)
@@ -599,3 +607,68 @@ vim.keymap.set('n', '<leader>ro', '<cmd>!p4 open %<cr>')
 vim.keymap.set('n', '<leader>ra', '<cmd>!p4 add %<cr>')
 vim.keymap.set('n', '<leader>rr', '<cmd>!p4 revert %<cr>')
 vim.keymap.set('n', '<leader>rl', '<cmd>!p4 login<cr>')
+
+
+-- Match the contents of a format string
+local query_string = [[
+  (macro_invocation
+    macro: (identifier) @name (#eq? @name "format")
+    (token_tree
+      (string_literal
+        (string_content) @format))
+  )
+]]
+local query = vim.treesitter.query.parse("rust", query_string)
+
+-- Function to apply highlighting
+local function apply_custom_highlighting(bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  local parser = vim.treesitter.get_parser(bufnr, "rust")
+  if parser == nil then
+    return
+  end
+
+  local tree = parser:parse()[1]
+  local ns = vim.api.nvim_create_namespace('RustCustomHighlight')
+
+  -- Run query against syntax tree
+  for id, node in query:iter_captures(tree:root(), bufnr) do
+    local name = query.captures[id]
+    if name == "format" then
+      local node_text = vim.treesitter.get_node_text(node, bufnr)
+      local start_row, start_col, _, _ = node:range()
+      for brace_start, brace_content in node_text:gmatch("()%{(.-)%}()") do
+        local brace_end = brace_start + #brace_content
+
+        -- Calculate absolute positions in the buffer
+        local hl_start_col = start_col + brace_start
+        local hl_end_col = start_col + brace_end
+
+        -- Apply highlight to the range
+        local hl = "@variable"
+        if brace_content == string.upper(brace_content) then
+          hl = "@constant"
+        end
+
+        vim.api.nvim_buf_set_extmark(
+          bufnr,
+          ns,
+          start_row,
+          hl_start_col,
+          {
+            end_col = hl_end_col,
+            hl_group = hl
+          }
+        )
+      end
+    end
+  end
+end
+
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("Rust", { clear = true }),
+  pattern = "rust",
+  callback = function()
+    apply_custom_highlighting(vim.api.nvim_get_current_buf())
+  end,
+})
