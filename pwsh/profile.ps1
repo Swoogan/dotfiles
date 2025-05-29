@@ -89,7 +89,10 @@ Register-ArgumentCompleter -Native -CommandName git -ScriptBlock {
         }
     }
     elseif ($elements.Length -ge 1 -and @("add", "diff", "restore").Contains($elements[1].ToString())) {
-        git ls-files --modified --others --deleted | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
+        # git status --porcelain | ForEach-Object { $_ -replace "^\s?.*?\s+","" } | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
+        # git ls-files --modified --others --deleted | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
+        $files = git status --porcelain=v2 | ForEach-Object {$_ -split " " | Select-Object -last 1}
+        $files | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
             New-Object System.Management.Automation.CompletionResult $_
         }
     }
