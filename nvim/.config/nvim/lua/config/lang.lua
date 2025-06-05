@@ -298,6 +298,7 @@ M.setup = function(opts)
         vim.keymap.set('n', '<leader>lc', vim.lsp.buf.code_action, bufopts)
       end,
       bundle_path = bundle_path,
+      settings = { powershell = { codeFormatting = { Preset = 'OTBS' } } },
     })
   end
 
