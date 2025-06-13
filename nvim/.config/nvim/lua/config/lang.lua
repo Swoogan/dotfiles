@@ -78,7 +78,9 @@ M.setup = function(opts)
     vim.keymap.set('n', '<leader>lh', vim.lsp.buf.hover, bufopts)
     vim.keymap.set('n', '<leader>ls', vim.lsp.buf.signature_help, bufopts)
     vim.keymap.set('n', '<leader>lf', opts.code_format, bufopts)
-    vim.keymap.set('n', '<leader>lr', vim.lsp.buf.rename, bufopts)
+    if client:supports_method('textDocument/rename') then
+      vim.keymap.set('n', '<leader>lr', vim.lsp.buf.rename, bufopts)
+    end
     vim.keymap.set('n', '<leader>li', require('telescope.builtin').lsp_implementations, bufopts)
     if client:supports_method('textDocument/codeAction') then
       vim.keymap.set('n', '<leader>lc', vim.lsp.buf.code_action, bufopts)
@@ -113,25 +115,6 @@ M.setup = function(opts)
     end)
     cmd:write(contents)
     cmd:write(nil)
-  end
-
-  local function run_black(contents)
-    -- Todo: unify this with clang-format above
-    local black_format = 'black'
-    -- if vim.fn.executable(vim.env.black_FORMAT or "") == 1 then
-    --   black_format = vim.env.black_FORMAT
-    -- end
-    local function on_exit(obj)
-      -- replace the buffer content with the command results
-      if obj.code == 0 then
-        vim.schedule(function()
-          local new_text = vim.split(obj.stdout, '\n')
-          vim.api.nvim_buf_set_lines(0, 0, -1, false, new_text)
-        end)
-      end
-    end
-    local command = { black_format, "--stdin-filename", vim.fs.normalize(vim.fn.expand("%:p")), "--code", contents }
-    vim.system(command, {}, on_exit)
   end
 
   -- Use a loop to conveniently call 'setup' on multiple servers and
@@ -182,21 +165,7 @@ M.setup = function(opts)
     nvim_lsp['pyright'].setup {
       capabilities = cap,
       on_attach = function(client, bufnr)
-        client.server_capabilities.codeActionProvider = false
-        client.server_capabilities.renameProvider = false
         -- client.handlers["textDocument/publishDiagnostics"] = function(...) end
-
-        -- Todo: unify this with clang-format
-        opts.code_format = function()
-          local pos = vim.api.nvim_win_get_cursor(0)
-
-          -- Get the current buffer data
-          local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-          local contents = table.concat(lines, '\n')
-          run_black(contents)
-
-          vim.api.nvim_win_set_cursor(0, pos)
-        end
         on_attach(client, bufnr)
       end,
       root_dir = function()
@@ -298,7 +267,29 @@ M.setup = function(opts)
         vim.keymap.set('n', '<leader>lc', vim.lsp.buf.code_action, bufopts)
       end,
       bundle_path = bundle_path,
-      settings = { powershell = { codeFormatting = { Preset = 'OTBS' } } },
+      settings = {
+        powershell = {
+          codeFormatting = {
+            -- preset = 'OTBS',
+            preset = 'Stroustrup',
+            addWhitespaceAroundPipe = true,
+            -- autoCorrectAliases = true,
+            avoidSemicolonsAsLineTerminators = true,
+            useConstantStrings = true,
+            pipelineIndentationStyle = 'IncreaseIndentationForFirstPipeline',
+            trimWhitespaceAroundPipe = true,
+            whitespaceBeforeOpenBrace = false,
+            whitespaceBeforeOpenParen = false,
+            whitespaceAroundOperator = true,
+            whitespaceAfterSeparator = true,
+            whitespaceBetweenParameters = true,
+            whitespaceInsideBrace = false,
+            ignoreOneLineBlock = true,
+            alignPropertyValuePairs = true,
+            useCorrectCasing = false,
+          }
+        }
+      },
     })
   end
 
