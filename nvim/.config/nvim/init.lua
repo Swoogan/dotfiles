@@ -410,6 +410,16 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end
 })
 
+-- *** PowerShell *** --
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("PwshSpecific", { clear = true }),
+  pattern = { "*.ps1", "*.psm1" },
+  callback = function()
+    -- create debugging print statement
+    vim.keymap.set('n', '<leader>pd', require('print_debug').print_pwsh, opts)
+  end
+})
+
 -- *** Python *** --
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("PythonSpecific", { clear = true }),

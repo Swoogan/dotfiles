@@ -2,7 +2,7 @@ local M = {}
 
 local function generate_logging(format)
   local lnum, _ = unpack(vim.api.nvim_win_get_cursor(0))
-  vim.cmd.normal('"zyiw')
+  vim.cmd.normal('"zyiW')
   local variable = vim.fn.getreg('"z')
   local new_line = string.format(format, variable, lnum, variable)
   vim.fn.setreg("y", new_line)
@@ -40,6 +40,11 @@ end
 M.print_rust = function()
   -- println!("env (66): {}", env);
   generate_logging('println!("%s (%d): {}", %s);')
+end
+
+M.print_pwsh = function()
+  -- Write-Host "env (66): {env}"
+  generate_logging('Write-Host "`%s (%d): $(%s)"')
 end
 
 return M
