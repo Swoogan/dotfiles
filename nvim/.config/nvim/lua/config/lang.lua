@@ -44,7 +44,6 @@ M.setup = function(opts)
       vim.diagnostic.config({
         virtual_text = {
           source = false,
-          -- prefix = '',
           prefix = '',
           format = function(diagnostic)
             return string.format("%s (%s) %s", diagnostic.source, diagnostic.code, diagnostic.message)
@@ -83,7 +82,7 @@ M.setup = function(opts)
     end
     vim.keymap.set('n', '<leader>li', require('telescope.builtin').lsp_implementations, bufopts)
     if client:supports_method('textDocument/codeAction') then
-      vim.keymap.set('n', '<leader>lc', vim.lsp.buf.code_action, bufopts)
+      vim.keymap.set({ 'n', 'v' }, '<leader>lc', vim.lsp.buf.code_action, bufopts)
     end
   end
 
