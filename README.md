@@ -51,6 +51,7 @@ Install
     New-Symlink -Link $non_admin_home/Documents\PowerShell\profile.ps1 C:\dev\dotfiles\pwsh\profile.ps1
     New-Symlink -Link $non_admin_home/.vsvimrc C:\dev\dotfiles\windows\_vsvimrc
     New-Symlink -Link $non_admin_home\AppData\Local\nvim\init.lua C:\dev\dotfiles\nvim\.config\nvim\init.lua
+    New-Symlink -Link $non_admin_home\AppData\Local\nvim\ginit.vim C:\dev\dotfiles\nvim\.config\nvim\ginit.vim
     New-Symlink -Link $non_admin_home\AppData\Local\nvim\lua C:\dev\dotfiles\nvim\.config\nvim\lua
     New-Symlink -Link $non_admin_home\AppData\Local\nvim\lazy-lock.json C:\dev\dotfiles\nvim\.config\nvim\lazy-lock.json
 
