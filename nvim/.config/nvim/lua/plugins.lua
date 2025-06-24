@@ -2,8 +2,9 @@ local M = {
 }
 
 M.spec = {
-  { "EdenEast/nightfox.nvim" }, -- theme
-  { "neovim/nvim-lspconfig" },  -- Easy configuration of LSP
+  { "EdenEast/nightfox.nvim" },    -- theme
+  { "neovim/nvim-lspconfig" },     -- Easy configuration of LSP
+  { "equalsraf/neovim-gui-shim" }, -- gui shim for nvim-qt
   {
     "nvim-treesitter/nvim-treesitter",
     branch = 'master',

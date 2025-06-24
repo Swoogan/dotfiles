@@ -4,7 +4,7 @@
 " Set Editor Font
 if exists(':GuiFont')
     " Use GuiFont! to ignore font errors
-    GuiFont FiraCode\ Nerd\ Font:h10
+    GuiFont FiraCode\ Nerd\ Font\ Mono:h11
 endif
 
 " Disable GUI Tabline
@@ -20,6 +20,11 @@ endif
 " Enable GUI ScrollBar
 if exists(':GuiScrollBar')
     GuiScrollBar 1
+endif
+
+" Enable Font Ligatures
+if exists(':GuiRenderLigatures')
+    GuiRenderLigatures 1
 endif
 
 " Right Click Context Menu (Copy-Cut-Paste)
