@@ -271,7 +271,7 @@ M.spec = {
       vim.keymap.set('n', '<leader>sd', builtin.grep_string, opts)
       vim.keymap.set('n', '<leader>sc', builtin.command_history, opts)
       vim.keymap.set('n', '<leader>ss', builtin.search_history, opts)
-      -- vim.keymap.set('n', '<leader>so', builtin.oldfiles, opts)
+      vim.keymap.set('n', '<leader>so', builtin.oldfiles, opts)
       vim.keymap.set('n', '<leader>sm', builtin.marks, opts)
       vim.keymap.set('n', '<leader>sr', builtin.resume, opts)
       vim.keymap.set('n', '<leader>sv',
