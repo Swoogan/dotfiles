@@ -259,7 +259,7 @@ M.spec = {
         },
         pickers = {
           find_files = {
-            find_command = { "fd", "--type", "f", "--strip-cwd-prefix" }
+            find_command = { "fd", "--type", "f", "--color", "never" }
           }
         }
       }
@@ -268,8 +268,7 @@ M.spec = {
       local opts = { noremap = true, silent = true }
 
       vim.keymap.set('n', '<leader><space>', builtin.buffers, opts)
-      vim.keymap.set('n', '<leader>sf', function() builtin.find_files({ previewer = false }) end,
-        opts)
+      vim.keymap.set('n', '<leader>sf', function() builtin.find_files({ previewer = false }) end, opts)
       vim.keymap.set('n', '<leader>sb', builtin.current_buffer_fuzzy_find, opts)
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, opts)
       vim.keymap.set('n', '<leader>sg', builtin.live_grep, opts)
