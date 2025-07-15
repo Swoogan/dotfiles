@@ -334,7 +334,13 @@ Set-Alias ll Get-ChildItem
 ### Variables
 #######################
 # Set-Item -Path Env:SOME_VAR -Value ""
+Set-Item -Path Env:EDITOR -Value nvim
 
+$PSStyle.FileInfo.Directory = "`e[34m"
+
+#######################
+### Includes
+#######################
 $local = "~/.local/profile.ps1"
 
 if (Test-Path $local) {
@@ -346,4 +352,5 @@ if (Test-Path $perforce) {
     . $perforce
 }
 
-$PSStyle.FileInfo.Directory = "`e[34m"
+
+
