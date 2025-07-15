@@ -608,7 +608,10 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
 vim.api.nvim_create_autocmd("VimEnter", {
   group = session_group,
   pattern = "*",
-  callback = function() sessions.load_session() end,
+  callback = function()
+    sessions.load_session()
+    vim.cmd("clearjumps")
+  end,
   nested = true
 })
 
