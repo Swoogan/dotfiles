@@ -103,7 +103,9 @@ local function run_build(command)
       local new_text = vim.split(output, '\r?\n', { trimempty = true })
       vim.api.nvim_buf_set_lines(buf, -1, -1, false, new_text)
       local last_line = vim.api.nvim_buf_line_count(buf)
-      vim.api.nvim_win_set_cursor(new_winnr, { last_line, 0 })
+      if vim.api.nvim_win_is_valid(new_winnr) then
+        vim.api.nvim_win_set_cursor(new_winnr, { last_line, 0 })
+      end
     end
   end
 
