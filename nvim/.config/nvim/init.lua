@@ -144,8 +144,8 @@ vim.keymap.set({ 'i', 'c' }, '<A-p>', '<C-r>+', opts)
 -- map gp to re-select the thing you just pasted
 vim.keymap.set('n', 'gp', '`[v`]', opts)
 
-vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
-vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
+vim.keymap.set('n', '[d', function() vim.diagnostic.jump({ count = 1, float = true }) end, opts)
+vim.keymap.set('n', ']d', function() vim.diagnostic.jump({ count = -1, float = true }) end, opts)
 
 -- These use the <leader>l lsp prefix even though they aren't lsp specific.
 vim.keymap.set('n', '<leader>le', vim.diagnostic.open_float, opts)
@@ -664,14 +664,7 @@ local function apply_custom_highlighting(bufnr)
         end
 
         vim.api.nvim_buf_set_extmark(
-          bufnr,
-          ns,
-          start_row,
-          hl_start_col,
-          {
-            end_col = hl_end_col,
-            hl_group = hl
-          }
+          bufnr, ns, start_row, hl_start_col, { end_col = hl_end_col, hl_group = hl }
         )
       end
     end

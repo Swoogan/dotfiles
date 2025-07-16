@@ -59,7 +59,14 @@ M.diff_locations = function()
 
   local jump_to_line = function(self, bufnr, entry)
     vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
-    vim.api.nvim_buf_add_highlight(bufnr, ns, "TelescopePreviewLine", entry.lnum - 1, 0, -1)
+    -- Cannot specify -1 for end_col. See,
+    -- https://github.com/neovim/neovim/issues/27469
+    local line = vim.api.nvim_buf_get_lines(bufnr, entry.lnum - 1, entry.lnum, false)[1]
+    local end_col = line and string.len(line) or 0
+
+    vim.api.nvim_buf_set_extmark(
+      bufnr, ns, entry.lnum - 1, 0, { end_col = end_col, hl_group = "TelescopePreviewLine" }
+    )
     vim.api.nvim_win_set_cursor(self.state.winid, { entry.lnum, 0 })
     vim.api.nvim_buf_call(bufnr, function()
       vim.cmd('normal! zz')
