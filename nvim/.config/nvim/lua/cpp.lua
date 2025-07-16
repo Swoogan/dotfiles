@@ -4,6 +4,7 @@ local M = {}
 
 local BUFFER_NAME = "Build Output"
 
+
 --- Parse the build errors
 local function parse_output(lines)
   local cwd = vim.fn.getcwd()
@@ -11,7 +12,7 @@ local function parse_output(lines)
   local results = {}
 
   for _, line in ipairs(lines) do
-    local file_path, line_number, err_code, description = line:match(
+    local file_path, line_number, _, description = line:match(
       "^(.+)%((%d+)%):%serror%s([^:]+):%s(.+)"
     )
     if file_path and line_number then
@@ -21,17 +22,12 @@ local function parse_output(lines)
         file_path = file_path:gsub("^" .. overlap .. "\\", "")
       end
 
-      local level = "E"
-      -- if vim.startswith(msg_level, "warning") then
-      --   level = "W"
-      -- end
-
       table.insert(results, {
         file = file_path:gsub("%s", ""),
         line = tonumber(line_number),
         column = 0,
         description = description,
-        type = level
+        type = "E"
       })
     end
   end
@@ -85,24 +81,24 @@ local function run_build(command)
   -- first save your current window's id, so that we can restore the size later
   local initial_winnr = vim.api.nvim_get_current_win()
 
-  local buf, new_winnr
+  local bufnr, new_winnr
   if vim.fn.bufexists(BUFFER_NAME) == 1 then
-    buf = vim.fn.bufnr(BUFFER_NAME)
-    new_winnr = utils.find_or_make_output_window(buf, initial_winnr)
+    bufnr = vim.fn.bufnr(BUFFER_NAME)
+    new_winnr = utils.find_or_make_output_window(bufnr, initial_winnr)
     -- clear the buffer
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
+    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {})
   else
     new_winnr = utils.make_output_window(initial_winnr)
-    buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_name(buf, BUFFER_NAME)
-    vim.api.nvim_win_set_buf(new_winnr, buf)
+    bufnr = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_name(bufnr, BUFFER_NAME)
+    vim.api.nvim_win_set_buf(new_winnr, bufnr)
   end
 
   local function write_output(output)
     if output then
       local new_text = vim.split(output, '\r?\n', { trimempty = true })
-      vim.api.nvim_buf_set_lines(buf, -1, -1, false, new_text)
-      local last_line = vim.api.nvim_buf_line_count(buf)
+      vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, new_text)
+      local last_line = vim.api.nvim_buf_line_count(bufnr)
       if vim.api.nvim_win_is_valid(new_winnr) then
         vim.api.nvim_win_set_cursor(new_winnr, { last_line, 0 })
       end

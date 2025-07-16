@@ -52,37 +52,6 @@ M.find_next_empty = function(bufnr, direction, start)
   return find_next_line(bufnr, direction, start, function(lnum) return M.is_empty(bufnr, lnum) end)
 end
 
-M.transform_test_name = function()
-  -- Takes user input and replaces space with underscore, capitalizes each word
-  -- Ex. "this is a test method" => "This_Is_A_Test_Method"
-  local input = vim.fn.input("Message: ")
-  local output = {}
-  for i in string.gmatch(input, "%S+") do
-    local first = string.sub(i, 1, 1)
-    local rest = string.sub(i, 2, string.len(i))
-    local up = string.upper(first)
-    table.insert(output, up .. rest)
-  end
-
-  local result = ''
-
-  for _, v in pairs(output) do
-    result = result .. v .. '_'
-  end
-
-  result = string.sub(result, 1, -2)
-
-  local win = vim.api.nvim_get_current_win()
-  local bufnr = vim.api.nvim_get_current_buf()
-  local cur = vim.api.nvim_win_get_cursor(win)
-  local start_row = cur[1] - 1
-  local start_col = cur[2] + 1
-  vim.api.nvim_buf_set_text(bufnr, start_row, start_col, start_row, start_col, { result })
-
-  local new_col = start_col + string.len(result)
-  vim.api.nvim_win_set_cursor(win, { start_row + 1, new_col })
-end
-
 
 ---Converts parsed errors to quickfix entries
 ---@param parsed_results { file: string, line: integer, column: integer, description: string, type: string}
@@ -123,18 +92,61 @@ M.make_output_window = function(initial_win_id)
   return new_win_id
 end
 
+--- Get the tab id for a window
+---@param winnr integer | nil
+---@return integer | nil
+M.get_tab_for_window = function(winnr)
+  -- Default to current window if none provided
+  winnr = winnr or 0
+
+  -- Get all tabs
+  local tabs = vim.api.nvim_list_tabpages()
+
+  for _, tab in ipairs(tabs) do
+    -- Get all windows in the current tab
+    local tab_windows = vim.api.nvim_tabpage_list_wins(tab)
+
+    -- Check if our window is in this tab
+    for _, tab_win in ipairs(tab_windows) do
+      if tab_win == winnr then
+        return tab
+      end
+    end
+  end
+
+  return nil
+end
+
+--- See if a given tab is focused
+---@param tabnr integer | nil
+---@return boolean
+M.is_tab_focused = function(tabnr)
+  tabnr = tabnr or 0
+  local current_tabnr = vim.api.nvim_get_current_tabpage()
+  return tabnr == current_tabnr
+end
+
 --- Get the id of an existing output window, or make a new one
 ---@param bufnr integer The id of the buffer to find
----@param initial_win_id integer The id of the window to split
+---@param initial_winnr integer The id of the window to split
 ---@return integer new_win_id The id of the new split
-M.find_or_make_output_window = function(bufnr, initial_win_id)
+M.find_or_make_output_window = function(bufnr, initial_winnr)
   local win_ids = vim.fn.win_findbuf(bufnr)
   if #win_ids > 0 then
-    return win_ids[1]
+    local winnr = win_ids[1]
+    local tabnr = M.get_tab_for_window(winnr)
+    if M.is_tab_focused(tabnr) then
+      return winnr
+    else
+      vim.api.nvim_win_close(winnr, false)
+      local new_winnr = M.make_output_window(initial_winnr)
+      vim.api.nvim_win_set_buf(new_winnr, bufnr)
+      return new_winnr
+    end
   else
-    local new_win_id = M.make_output_window(initial_win_id)
-    vim.api.nvim_win_set_buf(new_win_id, bufnr)
-    return new_win_id
+    local new_winnr = M.make_output_window(initial_winnr)
+    vim.api.nvim_win_set_buf(new_winnr, bufnr)
+    return new_winnr
   end
 end
 
