@@ -246,7 +246,6 @@ M.spec = {
       telescope.setup {
         defaults = {
           file_ignore_patterns = { "__pycache__" },
-          -- path_display = { shorten = { len = 1, exclude = { -1, -2 } } }
           path_display = { "truncate" },
           mappings = {
             n = {
@@ -269,23 +268,26 @@ M.spec = {
 
       vim.keymap.set('n', '<leader><space>', builtin.buffers, opts)
       vim.keymap.set('n', '<leader>sf', function() builtin.find_files({ previewer = false }) end, opts)
-      vim.keymap.set('n', '<leader>sb', builtin.current_buffer_fuzzy_find, opts)
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, opts)
       vim.keymap.set('n', '<leader>sg', builtin.live_grep, opts)
+      vim.keymap.set('n', '<leader>sb', function() builtin.live_grep({ grep_open_files = true }) end, opts)
       vim.keymap.set('n', '<leader>sd', builtin.grep_string, opts)
-      vim.keymap.set('n', '<leader>sc', builtin.command_history, opts)
-      vim.keymap.set('n', '<leader>ss', builtin.search_history, opts)
       vim.keymap.set('n', '<leader>so', builtin.oldfiles, opts)
-      vim.keymap.set('n', '<leader>sm', builtin.marks, opts)
       vim.keymap.set('n', '<leader>sr', builtin.resume, opts)
-      vim.keymap.set('n', '<leader>sv',
-        function() telescope.setup { defaults = { layout_strategy = 'vertical', }, } end,
-        opts
-      )
-      vim.keymap.set('n', '<leader>sz',
-        function() telescope.setup { defaults = { layout_strategy = 'horizontal', }, } end,
-        opts
-      )
+
+      -- Deprecating as I never use these
+      -- vim.keymap.set('n', '<leader>sb', builtin.current_buffer_fuzzy_find, opts)
+      -- vim.keymap.set('n', '<leader>sc', builtin.command_history, opts)
+      -- vim.keymap.set('n', '<leader>ss', builtin.search_history, opts)
+      -- vim.keymap.set('n', '<leader>sm', builtin.marks, opts)
+      -- vim.keymap.set('n', '<leader>sv',
+      --   function() telescope.setup { defaults = { layout_strategy = 'vertical', }, } end,
+      --   opts
+      -- )
+      -- vim.keymap.set('n', '<leader>sz',
+      --   function() telescope.setup { defaults = { layout_strategy = 'horizontal', }, } end,
+      --   opts
+      -- )
     end
   },
 
