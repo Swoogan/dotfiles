@@ -2,8 +2,7 @@ local M = {}
 
 local function generate_logging(format)
   local lnum, _ = unpack(vim.api.nvim_win_get_cursor(0))
-  -- Todo: pwsh needs iW to get the $ on the front, but python need iw because we don't want the : in an if/for statement
-  vim.cmd.normal('"zyiW')
+  vim.cmd.normal('"zyiw')
   local variable = vim.fn.getreg('"z')
   local new_line = string.format(format, variable, lnum + 1, variable)
   vim.fn.setreg("y", new_line)

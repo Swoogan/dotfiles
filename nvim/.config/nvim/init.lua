@@ -131,28 +131,19 @@ vim.keymap.set('', '<Space>', '<Nop>', opts)
 -- quick yank/paste
 vim.keymap.set('n', '<leader>pp', 'ciw<C-r>0<Esc>', opts)
 vim.keymap.set('n', '<leader>yy', 'yiw', opts)
-vim.keymap.set('n', '<space>y', '"ty', opts)
-vim.keymap.set('n', '<space>p', '"tP', opts)
 vim.keymap.set('n', '<space>d', '"_d', opts)
 vim.keymap.set('n', '<space>c', '"_c', opts)
-vim.keymap.set('n', '<leader>ys', '"sy', opts)
-vim.keymap.set('n', '<leader>ps', '"sP', opts)
--- vim.keymap.set('n', '<leader>ye', '"ey', opts)
--- vim.keymap.set('n', '<leader>pe', '"eP', opts)
 vim.keymap.set({ 'i', 'c' }, '<A-p>', '<C-r>+', opts)
 
 -- map gp to re-select the thing you just pasted
 vim.keymap.set('n', 'gp', '`[v`]', opts)
 
-vim.keymap.set('n', '[d', function() vim.diagnostic.jump({ count = 1, float = true }) end, opts)
-vim.keymap.set('n', ']d', function() vim.diagnostic.jump({ count = -1, float = true }) end, opts)
+vim.keymap.set('n', '[d', function() vim.diagnostic.jump({ count = -1, float = true }) end, opts)
+vim.keymap.set('n', ']d', function() vim.diagnostic.jump({ count = 1, float = true }) end, opts)
 
 -- These use the <leader>l lsp prefix even though they aren't lsp specific.
 vim.keymap.set('n', '<leader>le', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', '<leader>lq', vim.diagnostic.setqflist, opts)
-
--- Generate test names in the standard format
--- vim.keymap.set("n", "<leader>tt", require('utils').transform_test_name, opts)
 
 -- Buffer Mappings
 -- Close current buffer
@@ -204,15 +195,10 @@ vim.keymap.set('n', '<leader>ec', '<cmd>vsplit $MYVIMRC<cr>', opts)
 
 -- Nvim Tree
 vim.keymap.set('n', '<c-n>', '<cmd>NvimTreeToggle<cr>', opts)
--- vim.keymap.set('n', '<leader>r', '<cmd>NvimTreeRefresh<cr>', opts)
 vim.keymap.set('n', '<leader>st', '<cmd>NvimTreeFindFile<cr>', opts)
 
 -- Run prettier
 vim.keymap.set('n', '<leader>pf', '<cmd>PrettierAsync<cr>', opts)
-
--- Change or delete the word plus the first character after the word
-vim.keymap.set('v', 'ew', 'vel', opts)
-vim.keymap.set('o', 'ew', '<cmd>normal Vew<cr>')
 
 local coding = require('coding')
 vim.keymap.set({ 'n', 'v', 'o', 'i' }, '<A-f>', coding.print_function, opts)
@@ -230,12 +216,11 @@ vim.keymap.set('n', '<leader>es', require('stacktraces').stacktrace_to_qflist, o
 
 -- Perforce file pickers
 vim.keymap.set('n', '<leader>sp', require('perforce_picker').opened, opts)
-vim.keymap.set('n', '<leader>sa', require('perforce_picker').changelists, opts)
+-- vim.keymap.set('n', '<leader>sa', require('perforce_picker').changelists, opts)
 vim.keymap.set("n", "<leader>si", require('perforce_picker').diff_locations, opts)
 
 -- Clean (convert) paths
--- Todo: different keymap
-vim.keymap.set('v', '<leader>rs', function()
+vim.keymap.set('v', '<leader>ap', function()
   vim.cmd.normal(vim.keycode("<Esc>")) -- Need to do this so the visual marks are set
   vim.cmd([[silent! '<,'>s;\\\\;\\;g]])
   vim.cmd([[silent! '<,'>s;\\;/;g]])
@@ -262,19 +247,6 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   callback = function() vim.highlight.on_yank() end,
 })
 
--- local group = vim.api.nvim_create_augroup("NumberToggle", { clear = true })
--- -- Turn on relativenumber for focused buffer
--- vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "InsertLeave" }, {
---   group = group,
---   command = [[set relativenumber]]
--- })
---
--- -- Turn off relativenumber for unfocused buffers
--- vim.api.nvim_create_autocmd({ "BufLeave", "WinLeave", "InsertEnter" }, {
---   group = group,
---   command = [[set norelativenumber]]
--- })
-
 -- Various settings for markdown
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
   group = vim.api.nvim_create_augroup("Markdown", { clear = true }),
@@ -283,20 +255,24 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
 })
 
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-  group = vim.api.nvim_create_augroup("CPP", { clear = true }),
+  group = vim.api.nvim_create_augroup("CppSpecific", { clear = true }),
   pattern = { "*.cpp", "*.h" },
-  command = [[set indentexpr=]]
+  callback = function()
+    vim.cmd([[set indentexpr=]])
+    -- don't want pointers to be part of a word
+    vim.cmd([[ set iskeyword-=- ]])
+  end
 })
 
 -- Set the compiler to dotnet for cs files
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-  group = vim.api.nvim_create_augroup("CSharp", { clear = true }),
+  group = vim.api.nvim_create_augroup("C#Specific", { clear = true }),
   pattern = "*.cs",
   command = [[compiler dotnet]]
 })
 
-local ziggroup = vim.api.nvim_create_augroup("ZigLang", { clear = true })
--- Set zig files to zig filetype
+local ziggroup = vim.api.nvim_create_augroup("ZigSpecific", { clear = true })
+-- Set zig files to zig filetype (todo: see if this is still needed)
 vim.api.nvim_create_autocmd("BufReadPost", {
   group = ziggroup,
   pattern = "*.zig",
@@ -417,6 +393,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
   callback = function()
     -- create debugging print statement
     vim.keymap.set('n', '<leader>pd', require('print_debug').print_pwsh, opts)
+    vim.cmd([[ set iskeyword+=$ ]])
   end
 })
 
@@ -484,7 +461,7 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -- *** Terminal ***
 -- launch a terminal
-vim.keymap.set('n', '<leader>t', '<cmd>10split|term<Cr>a', opts)
+vim.keymap.set('n', '<leader>te', '<cmd>10split|term<Cr>a', opts)
 
 -- Hide exit code on terminal close
 vim.api.nvim_create_autocmd("TermClose", {
@@ -504,25 +481,6 @@ vim.api.nvim_create_user_command('DiffOrig', function()
   vim.cmd([[vertical new | set buftype=nofile | read # | 0d_ | diffthis | wincmd p | diffthis ]])
 end, {})
 
--- Copy the full path of the current file to the clipboard
-vim.api.nvim_create_user_command('CopyPath', function()
-  vim.fn.setreg('+', vim.fn.expand('%:p'))
-end, {})
-
--- Copy the full path of the current file to the clipboard
-vim.api.nvim_create_user_command('EditLine', function(ctx)
-  local file_with_line = ctx.args
-  if not file_with_line then
-    print("Error: must specify a file")
-  else
-    local parts = vim.split(file_with_line, ":")
-    local path = parts[1]
-    local line = parts[2]
-    vim.print(string.format("edit +%s %s", line, path))
-    vim.cmd(string.format("edit +%s %s", line, path))
-  end
-end, { nargs = 1, complete = 'file' })
-
 -- redirect command output to a buffer
 vim.api.nvim_create_user_command('Redir', function(ctx)
   local result = vim.api.nvim_exec2(ctx.args, { output = true })
@@ -538,24 +496,35 @@ local function get_win_filename(winnr)
   return vim.api.nvim_buf_get_name(bufnr)
 end
 
-local function print_win_filenames()
-  local windows = vim.api.nvim_list_wins()
-  for _, window in pairs(windows) do
-    local buf_name = get_win_filename(window)
-    print(buf_name)
-  end
-end
-
-vim.keymap.set({ 'n' }, '<A-w>', print_win_filenames, opts)
 vim.keymap.set({ 'n' }, '<A-b>', require('buffers').close_unused_buffers, opts)
 
 -- Copy file name with line number
-vim.keymap.set('n', '<leader>cp', function()
+vim.api.nvim_create_user_command('CopyPathWithLine', function()
   local path = get_win_filename(0)
   local lnum, _ = unpack(vim.api.nvim_win_get_cursor(0))
   local location = path .. ":" .. lnum
   vim.cmd([[let @*=']] .. location .. [[']])
-end, opts)
+end, {})
+
+-- Edit a file at a specific line number
+vim.api.nvim_create_user_command('EditLine', function(ctx)
+  local file_with_line = ctx.args
+  if not file_with_line then
+    print("Error: must specify a file")
+  else
+    local parts = vim.split(file_with_line, ":")
+    local path = parts[1]
+    local line = parts[2]
+    vim.cmd(string.format("edit +%s %s", line, path))
+  end
+end, { nargs = 1, complete = 'file' })
+
+-- Copy the full path of the current file to the clipboard
+vim.api.nvim_create_user_command('CopyPath', function()
+  vim.fn.setreg('+', vim.fn.expand('%:p'))
+end, {})
+
+vim.keymap.set('n', '<leader>cp', '<cmd>CopyPath<cr>')
 
 -- *** Setup Signs ***
 local sign_marks = require('signs')
@@ -590,12 +559,6 @@ vim.keymap.set('n', '<leader>su', function_picker.functions)
 local sessions = require('sessions')
 sessions.initialize()
 
-vim.keymap.set('n', '<leader>qq', '<cmd>qa<cr>')
-vim.keymap.set('n', '<leader>qs', function()
-  sessions.save_session()
-  vim.cmd('qa')
-end)
-
 local session_group = vim.api.nvim_create_augroup("SessionManagement", { clear = true })
 -- Auto-save session
 vim.api.nvim_create_autocmd("VimLeavePre", {
@@ -616,6 +579,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 })
 
 -- Perforce mappings
+-- Todo: move to local
 vim.keymap.set('n', '<leader>ro', '<cmd>!p4 open %<cr>')
 vim.keymap.set('n', '<leader>ra', '<cmd>!p4 add %<cr>')
 vim.keymap.set('n', '<leader>rr', '<cmd>!p4 revert %<cr>')
