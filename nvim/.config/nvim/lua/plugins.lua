@@ -173,12 +173,18 @@ M.spec = {
           end,
         },
         mapping = cmp.mapping.preset.insert({
-          ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-          ['<C-f>'] = cmp.mapping.scroll_docs(4),
-          ['<C-Space>'] = cmp.mapping.complete(),
-          ['<C-e>'] = cmp.mapping.abort(),
+          ['<C-y>'] = cmp.mapping.select_prev_item({ count = -4 }),
+          ['<C-e>'] = cmp.mapping.select_next_item({ count = 4 }),
           ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+          ['<Tab>'] = cmp.mapping.confirm({ select = true, behavior = cmp.ConfirmBehavior.Replace }),
         }),
+        -- Mostly just for debugging
+        -- formatting = {
+        --   format = function(entry, item)
+        --     item.menu = entry.source.name
+        --     return item
+        --   end,
+        -- },
         sources = cmp.config.sources(
           {
             { name = 'nvim_lsp' },
@@ -187,7 +193,43 @@ M.spec = {
             { name = 'buffer' },
           }
         ),
-        performance = { debounce = 250 }
+        -- defaults
+        -- sorting = {
+        --   comparators = {
+        --     cmp.offset,
+        --     cmp.exact,
+        --     cmp.score,
+        --     cmp.recently_used,
+        --     cmp.locality,
+        --     cmp.kind,
+        --     cmp.sort_text,
+        --     cmp.length,
+        --     cmp.order,
+        --   },
+        -- },
+        -- performance = { debounce = 250 }
+      })
+
+
+      -- Set configuration for CPP.
+      cmp.setup.filetype('cpp', {
+        matching = {
+          disallow_fuzzy_matching = true,
+        },
+        sources = cmp.config.sources(
+          {
+            {
+              name = 'nvim_lsp',
+              entry_filter = function(entry)
+                return not vim.startswith(entry:get_word(), 'std::')
+              end
+            },
+            { name = 'luasnip' },
+          },
+          {
+            { name = 'buffer' },
+          }
+        )
       })
 
       -- Set configuration for Python.
@@ -196,7 +238,7 @@ M.spec = {
           {
             {
               name = 'nvim_lsp',
-              entry_filter = function(entry, _ctx)
+              entry_filter = function(entry, _)
                 local match = string.match(entry:get_word(), '__(%w+)__')
                 return match == nil
               end
@@ -270,8 +312,11 @@ M.spec = {
       vim.keymap.set('n', '<leader>sf', function() builtin.find_files({ previewer = false }) end, opts)
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, opts)
       vim.keymap.set('n', '<leader>sg', builtin.live_grep, opts)
-      vim.keymap.set('n', '<leader>sb', function() builtin.live_grep({ grep_open_files = true }) end, opts)
-      vim.keymap.set('n', '<leader>sd', builtin.grep_string, opts)
+      vim.keymap.set('n', '<leader>sb',
+        function() builtin.live_grep({ prompt_title = "Find in Buffers", grep_open_files = true }) end, opts
+      )
+      vim.keymap.set('n', '<leader>ss', builtin.grep_string, opts)
+      vim.keymap.set('n', '<leader>sd', builtin.diagnostics, opts)
       vim.keymap.set('n', '<leader>so', builtin.oldfiles, opts)
       vim.keymap.set('n', '<leader>sr', builtin.resume, opts)
 
