@@ -189,9 +189,8 @@ vim.keymap.set('n', '<leader>tc', '<cmd>tabclose<cr>', opts)
 vim.keymap.set('n', '<leader>tn', '<cmd>tabnext<cr>', opts)
 vim.keymap.set('n', '<leader>tp', '<cmd>tabprevious<cr>', opts)
 
-
--- Edit vim config in split
-vim.keymap.set('n', '<leader>ec', '<cmd>vsplit $MYVIMRC<cr>', opts)
+-- Close build output
+vim.keymap.set('n', '<leader>co', require('cpp').close_build_output, opts)
 
 -- Nvim Tree
 vim.keymap.set('n', '<c-n>', '<cmd>NvimTreeToggle<cr>', opts)

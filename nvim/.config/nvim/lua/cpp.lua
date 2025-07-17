@@ -1,9 +1,9 @@
 local utils = require('utils')
 
-local M = {}
+local M = {
+}
 
 local BUFFER_NAME = "Build Output"
-
 
 --- Parse the build errors
 local function parse_output(lines)
@@ -160,5 +160,10 @@ M.build_editor = function()
   local build_command = { "pwsh", "-c", "Invoke-EditorBuild; exit $LASTEXITCODE" }
   run_build(build_command)
 end
+
+M.close_build_output = function()
+  utils.delete_buffer_by_name(BUFFER_NAME)
+end
+
 
 return M

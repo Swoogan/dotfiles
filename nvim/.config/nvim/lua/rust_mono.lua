@@ -132,6 +132,10 @@ local function run_cargo(command)
   end
 end
 
+M.close_build_output = function()
+  utils.delete_buffer_by_name(BUFFER_NAME)
+end
+
 --- Call `cargo clippy`
 M.clippy = function()
   save_buffer()
@@ -150,5 +154,7 @@ M.run = function()
   local build_command = { "cargo", "run", "--message-format=short" }
   run_cargo(build_command)
 end
+
+
 
 return M

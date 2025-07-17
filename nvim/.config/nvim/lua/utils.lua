@@ -150,6 +150,25 @@ M.find_or_make_output_window = function(bufnr, initial_winnr)
   end
 end
 
+--- Delete a buffer with given name
+---@param buffer_name string
+---@return boolean
+M.delete_buffer_by_name = function(buffer_name)
+  local buffers = vim.api.nvim_list_bufs()
+
+  for _, buf in ipairs(buffers) do
+    if vim.api.nvim_buf_is_valid(buf) then
+      local name = vim.api.nvim_buf_get_name(buf)
+      if name == buffer_name or name:match("/" .. buffer_name .. "$") then
+        vim.api.nvim_buf_delete(buf, { force = true })
+        return true
+      end
+    end
+  end
+
+  return false
+end
+
 --- Run an application in the background and write its output to a new buffer
 ---@param command string[] The command and its arguments
 ---@param completion_msg string The message to display upon success
