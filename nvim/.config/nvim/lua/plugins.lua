@@ -432,10 +432,16 @@ end
 
 --- Setup lazy.nvim
 function M.load()
+  local home = os.getenv("HOME")
+  local local_data = string.format("%s/.local/nvim", home)
+
   require("lazy").setup({
     spec = M.spec,
     performance = {
       rtp = {
+        paths = {
+          local_data,
+        },
         -- disable some rtp plugins
         disabled_plugins = {
           "gzip",
