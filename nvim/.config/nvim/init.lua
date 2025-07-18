@@ -12,8 +12,7 @@ require('reference_win').setup()
 local local_config = require('local_config')
 local_config.keymaps()
 
-local config = local_config.load_config() or { location = "global" }
-print("config (22): " .. vim.inspect(config))
+local config           = local_config.load_config() or { location = "global" }
 
 -- *** CONFIG *** --
 
