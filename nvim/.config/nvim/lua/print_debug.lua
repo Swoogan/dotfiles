@@ -29,7 +29,7 @@ end
 
 M.lua_print = function()
   -- vim.print("lnum (23):", lnum)
-  generate_logging('print("%s (%d):" .. vim.inspect(%s))')
+  generate_logging('print("%s (%d): " .. vim.inspect(%s))')
 end
 
 M.python_print = function()
