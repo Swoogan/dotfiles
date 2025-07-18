@@ -9,6 +9,12 @@ plugins.load() -- Load lazy with the spec
 require('config.lang').setup()
 require('reference_win').setup()
 
+local local_config = require('local_config')
+local_config.keymaps()
+
+local config = local_config.load_config() or { location = "global" }
+print("config (22): " .. vim.inspect(config))
+
 -- *** CONFIG *** --
 
 local indent           = 4
