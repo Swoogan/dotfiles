@@ -433,6 +433,11 @@ end
 --- Setup lazy.nvim
 function M.load()
   local home = os.getenv("HOME")
+
+  if require('utils').is_windows() then
+    home = os.getenv("USERPROFILE")
+  end
+
   local local_data = string.format("%s/.local/nvim", home)
 
   require("lazy").setup({

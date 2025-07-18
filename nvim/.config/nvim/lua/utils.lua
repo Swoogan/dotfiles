@@ -224,4 +224,8 @@ M.run_buffered = function(command, completion_msg, window_name, output_source)
   end
 end
 
+M.is_windows = function()
+  return vim.uv.os_uname().sysname == "Windows_NT"
+end
+
 return M

@@ -15,7 +15,7 @@ require('reference_win').setup()
 -- *** CONFIG *** --
 
 local indent           = 4
-local is_windows       = vim.uv.os_uname().sysname == "Windows_NT"
+local is_windows       = require('utils').is_windows()
 
 -- Vim options
 vim.opt.number         = true          -- show the current line number (w/ relative on)
