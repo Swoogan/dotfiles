@@ -9,10 +9,8 @@ plugins.load() -- Load lazy with the spec
 require('config.lang').setup()
 require('reference_win').setup()
 
-local local_config = require('local_config')
-local_config.keymaps()
-
-local config           = local_config.load_config() or { location = "global" }
+-- local local_config = require('local_config')
+-- local config           = local_config.load_config() or { location = "global" }
 
 -- *** CONFIG *** --
 
@@ -96,10 +94,6 @@ vim.cmd([[ set iskeyword+=- ]])
 vim.cmd([[ set iskeyword+=_ ]])
 
 -- Add cute icons for the left margin
--- local signs = { Error = '', Warn = '', Hint = '', Info = '' }
--- for type, icon in pairs(signs) do
--- local hl = "DiagnosticSign" .. type
--- vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
 vim.diagnostic.config({
   signs = {
     text = {
@@ -125,6 +119,9 @@ require('nightfox').setup({
 vim.cmd("colorscheme nightfox")
 
 -- *** MAPPINGS *** --
+
+-- Add machine specific keymaps
+require('local_config').keymaps()
 
 -- Note: some mappings are in the lua/config/*.lua modules
 
@@ -157,10 +154,6 @@ vim.keymap.set('n', '<leader>bd', '<cmd>bd<CR>', opts)
 vim.keymap.set('n', '<leader>,', '<cmd>b#<CR>', opts)
 -- Close current buffer and switch to last used
 vim.keymap.set('n', '<leader>bq', '<cmd>b#|bd#<CR>', opts)
-
--- Open Apps (these should be moved to a local file)
-vim.keymap.set('n', '<leader>ob', '<cmd>!Start-Blender<CR>', opts)
-vim.keymap.set('n', '<leader>oe', '<cmd>!Start-Editor<CR>', opts)
 
 -- quickfix hotkeys
 vim.keymap.set('n', '<leader>qc', '<cmd>cclose<CR>', opts)
@@ -581,14 +574,6 @@ vim.api.nvim_create_autocmd("VimEnter", {
   end,
   nested = true
 })
-
--- Perforce mappings
--- Todo: move to local
-vim.keymap.set('n', '<leader>ro', '<cmd>!p4 open %<cr>')
-vim.keymap.set('n', '<leader>ra', '<cmd>!p4 add %<cr>')
-vim.keymap.set('n', '<leader>rr', '<cmd>!p4 revert %<cr>')
-vim.keymap.set('n', '<leader>rl', '<cmd>!p4 login<cr>')
-
 
 -- Match the contents of a format string
 local query_string = [[

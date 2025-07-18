@@ -3,7 +3,7 @@ local M = {}
 M.keymaps = function()
   local ok, module = pcall(require, "keymaps")
   if ok then
-    module.init()
+    module.add_maps()
   end
 end
 
