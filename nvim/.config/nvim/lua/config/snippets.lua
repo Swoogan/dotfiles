@@ -2,41 +2,14 @@ local ls = require('luasnip')
 local extras = require("luasnip.extras")
 
 local function snippets()
-  local s = ls.snippet
+  -- local s = ls.snippet
   -- local sn = luasnip.snippet_node
-  local t = ls.text_node
-  local i = ls.insert_node
-  local f = ls.function_node
+  -- local t = ls.text_node
+  -- local i = ls.insert_node
+  -- local f = ls.function_node
   -- local c = luasnip.choice_node
   -- local d = luasnip.dynamic_node
-  local rep = extras.rep
-
-  return {
-    cs = {
-      s("sum", {
-        t({ "/// <summary>", "/// " }),
-        i(0),
-        t({ "", "/// </summary>" }),
-      }),
-      s("pra", {
-        t("<parameter name=\""),
-        i(1, "name"),
-        t("\">"),
-        i(0),
-        t("</parameter>"),
-      }),
-      s({ trig = "try", name = "Try log", dscr = "Try catch, log the exception" }, {
-        t({ "try", "{", "\t" }),
-        i(0),
-        t({ "", "}", "catch (" }),
-        i(1, "Exception"),
-        t(" e)"),
-        t({ "", "{", "\t_logger.LogError(e, \"" }),
-        i(2),
-        t({ "\");", "}" }),
-      }),
-    }
-  }
+  -- local rep = extras.rep
 
   -- ls.add_snippets("cs", {
   --   s("sum", {
@@ -69,6 +42,7 @@ local M = {
 
 M.setup = function()
   snippets()
+  require('local_config').luasnips()
 
   vim.keymap.set({ "i", "s" }, "<Tab>", function()
       if require("luasnip").expand_or_jumpable() then
