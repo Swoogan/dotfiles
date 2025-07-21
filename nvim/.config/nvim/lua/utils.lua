@@ -159,7 +159,7 @@ M.delete_buffer_by_name = function(buffer_name)
   for _, buf in ipairs(buffers) do
     if vim.api.nvim_buf_is_valid(buf) then
       local name = vim.api.nvim_buf_get_name(buf)
-      if name == buffer_name or name:match("/" .. buffer_name .. "$") then
+      if name == buffer_name or name:match(buffer_name .. "$") then
         vim.api.nvim_buf_delete(buf, { force = true })
         return true
       end
