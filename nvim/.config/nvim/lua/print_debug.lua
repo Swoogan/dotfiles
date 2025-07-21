@@ -1,6 +1,6 @@
 local M = {}
 
-local function generate_logging(format)
+M.generate_logging = function(format)
   local lnum, _ = unpack(vim.api.nvim_win_get_cursor(0))
   vim.cmd.normal('"zyiw')
   local variable = vim.fn.getreg('"z')
@@ -29,22 +29,22 @@ end
 
 M.lua_print = function()
   -- vim.print("lnum (23):", lnum)
-  generate_logging('print("%s (%d): " .. vim.inspect(%s))')
+  M.generate_logging('print("%s (%d): " .. vim.inspect(%s))')
 end
 
 M.python_print = function()
   -- print(f"issues (302): {issues}")
-  generate_logging('print(f"%s (%d): {%s}")')
+  M.generate_logging('print(f"%s (%d): {%s}")')
 end
 
 M.print_rust = function()
   -- println!("env (66): {}", env);
-  generate_logging('println!("%s (%d): {}", %s);')
+  M.generate_logging('println!("%s (%d): {}", %s);')
 end
 
 M.print_pwsh = function()
   -- Write-Host "env (66): {env}"
-  generate_logging('Write-Host "`%s (%d): $(%s)"')
+  M.generate_logging('Write-Host "`%s (%d): $(%s)"')
 end
 
 return M
