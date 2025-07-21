@@ -4,8 +4,6 @@ M.keymaps = function()
   local ok, module = pcall(require, "local.keymaps")
   if ok then
     module.add_maps()
-  else
-    print("keymaps not found")
   end
 end
 
