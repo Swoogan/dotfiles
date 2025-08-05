@@ -2,13 +2,6 @@ if ($HOST.Name -eq "Package Manager Host") {
     exit 0
 }
 
-# The default style, Minimal, is broken on Windows Terminal.
-# Revert to the classic style until they fix it (lol, like that will happen)
-if ($null -ne $env:WT_SESSION) {
-    $PSStyle.Progress.View = "Classic"
-}
-
-
 function Find-Git { 
     [CmdletBinding()]
     param (
