@@ -461,10 +461,18 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.keymap.set('n', '<leader>te', '<cmd>10split|term<Cr>a', opts)
 
 -- Hide exit code on terminal close
-vim.api.nvim_create_autocmd("TermClose", {
-  pattern = "*",
-  callback = function() vim.cmd([[if !v:event.status | exe 'bdelete! '..expand('<abuf>') | endif]]) end,
-})
+if is_windows then
+  vim.api.nvim_create_autocmd('TermClose', {
+    pattern = '*',
+    callback = function()
+      vim.schedule(function()
+        if vim.bo.buftype == 'terminal' and vim.v.shell_error == 0 then
+          vim.cmd('bdelete! ' .. vim.fn.expand('<abuf>'))
+        end
+      end)
+    end,
+  })
+end
 
 -- Remap keys in terminal mode
 vim.keymap.set('t', '<esc>', '<c-\\><c-n>', opts)
