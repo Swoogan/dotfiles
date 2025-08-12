@@ -70,7 +70,8 @@ M.setup = function(opts)
     vim.keymap.set('n', 'go', require('telescope.builtin').lsp_outgoing_calls, bufopts)
     vim.keymap.set('n', 'gr', function()
       vim.cmd.normal("m'")
-      require('telescope.builtin').lsp_references({ path_display = { "tail" } })
+      -- Todo move the file_ignore_patterns to local config
+      require('telescope.builtin').lsp_references({ path_display = { "tail" }, file_ignore_patterns = { "%.gen.h", "%.gen.cpp" } })
     end, bufopts)
     vim.keymap.set('n', 'gt', require('telescope.builtin').lsp_type_definitions, bufopts)
 
