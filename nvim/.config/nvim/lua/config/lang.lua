@@ -98,22 +98,40 @@ M.setup = function(opts)
     }
   }
 
-  local function run_clang_format(contents)
+  local function run_clang_format()
     local clang_format = 'clang-format'
     if vim.fn.executable(vim.env.CLANG_FORMAT or "") == 1 then
       clang_format = vim.env.CLANG_FORMAT
     end
+
+    local bufnr = vim.api.nvim_get_current_buf()
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local original_text = table.concat(lines, '\n')
+
     local assume_file = "--assume-filename=" .. vim.fn.expand("%:p")
     local cmd = vim.system({ clang_format, assume_file }, { stdin = true }, function(obj)
       -- replace the buffer content with the command results
       if obj.code == 0 then
         vim.schedule(function()
-          local new_text = vim.split(obj.stdout, '\n')
-          vim.api.nvim_buf_set_lines(0, 0, -1, false, new_text)
+          local formatted_text = obj.stdout
+          if formatted_text and formatted_text ~= original_text then
+            local text_edit = {
+              range = {
+                start = { line = 0, character = 0 },
+                ['end'] = {
+                  line = #lines - 1,
+                  character = -1
+                }
+              },
+              newText = formatted_text
+            }
+
+            vim.lsp.util.apply_text_edits({ text_edit }, bufnr, 'utf-8')
+          end
         end)
       end
     end)
-    cmd:write(contents)
+    cmd:write(original_text)
     cmd:write(nil)
   end
 
@@ -141,8 +159,6 @@ M.setup = function(opts)
           local pos = vim.api.nvim_win_get_cursor(0)
 
           -- Get the current buffer data
-          local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-          local contents = table.concat(lines, '\n')
           run_clang_format(contents)
 
           vim.api.nvim_win_set_cursor(0, pos)
