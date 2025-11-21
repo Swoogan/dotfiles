@@ -85,6 +85,10 @@ M.setup = function(opts)
     if client:supports_method('textDocument/codeAction') then
       vim.keymap.set({ 'n', 'v' }, '<leader>lc', vim.lsp.buf.code_action, bufopts)
     end
+
+    vim.keymap.set('n', '<leader>sy', function()
+      require('telescope.builtin').lsp_document_symbols({ ignore_symbols = { 'variable', 'method', 'constant' } })
+    end, bufopts)
   end
 
   local capabilities = require('cmp_nvim_lsp').default_capabilities()
@@ -199,7 +203,16 @@ M.setup = function(opts)
   end
 
   if vim.fn.executable('ruff') == 1 then
-    nvim_lsp['ruff'].setup({})
+    nvim_lsp['ruff'].setup({
+      capabilities = {
+        general = {
+          -- positionEncodings = { "utf-8", "utf-16", "utf-32" }  <--- this is the default
+          -- This is a fix because pyright always uses "utf-16" and ruff defaults to "utf-8"
+          -- which causes a warning from the LSP api
+          positionEncodings = { "utf-16" }
+        },
+      }
+    })
   end
 
   -- local pylyzer = vim.env.DEV_HOME .. '/.ls/pylyzer.exe'
