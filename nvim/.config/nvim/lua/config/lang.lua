@@ -14,7 +14,6 @@ M.setup = function(opts)
   -- vim.lsp.set_log_level("debug")
 
   -- Setup Language sever protocol
-  local nvim_lsp = require('lspconfig')
   local pid = vim.fn.getpid()
 
   vim.diagnostic.config({
@@ -144,14 +143,14 @@ M.setup = function(opts)
   -- local servers = { "ts_ls", "clangd" }
   local servers = { "ts_ls" }
   for _, lsp in ipairs(servers) do
-    nvim_lsp[lsp].setup {
+    vim.lsp.config(lsp, {
       capabilities = capabilities,
       on_attach = on_attach,
-    }
+    })
   end
 
   if vim.fn.executable('clangd') == 1 then
-    nvim_lsp['clangd'].setup {
+    vim.lsp.config('clangd', {
       capabilities = capabilities,
       on_attach = function(client, bufnr)
         local bufopts = { noremap = true, silent = true, buffer = bufnr }
@@ -175,14 +174,14 @@ M.setup = function(opts)
         "--background-index-priority=low",
         "--clang-tidy",
       },
-    }
+    })
   end
 
   -- Python
   if vim.fn.executable('pyright') == 1 then
     local cap = capabilities
     cap.textDocument.publishDiagnostics = { tagSupport = { valueSet = { 2 } } }
-    nvim_lsp['pyright'].setup {
+    vim.lsp.config('pyright', {
       capabilities = cap,
       on_attach = function(client, bufnr)
         -- client.handlers["textDocument/publishDiagnostics"] = function(...) end
@@ -199,11 +198,11 @@ M.setup = function(opts)
           }
         }
       }
-    }
+    })
   end
 
   if vim.fn.executable('ruff') == 1 then
-    nvim_lsp['ruff'].setup({
+    vim.lsp.config('ruff', {
       capabilities = {
         general = {
           -- positionEncodings = { "utf-8", "utf-16", "utf-32" }  <--- this is the default
@@ -217,14 +216,14 @@ M.setup = function(opts)
 
   -- local pylyzer = vim.env.DEV_HOME .. '/.ls/pylyzer.exe'
   if false and vim.fn.executable('pylyzer') == 1 then
-    nvim_lsp['pylyzer'].setup({
+    vim.lsp.config('pylyzer', {
       capabilities = capabilities,
       on_attach = on_attach,
     })
   end
 
   if false and vim.fn.executable('pylsp') == 1 then
-    nvim_lsp['pylsp'].setup({
+    vim.lsp.config('pylsp', {
       capabilities = capabilities,
       on_attach = on_attach,
       settings = {
@@ -258,7 +257,7 @@ M.setup = function(opts)
   end
 
   if false and vim.fn.executable('jedi_language_server') == 1 then
-    nvim_lsp['jedi_language_server'].setup({
+    vim.lsp.config('jedi_language_server', {
       capabilities = capabilities,
       on_attach = function(client, buffer)
         client.server_capabilities.documentFormattingProvider = false
@@ -276,7 +275,7 @@ M.setup = function(opts)
   end
 
   if vim.fn.executable(rust_analyzer) == 1 then
-    nvim_lsp['rust_analyzer'].setup({
+    vim.lsp.config('rust_analyzer', {
       capabilities = capabilities,
       on_attach = on_attach,
       cmd = { rust_analyzer },
@@ -287,7 +286,7 @@ M.setup = function(opts)
   local bundle_path = vim.env.DEV_HOME .. '/.ls/PowerShellEditorServices'
   if vim.fn.isdirectory(bundle_path) == 1 then
     -- Setup PowerShell Editor Extensions
-    nvim_lsp['powershell_es'].setup({
+    vim.lsp.config('powershell_es', {
       capabilities = capabilities,
       on_attach = function(client, bufnr)
         on_attach(client, bufnr)
@@ -325,7 +324,7 @@ M.setup = function(opts)
   -- Lua
   local lua_language_server = vim.env.DEV_HOME .. '/.ls/lua-language-server/bin/lua-language-server'
   if vim.fn.executable(lua_language_server) == 1 then
-    nvim_lsp['lua_ls'].setup({
+    vim.lsp.config('lua_ls', {
       on_init = function(client)
         if client.workspace_folders then
           local path = client.workspace_folders[1].name
@@ -373,7 +372,7 @@ M.setup = function(opts)
   -- Zig
   local zls = vim.env.DEV_HOME .. '/.ls/zigtools-zls/bin/zls'
   if vim.fn.executable(zls) == 1 then
-    nvim_lsp['zls'].setup({
+    vim.lsp.config('zls', {
       cmd = { zls },
       capabilities = capabilities,
       on_attach = on_attach,
@@ -383,7 +382,7 @@ M.setup = function(opts)
   -- C#
   local omnisharp = vim.env.DEV_HOME .. '/.ls/omnisharp/OmniSharp.exe'
   if vim.fn.executable(omnisharp) == 1 then
-    nvim_lsp['omnisharp'].setup({
+    vim.lsp.config('omnisharp', {
       handlers = {
         ["textDocument/definition"] = require('omnisharp_extended').handler,
       },
