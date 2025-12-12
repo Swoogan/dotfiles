@@ -147,6 +147,7 @@ M.setup = function(opts)
       capabilities = capabilities,
       on_attach = on_attach,
     })
+    vim.lsp.enable(lsp)
   end
 
   if vim.fn.executable('clangd') == 1 then
@@ -160,10 +161,7 @@ M.setup = function(opts)
         -- Todo: only set any of this up for work config
         opts.code_format = function()
           local pos = vim.api.nvim_win_get_cursor(0)
-
-          -- Get the current buffer data
-          run_clang_format(contents)
-
+          run_clang_format()
           vim.api.nvim_win_set_cursor(0, pos)
         end
         on_attach(client, bufnr)
@@ -175,6 +173,7 @@ M.setup = function(opts)
         "--clang-tidy",
       },
     })
+    vim.lsp.enable('clangd')
   end
 
   -- Python
@@ -184,12 +183,10 @@ M.setup = function(opts)
     vim.lsp.config('pyright', {
       capabilities = cap,
       on_attach = function(client, bufnr)
-        -- client.handlers["textDocument/publishDiagnostics"] = function(...) end
         on_attach(client, bufnr)
       end,
-      root_dir = function()
-        -- This is a hack because pyright is dog slow otherwise
-        return vim.fn.getcwd()
+      root_dir = function(_, on_dir)
+        on_dir(vim.fn.getcwd())
       end,
       settings = {
         python = {
@@ -199,6 +196,7 @@ M.setup = function(opts)
         }
       }
     })
+    vim.lsp.enable('pyright')
   end
 
   if vim.fn.executable('ruff') == 1 then
@@ -212,6 +210,7 @@ M.setup = function(opts)
         },
       }
     })
+    vim.lsp.enable('ruff')
   end
 
   -- local pylyzer = vim.env.DEV_HOME .. '/.ls/pylyzer.exe'
@@ -220,6 +219,7 @@ M.setup = function(opts)
       capabilities = capabilities,
       on_attach = on_attach,
     })
+    vim.lsp.enable('pylyzer')
   end
 
   if false and vim.fn.executable('pylsp') == 1 then
@@ -254,6 +254,7 @@ M.setup = function(opts)
         }
       }
     })
+    vim.lsp.enable('pylsp')
   end
 
   if false and vim.fn.executable('jedi_language_server') == 1 then
@@ -266,6 +267,7 @@ M.setup = function(opts)
         on_attach(client, buffer)
       end,
     })
+    vim.lsp.enable('jedi_language_server')
   end
 
   -- Rust
@@ -280,6 +282,7 @@ M.setup = function(opts)
       on_attach = on_attach,
       cmd = { rust_analyzer },
     })
+    vim.lsp.enable('rust_analyzer')
   end
 
   -- PowerShell
@@ -319,6 +322,7 @@ M.setup = function(opts)
         }
       },
     })
+    vim.lsp.enable('powershell_es')
   end
 
   -- Lua
@@ -367,6 +371,7 @@ M.setup = function(opts)
       capabilities = capabilities,
       on_attach = on_attach,
     })
+    vim.lsp.enable('lua_ls')
   end
 
   -- Zig
@@ -377,6 +382,7 @@ M.setup = function(opts)
       capabilities = capabilities,
       on_attach = on_attach,
     })
+    vim.lsp.enable('zls')
   end
 
   -- C#
@@ -391,6 +397,7 @@ M.setup = function(opts)
       cmd = { omnisharp, "--languageserver", "--hostPID", tostring(pid),
         "formattingOptions:EnableEditorConfigSupport=true" }
     })
+    vim.lsp.enable('omnisharp')
   end
 end
 
