@@ -11,30 +11,28 @@ M.spec = {
     lazy = false,
     build = ":TSUpdate",
     dependencies = { "nvim-treesitter/nvim-treesitter-textobjects" }, -- Additional textobjects for treesitter
-    opts = {
-      ensure_installed = {
-        "c",
-        "c_sharp",
-        "go",
-        "html",
-        "javascript",
-        "json",
-        "lua",
-        "markdown",
-        "markdown_inline",
-        "python",
-        "query",
-        "regex",
-        "rust",
-        "typescript",
-        "vimdoc",
-        "zig",
-      },
-      auto_install = false,
-    },
     -- Treesitter configuration
     config = function()
       require('nvim-treesitter.configs').setup {
+        ensure_installed = {
+          "c",
+          "c_sharp",
+          "css",
+          "go",
+          "html",
+          "javascript",
+          "json",
+          "lua",
+          "markdown",
+          "markdown_inline",
+          "python",
+          "query",
+          "regex",
+          "rust",
+          "typescript",
+          "vimdoc",
+          "zig",
+        },
         highlight = {
           enable = true, -- false will disable the whole extension
         },
