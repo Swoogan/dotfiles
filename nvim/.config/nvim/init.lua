@@ -283,13 +283,6 @@ vim.api.nvim_create_autocmd("FileType", {
   command = [[iabbrev <buffer> oom return error.OutOfMemory;]]
 })
 
--- auto completion for html closing tags
-vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
-  group = vim.api.nvim_create_augroup("TagCompletion", { clear = true }),
-  pattern = { "*.html", "*.xml" },
-  callback = function() vim.keymap.set('i', '</', '</<c-n>', opts) end,
-})
-
 -- restore cursor position when re-opening a file
 vim.api.nvim_create_autocmd('BufRead', {
   callback = function(lopts)
