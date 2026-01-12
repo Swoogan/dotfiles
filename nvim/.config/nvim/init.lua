@@ -135,7 +135,8 @@ vim.keymap.set('n', '<leader>pp', 'ciw<C-r>0<Esc>', opts)
 vim.keymap.set('n', '<leader>yy', 'yiw', opts)
 vim.keymap.set('n', '<space>d', '"_d', opts)
 vim.keymap.set('n', '<space>c', '"_c', opts)
-vim.keymap.set({ 'i', 'c' }, '<A-p>', '<C-r>+', opts)
+vim.keymap.set({ 'i' }, '<A-p>', '<C-r>+', opts)
+vim.keymap.set({ 'c' }, '<A-p>', '<cmd>iput<cr>', opts)
 
 -- map gp to re-select the thing you just pasted
 vim.keymap.set('n', 'gp', '`[v`]', opts)
