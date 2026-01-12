@@ -1,5 +1,5 @@
 local ls = require('luasnip')
-local extras = require("luasnip.extras")
+local fmt = require("luasnip.extras.fmt").fmt
 
 local function snippets()
   -- local s = ls.snippet
@@ -35,6 +35,18 @@ local function snippets()
   --     t({ "\");", "}" }),
   --   }),
   -- })
+  ls.add_snippets("python", {
+    ls.s(
+      { trig = "defc", name = "Constructor", dscr = "python: Create a class constructor" },
+      fmt(
+        [[
+          def __init__(self):
+            {}
+          ]],
+        ls.i(0)
+      )
+    ),
+  })
 end
 
 local M = {
