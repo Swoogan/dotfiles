@@ -101,6 +101,21 @@ M.setup = function(opts)
     }
   }
 
+  -- Use a loop to conveniently call 'setup' on multiple servers and
+  -- map buffer local keybindings when the language server attaches
+  local servers = { 'ts_ls', 'ty' }
+  -- local servers = { 'ts_ls' }
+  for _, lsp in ipairs(servers) do
+    if vim.fn.executable(lsp) == 1 then
+      vim.lsp.config(lsp, {
+        capabilities = capabilities,
+        on_attach = on_attach,
+      })
+      vim.lsp.enable(lsp)
+    end
+  end
+
+  -- Clangd
   local function run_clang_format()
     local clang_format = 'clang-format'
     if vim.fn.executable(vim.env.CLANG_FORMAT or "") == 1 then
@@ -177,7 +192,7 @@ M.setup = function(opts)
   end
 
   -- Python
-  if vim.fn.executable('pyright') == 1 then
+  if false and vim.fn.executable('pyright') == 1 then
     local cap = capabilities
     cap.textDocument.publishDiagnostics = { tagSupport = { valueSet = { 2 } } }
     vim.lsp.config('pyright', {
