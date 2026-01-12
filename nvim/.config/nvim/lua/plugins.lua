@@ -37,7 +37,7 @@ M.spec = {
           enable = true, -- false will disable the whole extension
         },
         incremental_selection = {
-          enable = false,
+          enable = true,
           keymaps = {
             init_selection = 'gnn',
             scope_incremental = 'grc',
@@ -170,6 +170,10 @@ M.spec = {
             require('luasnip').lsp_expand(args.body)
           end,
         },
+        window = {
+          completion = cmp.config.window.bordered(),
+          documentation = cmp.config.window.bordered(),
+        },
         mapping = cmp.mapping.preset.insert({
           ['<C-y>'] = cmp.mapping.select_prev_item({ count = -4 }),
           ['<C-e>'] = cmp.mapping.select_next_item({ count = 4 }),
@@ -187,6 +191,7 @@ M.spec = {
           {
             { name = 'nvim_lsp' },
             { name = 'luasnip' },
+            { name = 'path' },
           }, {
             { name = 'buffer' },
           }
@@ -223,6 +228,7 @@ M.spec = {
               end
             },
             { name = 'luasnip' },
+            { name = 'path' },
           },
           {
             { name = 'buffer' },
@@ -242,6 +248,7 @@ M.spec = {
               end
             },
             { name = 'luasnip' },
+            { name = 'path' },
           },
           {
             { name = 'buffer' },
