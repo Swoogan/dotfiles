@@ -41,3 +41,11 @@ source_exists ~/.local/share/nvim/site/pack/packer/start/nightfox.nvim/extra/nig
 
 ### POST ###
 source_exists ~/.local/post.fish
+
+# pnpm
+set -gx PNPM_HOME "$HOME/.local/share/pnpm"
+if not string match -q -- $PNPM_HOME $PATH
+  set -gx PATH "$PNPM_HOME" $PATH
+end
+# pnpm end
+
