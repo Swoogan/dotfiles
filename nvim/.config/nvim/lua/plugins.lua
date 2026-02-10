@@ -340,15 +340,22 @@ M.spec = {
       -- )
     end
   },
-
   {
-    "prettier/vim-prettier",
-    ft = { "javascript", "typescript" },
+    'stevearc/conform.nvim',
+    opts = {},
     config = function()
-      vim.g['prettier#autoformat'] = 1
-      vim.g['prettier#autoformat_require_pragma'] = 0
+      require("conform").setup({
+        formatters_by_ft = {
+          -- Conform will run the first available formatter
+          javascript = { "prettierd", "prettier", stop_after_first = true },
+        },
+        format_on_save = {
+          timeout_ms = 500,
+          lsp_format = "fallback",
+        },
+      })
     end
-  },                               -- Autoformatting
+  },
   {
     "nvim-tree/nvim-web-devicons", -- Pretty Icons
     lazy = true,
