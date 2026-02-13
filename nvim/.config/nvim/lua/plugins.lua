@@ -419,6 +419,13 @@ M.spec = {
     },
     config = function()
       require("luasnip").config.setup({ store_selection_keys = "<Tab>" })
+      -- require("luasnip").filetype_extend("python", { "pydoc" })
+      -- require("luasnip").filetype_extend("cs", { "csharpdoc" })
+      -- require("luasnip").filetype_extend("typescript", { "javascript" })
+      -- require("luasnip").filetype_extend("typescriptreact", { "typescript", "javascript" })
+      -- Todo: switch to https://github.com/danymat/neogen
+      require("luasnip").filetype_extend("rust", { "rustdoc" })
+      require 'luasnip'.filetype_extend("cpp", { "cppdoc" })
       require('config.snippets').setup()
     end
   },
