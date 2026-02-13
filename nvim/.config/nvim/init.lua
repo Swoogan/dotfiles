@@ -195,9 +195,6 @@ vim.keymap.set('n', '<leader>co', require('cpp').close_build_output, opts)
 vim.keymap.set('n', '<c-n>', '<cmd>NvimTreeToggle<cr>', opts)
 vim.keymap.set('n', '<leader>st', '<cmd>NvimTreeFindFile<cr>', opts)
 
--- Run prettier
-vim.keymap.set('n', '<leader>pf', '<cmd>PrettierAsync<cr>', opts)
-
 local coding = require('coding')
 vim.keymap.set({ 'n', 'v', 'o', 'i' }, '<A-f>', coding.print_function, opts)
 vim.keymap.set({ 'n', 'v', 'o', 'i' }, '<A-c>', coding.print_class, opts)
@@ -337,7 +334,7 @@ vim.api.nvim_create_autocmd("FileType", {
 -- Auto format Python, Lua and Rust files
 vim.api.nvim_create_autocmd("BufWritePre", {
   group = vim.api.nvim_create_augroup("AutoFormat", { clear = true }),
-  pattern = { "*.rs", "*.py", "*.lua" },
+  pattern = { "*.py", "*.lua" },
   callback = function()
     -- We just want to autoformat but sometimes the lsp api call wipes
     -- out all signs and marks. Therefore, we cache and restore them
