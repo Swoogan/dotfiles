@@ -74,8 +74,12 @@ M.setup = function(opts)
     end, bufopts)
     vim.keymap.set('n', 'gt', require('telescope.builtin').lsp_type_definitions, bufopts)
 
-    vim.keymap.set('n', '<leader>lh', vim.lsp.buf.hover, bufopts)
-    vim.keymap.set('n', '<leader>ls', vim.lsp.buf.signature_help, bufopts)
+    vim.keymap.set('n', '<leader>lh', function()
+      vim.lsp.buf.hover({ border = 'rounded' })
+    end, bufopts)
+    vim.keymap.set('n', '<leader>ls', function()
+      vim.lsp.buf.signature_help({ border = 'rounded' })
+    end, bufopts)
     vim.keymap.set('n', '<leader>lf', opts.code_format, bufopts)
     if client:supports_method('textDocument/rename') then
       vim.keymap.set('n', '<leader>lr', vim.lsp.buf.rename, bufopts)
@@ -103,8 +107,7 @@ M.setup = function(opts)
 
   -- Use a loop to conveniently call 'setup' on multiple servers and
   -- map buffer local keybindings when the language server attaches
-  local servers = { 'ts_ls', 'ty' }
-  -- local servers = { 'ts_ls' }
+  local servers = { 'ty' }
   for _, lsp in ipairs(servers) do
     if vim.fn.executable(lsp) == 1 then
       vim.lsp.config(lsp, {
@@ -411,6 +414,15 @@ M.setup = function(opts)
       on_attach = on_attach,
     })
     vim.lsp.enable('zls')
+  end
+
+  -- Typescript
+  if vim.fn.executable('typescript-language-server') == 1 then
+    vim.lsp.config('ts_ls', {
+      capabilities = capabilities,
+      on_attach = on_attach,
+    })
+    vim.lsp.enable('ts_ls')
   end
 
   -- C#

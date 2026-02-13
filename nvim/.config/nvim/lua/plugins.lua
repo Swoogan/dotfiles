@@ -5,6 +5,7 @@ M.spec = {
   { "EdenEast/nightfox.nvim" },    -- theme
   { "neovim/nvim-lspconfig" },     -- Easy configuration of LSP
   { "equalsraf/neovim-gui-shim" }, -- gui shim for nvim-qt
+  { "neovim/nvim-lspconfig" },     -- lsp configurations
   {
     "nvim-treesitter/nvim-treesitter",
     branch = 'master',
@@ -29,6 +30,7 @@ M.spec = {
           "query",
           "regex",
           "rust",
+          "tsx",
           "typescript",
           "vimdoc",
           "zig",
