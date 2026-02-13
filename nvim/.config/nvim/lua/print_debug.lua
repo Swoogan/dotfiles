@@ -37,14 +37,19 @@ M.python_print = function()
   M.generate_logging('print(f"%s (%d): {%s}")')
 end
 
-M.print_rust = function()
+M.rust_print = function()
   -- println!("env (66): {}", env);
   M.generate_logging('println!("%s (%d): {}", %s);')
 end
 
-M.print_pwsh = function()
+M.pwsh_print = function()
   -- Write-Host "env (66): {env}"
   M.generate_logging('Write-Host "`%s (%d): $(%s)"')
+end
+
+M.javascript_print = function()
+  -- console.log(`issues (302): ${issues}`)
+  M.generate_logging('console.log(`%s (%d): ${%s}`);')
 end
 
 return M

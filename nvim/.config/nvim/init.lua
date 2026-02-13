@@ -135,8 +135,8 @@ vim.keymap.set('n', '<leader>pp', 'ciw<C-r>0<Esc>', opts)
 vim.keymap.set('n', '<leader>yy', 'yiw', opts)
 vim.keymap.set('n', '<space>d', '"_d', opts)
 vim.keymap.set('n', '<space>c', '"_c', opts)
-vim.keymap.set({ 'i' }, '<A-p>', '<C-r>+', opts)
-vim.keymap.set({ 'c' }, '<A-p>', '<cmd>iput<cr>', opts)
+vim.keymap.set({ 'i', 'c' }, '<A-p>', '<C-r>+', opts)
+vim.keymap.set('n', '<A-p>', '<cmd>iput<cr>', opts)
 
 -- map gp to re-select the thing you just pasted
 vim.keymap.set('n', 'gp', '`[v`]', opts)
@@ -383,7 +383,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
   pattern = { "*.ps1", "*.psm1" },
   callback = function()
     -- create debugging print statement
-    vim.keymap.set('n', '<leader>pd', require('print_debug').print_pwsh, opts)
+    vim.keymap.set('n', '<leader>pd', require('print_debug').pwsh_print, opts)
     vim.cmd([[ set iskeyword+=$ ]])
   end
 })
@@ -446,10 +446,19 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.keymap.set('n', '<leader>bc', require('rust_mono').clippy, opts)
 
     -- create debugging print statement
-    vim.keymap.set('n', '<leader>pd', require('print_debug').print_rust, opts)
+    vim.keymap.set('n', '<leader>pd', require('print_debug').rust_print, opts)
   end,
 })
 
+-- *** Typescript/Javascript *** --
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("Typescript", { clear = true }),
+  pattern = { "typescript", "typescriptreact", "javascript" },
+  callback = function()
+    -- create debugging print statement
+    vim.keymap.set('n', '<leader>pd', require('print_debug').javascript_print, opts)
+  end,
+})
 -- *** Terminal ***
 -- launch a terminal
 vim.keymap.set('n', '<leader>te', '<cmd>10split|term<Cr>a', opts)
