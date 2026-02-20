@@ -333,22 +333,39 @@ M.spec = {
     opts = {},
     config = function()
       require("conform").setup({
+        default_format_opts = {
+          lsp_format = "fallback",
+        },
         formatters_by_ft = {
           -- Conform will run the first available formatter
           javascript = { "prettierd", "prettier", stop_after_first = true },
           typescript = { "prettierd", "prettier", stop_after_first = true },
           typescriptreact = { "prettierd", "prettier", stop_after_first = true },
-          css = { { "prettierd", "prettier", stop_after_first = true } },
-          json = { { "prettierd", "prettier", stop_after_first = true } },
-          html = { { "prettierd", "prettier", stop_after_first = true } },
-          markdown = { { "prettierd", "prettier", stop_after_first = true } },
+          css = { "prettierd", "prettier", stop_after_first = true },
+          json = { "prettierd", "prettier", stop_after_first = true },
+          html = { "prettierd", "prettier", stop_after_first = true },
+          markdown = { "prettierd", "prettier", stop_after_first = true },
           --
           rust = { "rustfmt", lsp_format = "fallback" },
+          cpp = { "clang_format" },
         },
-        format_on_save = {
-          timeout_ms = 500,
-          lsp_format = "fallback",
+        formatters = {
+          clang_format = {
+            command = function()
+              if vim.fn.executable(vim.env.CLANG_FORMAT or "") == 1 then
+                return vim.env.CLANG_FORMAT
+              end
+              return "clang-format"
+            end,
+            -- conform already has the right args, but you can customize if needed:
+            -- args = { "--assume-filename=$FILENAME" },
+            -- stdin = true,
+          },
         },
+        -- format_on_save = {
+        --   timeout_ms = 500,
+        --   lsp_format = "fallback",
+        -- },
       })
     end
   },

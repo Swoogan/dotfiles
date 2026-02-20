@@ -2,9 +2,7 @@ local M = {
 }
 
 M.setup = function(opts)
-  opts = opts or {
-    code_format = function() vim.lsp.buf.format({ async = true }) end
-  }
+  opts = opts or {}
 
   -- turn off all code diagnostics when diffing
   if vim.opt.diff:get() then
@@ -12,9 +10,6 @@ M.setup = function(opts)
   end
 
   -- vim.lsp.set_log_level("debug")
-
-  -- Setup Language sever protocol
-  local pid = vim.fn.getpid()
 
   vim.diagnostic.config({
     virtual_text = {
@@ -80,7 +75,9 @@ M.setup = function(opts)
     vim.keymap.set('n', '<leader>ls', function()
       vim.lsp.buf.signature_help({ border = 'rounded' })
     end, bufopts)
-    vim.keymap.set('n', '<leader>lf', opts.code_format, bufopts)
+    vim.keymap.set('n', '<leader>lf', function()
+      require("conform").format({ async = true, lsp_fallback = true })
+    end, bufopts)
     if client:supports_method('textDocument/rename') then
       vim.keymap.set('n', '<leader>lr', vim.lsp.buf.rename, bufopts)
     end
@@ -118,44 +115,6 @@ M.setup = function(opts)
     end
   end
 
-  -- Clangd
-  local function run_clang_format()
-    local clang_format = 'clang-format'
-    if vim.fn.executable(vim.env.CLANG_FORMAT or "") == 1 then
-      clang_format = vim.env.CLANG_FORMAT
-    end
-
-    local bufnr = vim.api.nvim_get_current_buf()
-    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-    local original_text = table.concat(lines, '\n')
-
-    local assume_file = "--assume-filename=" .. vim.fn.expand("%:p")
-    local cmd = vim.system({ clang_format, assume_file }, { stdin = true }, function(obj)
-      -- replace the buffer content with the command results
-      if obj.code == 0 then
-        vim.schedule(function()
-          local formatted_text = obj.stdout
-          if formatted_text and formatted_text ~= original_text then
-            local text_edit = {
-              range = {
-                start = { line = 0, character = 0 },
-                ['end'] = {
-                  line = #lines - 1,
-                  character = -1
-                }
-              },
-              newText = formatted_text
-            }
-
-            vim.lsp.util.apply_text_edits({ text_edit }, bufnr, 'utf-8')
-          end
-        end)
-      end
-    end)
-    cmd:write(original_text)
-    cmd:write(nil)
-  end
-
   local function switch_source_header(bufnr, client)
     local method_name = 'textDocument/switchSourceHeader'
     ---@diagnostic disable-next-line:param-type-mismatch
@@ -189,12 +148,6 @@ M.setup = function(opts)
         vim.keymap.set('n', 'gh', function() vim.cmd("LspClangdSwitchSourceHeader") end, bufopts)
         vim.keymap.set('n', '<leader>bb', require("cpp").build_editor, bufopts)
 
-        -- Todo: only set any of this up for work config
-        opts.code_format = function()
-          local pos = vim.api.nvim_win_get_cursor(0)
-          run_clang_format()
-          vim.api.nvim_win_set_cursor(0, pos)
-        end
         on_attach(client, bufnr)
       end,
       cmd = {
@@ -368,7 +321,17 @@ M.setup = function(opts)
     vim.lsp.enable('ts_ls')
   end
 
+  if vim.fn.executable('vscode-eslint-language-server') == 1 then
+    vim.lsp.config('eslint', {
+      capabilities = capabilities,
+      on_attach = on_attach,
+      settings = { format = false }
+    })
+    vim.lsp.enable('eslint')
+  end
+
   -- C#
+  local pid = vim.fn.getpid()
   local omnisharp = vim.env.DEV_HOME .. '/.ls/omnisharp/OmniSharp.exe'
   if vim.fn.executable(omnisharp) == 1 then
     vim.lsp.config('omnisharp', {
