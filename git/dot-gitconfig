@@ -23,7 +23,7 @@
     last = "!f() { git log -${1:-1} --stat ; } ; f"
 
 # branches
-    branch-name = "!$(git fetch) ; git rev-parse --abbrev-ref HEAD"
+    branch-name = "git rev-parse --abbrev-ref HEAD"
 
     # Clean up all local branches that do not have a remote reference.
     cleanup = "!f() { git check-remote -pq && git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D ; } ; f"
@@ -37,8 +37,8 @@
     # Start a new local repository and perform initial commit
     this = !git init && git add . && git commit -m \"Initial commit.\"
 
-    # Create a new branch from origin master and publish it to origin
-    create = "!f() { git check-remote -nq 2>/dev/null ; git checkout -b $1 origin/master && git push -u origin $(git branch-name); } ; f"
+    # Create a new branch from base-remote master and publish it to origin
+    create = "!f() { git check-remote -nq 2>/dev/null ; git checkout -b $1 $(git base-remote)/$(git default) && git push -u origin $(git branch-name); } ; f"
 
     # Delete all local branches and will leave the branch on master
     delete-local-branches="!git checkout master ; git branch --list | grep -v \\* | xargs git branch -D"
@@ -51,14 +51,28 @@
     # interactive rebase the current branch from the start of the branch
     selfbase = "! git nbase $(git branch-count)"
 
-    # Rebasing on origin/master
-    rbm = "!git fetch -nq 2>/dev/null ; git rebase origin/master"
+    # Rebasing on origin/(master/main)
+    rbm = "!git fetch -nq 2>/dev/null ; git rebase ${1:-$(git base-remote)/$(git default)} ;"
 
+    rba = rebase --abort
     rbc = rebase --continue
     rbs = rebase --skip
-    rba = rebase --abort
 
 # Misc
+    # Returns the default branch for a remote. Normally this is `master` or `main`
+    default = "!f() { git symbolic-ref refs/remotes/${1:-origin}/HEAD | sed \"s@^refs/remotes/${1:-origin}/@@\" ; } ; f"
+
+    # Gets the current number of commits on the current branch since the branch was made
+    branch-count = "!f() { git rev-list --count HEAD ^${1:-origin/$(git default)}; }; f"
+
+    # Returns the base remote for a repository. For a normal repository this will return origin.
+    # When a repository is a fork I use the remote name `upstream` as the base remote name.
+    # If the repository is a fork it will return the remote `upstream` as that is the base of
+    # the project, as this one is a fork.
+    base-remote = "!f() { \
+        [[ -n $(git remote | grep -E '^upstream$') ]] && echo upstream || echo origin ; \
+    } ; f"
+
     ec = "!nvim-qt ~/.gitconfig"
     ecl = "!nvim-qt ~/.local/.gitconfig"
 
