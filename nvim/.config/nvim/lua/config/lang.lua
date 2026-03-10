@@ -208,6 +208,16 @@ M.setup = function(opts)
       capabilities = capabilities,
       on_attach = on_attach,
       cmd = { rust_analyzer },
+      -- TODO: should these be local settings?
+      root_dir = vim.fs.root(0, { 'Cargo.toml', 'rust-project.json' }),
+      settings = {
+        ['rust-analyzer'] = {
+          check = {
+            command = 'clippy',
+            workspace = false,
+          },
+        },
+      },
     })
     vim.lsp.enable('rust_analyzer')
   end
