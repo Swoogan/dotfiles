@@ -50,10 +50,11 @@
     ali (tap-hold-next-release 210 i lalt)
 
     qrt (tap-hold-next-release 500 F1 (layer-switch qwerty))
+    bg2 (tap-hold-next-release 500 F2 (layer-switch baldurs))
 )
 
 (deflayer colemak
-    _    @qrt _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    @qrt @bg2 _    _    _    _    _    _    _    _    _    _    _    _    _ 
     caps _    _    _    _    _    _    _    _    _    _    _    _    _  
     _    q    w    f    p    v    j    l    u    y    ;    @shi _    _ 
     @nav a    @alr @cts @sft g    h    @sfn @cte @ali o    ent  _
@@ -113,4 +114,15 @@
     _    `    ~    <    >    _    _    [    ]    =    +    _ 
     _    _    _              _         bspc _    _    _    _ 
                                                  _    _    _
+)
+
+
+(deflayer baldurs
+    _    @col _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    q    _    l    _    _    _    _    _    _    _    _    _ 
+    _    j    _    p    _    _    _    _    _    _    _    _    _    _ 
+    @nav m    r    0    i    _    _    _    _    XX   _    _    _ 
+    _    _    _    _    _    _    _    _    _    _    _    _ 
+    _    _    _           _            _    _    _    _    _ 
+                                       _    _    _ 
 )
