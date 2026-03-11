@@ -23,7 +23,7 @@
     last = "!f() { git log -${1:-1} --stat ; } ; f"
 
 # branches
-    branch-name = "git rev-parse --abbrev-ref HEAD"
+    branch-name = "!git rev-parse --abbrev-ref HEAD"
 
     # Clean up all local branches that do not have a remote reference.
     cleanup = "!f() { git check-remote -pq && git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D ; } ; f"
