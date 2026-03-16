@@ -184,7 +184,7 @@ vim.keymap.set('n', '<leader>to', function()
   vim.cmd('tabnew %')
   vim.api.nvim_win_set_cursor(0, { lnum, cnum })
 end, opts)
-vim.keymap.set('n', '<leader>tc', '<cmd>tabclose<cr>', opts)
+vim.keymap.set('n', '<leader>tc', '<cmd>tabclose|tabprevious<cr>', opts)
 vim.keymap.set('n', '<leader>tn', '<cmd>tabnext<cr>', opts)
 vim.keymap.set('n', '<leader>tp', '<cmd>tabprevious<cr>', opts)
 
