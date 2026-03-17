@@ -3,7 +3,6 @@
 # Basic shortcuts ----------------------------------------------------------------------------------
     
     rb = rebase
-    rbo = rebase origin/master
     fp = push --force-with-lease
     co = switch
     sw = switch
@@ -37,11 +36,11 @@
     # Start a new local repository and perform initial commit
     this = !git init && git add . && git commit -m \"Initial commit.\"
 
-    # Create a new branch from base-remote master and publish it to origin
+    # Create a new branch from base-remote default branch and publish it to origin
     create = "!f() { git check-remote -nq 2>/dev/null ; git checkout -b $1 $(git base-remote)/$(git default) && git push -u origin $(git branch-name); } ; f"
 
-    # Delete all local branches and will leave the branch on master
-    delete-local-branches="!git checkout master ; git branch --list | grep -v \\* | xargs git branch -D"
+    # Delete all local branches and will leave the branch on default branch
+    delete-local-branches="!git checkout $(git default) ; git branch --list | grep -v \\* | xargs git branch -D"
 
 # Rebasing ----------------------------------------------------------------------------------------
     # like selfbase but will interactive rebase the number that you pass in. Ex
@@ -49,10 +48,11 @@
     nbase = "!f() { git rebase -i HEAD~${1:-2} ; } ; f"
 
     # interactive rebase the current branch from the start of the branch
-    selfbase = "! git nbase $(git branch-count)"
+    selfbase = "!git nbase $(git branch-count)"
 
-    # Rebasing on origin/(master/main)
-    rbm = "!git fetch -nq 2>/dev/null ; git rebase ${1:-$(git base-remote)/$(git default)} ;"
+    # Rebasing on origin/<default branch>
+    rbm = "!git rebase $(git default)"
+    rbo = "!git fetch -nq 2>/dev/null ; git rebase ${1:-$(git base-remote)/$(git default)} ;"
 
     rba = rebase --abort
     rbc = rebase --continue

@@ -1,4 +1,4 @@
-if ($HOST.Name -eq "Package Manager Host") {
+if ($HOST.Name -eq 'Package Manager Host') {
     exit 0
 }
 
@@ -6,16 +6,17 @@ function Find-Git {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true,
-            ValueFromPipeline=$true)]
+            ValueFromPipeline = $true)]
         [string]$Path
     )
     
     process {
-        $path = "."
+        $path = '.'
         while ($true) {
             if (Test-Path "$path/.git") {
                 return $true
-            } else {
+            }
+            else {
                 $path = (Get-Item $path).Parent | Select-Object -ExpandProperty FullName
                 if ($null -eq $path) { return $false }
             }
@@ -31,9 +32,9 @@ function prompt {
     $reset = "`e[0m"
 
     if (Find-Git .) {
-        $branch = ""
+        $branch = ''
         git branch | ForEach-Object {
-            if ($_ -match "^\*(.*)") {
+            if ($_ -match '^\*(.*)') {
                 $branch += $matches[1]
             }
         }
@@ -43,13 +44,13 @@ function prompt {
         $git_delete_count = 0
      
         git status | ForEach-Object {
-            if ($_ -match "modified:") { 
+            if ($_ -match 'modified:') { 
                 $git_update_count += 1
             }
-            elseif ($_ -match "deleted:") { 
+            elseif ($_ -match 'deleted:') { 
                 $git_delete_count += 1
             }
-            elseif($_ -match "added:") { 
+            elseif($_ -match 'added:') { 
                 $git_create_count += 1
             }
         }
@@ -58,15 +59,16 @@ function prompt {
         #$status_string = $path + " u:" + $git_update_count + " d:" + $git_delete_count + "> "
         $total_changes = ($git_update_count + $git_create_count + $git_delete_count)
         if ($total_changes -gt 0) {
-            $delta = " *"
-        } else {
-            $delta = ""
+            $delta = ' *'
+        }
+        else {
+            $delta = ''
         }
         $status_string = "$path $yellow[$reset$($branch.Trim())$green$delta$reset$yellow]$reset> "
     }
     else {
         $path = (Get-Location).Path
-        $status_string = $path + "> "
+        $status_string = $path + '> '
     }
   
     Write-Output $status_string
@@ -76,22 +78,22 @@ Register-ArgumentCompleter -Native -CommandName git -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
 
     $elements = $commandAst.CommandElements
-    if ($elements.Length -ge 1 -and @("branch", "switch").Contains($elements[1].ToString())) {
+    if ($elements.Length -ge 1 -and @('branch', 'switch').Contains($elements[1].ToString())) {
         git for-each-ref --format='%(refname:strip=2)' "refs/heads/$1" | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
             New-Object System.Management.Automation.CompletionResult $_
         }
     }
-    elseif ($elements.Length -ge 1 -and @("add", "diff", "restore").Contains($elements[1].ToString())) {
+    elseif ($elements.Length -ge 1 -and @('add', 'diff', 'restore').Contains($elements[1].ToString())) {
         # git status --porcelain | ForEach-Object { $_ -replace "^\s?.*?\s+","" } | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
         # git ls-files --modified --others --deleted | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
-        $files = git status --porcelain=v2 | ForEach-Object {$_ -split " " | Select-Object -last 1}
+        $files = git status --porcelain=v2 | ForEach-Object {$_ -split ' ' | Select-Object -last 1}
         $files | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
             New-Object System.Management.Automation.CompletionResult $_
         }
     }
 
     else {
-        git --list-cmds=main,others,alias | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
+        git --list-cmds=main, others, alias | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
             New-Object System.Management.Automation.CompletionResult $_
         }
     }
@@ -99,21 +101,21 @@ Register-ArgumentCompleter -Native -CommandName git -ScriptBlock {
 
 if ($host.Name -eq 'ConsoleHost') {
     # Delete from the cursor to the beginning of the line
-    Set-PSReadlineKeyHandler -Chord "Ctrl+u" -Function BackwardDeleteLine
+    Set-PSReadlineKeyHandler -Chord 'Ctrl+u' -Function BackwardDeleteLine
     # Delete from the cursor to the end of the line
-    Set-PSReadlineKeyHandler -Chord "Ctrl+k" -Function ForwardDeleteLine
+    Set-PSReadlineKeyHandler -Chord 'Ctrl+k' -Function ForwardDeleteLine
     # Accepts the next suggested word
-    Set-PSReadLineKeyHandler -Chord "Alt+f" -Function ForwardWord
+    Set-PSReadLineKeyHandler -Chord 'Alt+f' -Function ForwardWord
     # Accepts the next suggested word
-    Set-PSReadLineKeyHandler -Chord "Ctrl+f" -Function AcceptSuggestion
+    Set-PSReadLineKeyHandler -Chord 'Ctrl+f' -Function AcceptSuggestion
     # Bash style tab completion
     Set-PSReadlineKeyHandler -Key Tab -Function Complete
 
     # Ctrl-D will exit
-    Set-PSReadlineKeyHandler -Chord "Ctrl+d" `
-    -BriefDescription "Exit" `
-    -LongDescription "Exit" `
-    -ScriptBlock {
+    Set-PSReadlineKeyHandler -Chord 'Ctrl+d' `
+        -BriefDescription 'Exit' `
+        -LongDescription 'Exit' `
+        -ScriptBlock {
         param($key, $arg)
         [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
         [Microsoft.PowerShell.PSConsoleReadLine]::Insert('exit')
@@ -125,7 +127,7 @@ function Set-LastWriteToNow {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true,
-            ValueFromPipeline=$true)]
+            ValueFromPipeline = $true)]
         [string[]]$Path
     )
     
@@ -133,9 +135,10 @@ function Set-LastWriteToNow {
         foreach ($p in $Path) {
             if (-not (Test-Path $p)) {
                 New-Item $p | Out-Null
-            } else {
+            }
+            else {
                 $file = Get-ChildItem $p
-                    $file.LastWriteTime = [datetime]::Now 
+                $file.LastWriteTime = [datetime]::Now 
             }
         }
     }
@@ -144,9 +147,9 @@ function Set-LastWriteToNow {
 function New-Symlink {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$Link,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$Target
     )
     
@@ -156,7 +159,7 @@ function New-Symlink {
 }
 
 function Find-InFiles([string]$Pattern, [string]$Filter) {
-     Get-ChildItem -Recurse $Filter | Select-String $Pattern -List | Select-Object path
+    Get-ChildItem -Recurse $Filter | Select-String $Pattern -List | Select-Object path
 }
 
 function Get-Environment {
@@ -164,15 +167,15 @@ function Get-Environment {
 }
 
 function Get-Path {
-    Get-Environment | Where-Object name -eq path | Select-Object -ExpandProperty value | ForEach-Object { $_ -split ";" }
+    Get-Environment | Where-Object name -eq path | Select-Object -ExpandProperty value | ForEach-Object { $_ -split ';' }
 }
 
 function Set-Environment {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true, Position=0)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [string] $Name, 
-        [Parameter(Mandatory=$true, Position=1)]
+        [Parameter(Mandatory = $true, Position = 1)]
         [string] $Value
     )
 
@@ -183,7 +186,7 @@ function Set-Environment {
 function Invoke-NvimQt {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$false, Position=0, ValueFromRemainingArguments=$true)]
+        [Parameter(Mandatory = $false, Position = 0, ValueFromRemainingArguments = $true)]
         ${__Remaining__}
     )
     
@@ -259,13 +262,13 @@ function Set-Development ([string]$location) {
 
 function Edit-Line {
     param(
-        [Parameter(Mandatory=$true, ValueFromPipeline)]
+        [Parameter(Mandatory = $true, ValueFromPipeline)]
         [string[]]
         $Line
     )
 
     process {
-        $lastIndex = $Line.LastIndexOf(":")
+        $lastIndex = $Line.LastIndexOf(':')
         $path = $Line.Substring(0, $lastIndex)
         $path = Get-ChildItem $path | Select-Object -ExpandProperty FullName # normalize the path
         $lineNbr = $Line.Substring($lastIndex + 1)
@@ -275,7 +278,7 @@ function Edit-Line {
 
 function Edit-All {
     param(
-        [Parameter(Mandatory=$true, ValueFromPipeline)]
+        [Parameter(Mandatory = $true, ValueFromPipeline)]
         [string]
         $InputObject
     )
@@ -287,7 +290,7 @@ function Edit-All {
 
 function Select-RuffFiles {
     param(
-        [Parameter(Mandatory=$true, ValueFromPipeline)]
+        [Parameter(Mandatory = $true, ValueFromPipeline)]
         [string]
         $InputObject,
         [string]
@@ -304,7 +307,7 @@ function Select-RuffFiles {
 
     end {
         $allInputs | Select-Object -SkipLast $SkipLast | ForEach-Object {
-            $_ -split ":" | Select-Object -First 1 
+            $_ -split ':' | Select-Object -First 1 
         } | Sort-Object -Unique | Write-Output
     }
 }
@@ -321,7 +324,7 @@ Set-Alias env Get-Environment
 Set-Alias path Get-Path
 Set-Alias rmr Remove-ItemsRecursive
 Set-Alias dev Set-Development
-Set-Alias ll Get-ChildItem
+Set-Alias ll Get-ChildItem -Force
 
 #######################
 ### Variables
@@ -334,7 +337,7 @@ $PSStyle.FileInfo.Directory = "`e[34m"
 #######################
 ### Includes
 #######################
-$local = "~/.local/profile.ps1"
+$local = '~/.local/profile.ps1'
 
 if (Test-Path $local) {
     . $local
