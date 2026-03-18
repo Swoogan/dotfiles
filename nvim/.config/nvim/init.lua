@@ -235,6 +235,14 @@ end, opts)
 -- vim.keymap.set({ 'n', 'v' }, '<c-o>', require('jumps').jump_back, opts)
 -- vim.keymap.set({ 'n', 'v' }, '<c-i>', require('jumps').jump_forward, opts)
 
+vim.api.nvim_create_autocmd("VimEnter", {
+  group = vim.api.nvim_create_augroup("StartupGroup", { clear = true }),
+  callback = function()
+    -- create debugging print statement
+    vim.keymap.set('n', '<leader>pd', require('print_debug').dispatch_print, opts)
+  end,
+})
+
 -- Highlight on yank
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
@@ -331,7 +339,7 @@ vim.api.nvim_create_autocmd("FileType", {
   command = [[setlocal shiftwidth=2 softtabstop=2 expandtab]]
 })
 
--- Auto format Python, Lua and Rust files
+-- Auto format Python, and Lua files
 vim.api.nvim_create_autocmd("BufWritePre", {
   group = vim.api.nvim_create_augroup("AutoFormat", { clear = true }),
   pattern = { "*.py", "*.lua" },
@@ -364,23 +372,11 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   end,
 })
 
--- *** LUA *** --
-vim.api.nvim_create_autocmd("LspAttach", {
-  group = vim.api.nvim_create_augroup("LuaSpecific", { clear = true }),
-  pattern = "*.lua",
-  callback = function()
-    -- create debugging print statement
-    vim.keymap.set('n', '<leader>pd', require('print_debug').lua_print, opts)
-  end
-})
-
 -- *** PowerShell *** --
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("PwshSpecific", { clear = true }),
   pattern = { "*.ps1", "*.psm1" },
   callback = function()
-    -- create debugging print statement
-    vim.keymap.set('n', '<leader>pd', require('print_debug').pwsh_print, opts)
     vim.cmd([[ set iskeyword+=$ ]])
   end
 })
@@ -390,8 +386,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("PythonSpecific", { clear = true }),
   pattern = "*.py",
   callback = function()
-    -- organize imports with ruff
-    vim.keymap.set('n', '<leader>fi', '<cmd>!ruff check --fix --select=I001 %:p<cr>', opts)
     -- start debugger
     vim.keymap.set('n', '<leader>ds',
       function()
@@ -401,8 +395,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
         )
         require('dapui').open()
       end, opts)
-    -- create debugging print statement
-    vim.keymap.set('n', '<leader>pd', require('print_debug').python_print, opts)
+
     -- run ruff auto-fixer on the first error found on the current line
     vim.keymap.set('n', '<leader>pf',
       function()
@@ -441,21 +434,9 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.keymap.set('n', '<leader>bb', require('rust_mono').build, opts)
     vim.keymap.set('n', '<leader>br', require('rust_mono').run, opts)
     vim.keymap.set('n', '<leader>bc', require('rust_mono').clippy, opts)
-
-    -- create debugging print statement
-    vim.keymap.set('n', '<leader>pd', require('print_debug').rust_print, opts)
   end,
 })
 
--- *** Typescript/Javascript *** --
-vim.api.nvim_create_autocmd("FileType", {
-  group = vim.api.nvim_create_augroup("Typescript", { clear = true }),
-  pattern = { "typescript", "typescriptreact", "javascript" },
-  callback = function()
-    -- create debugging print statement
-    vim.keymap.set('n', '<leader>pd', require('print_debug').javascript_print, opts)
-  end,
-})
 -- *** Terminal ***
 -- launch a terminal
 vim.keymap.set('n', '<leader>te', '<cmd>10split|term<Cr>a', opts)

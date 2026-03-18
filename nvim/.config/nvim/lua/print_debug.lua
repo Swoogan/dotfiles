@@ -49,7 +49,23 @@ end
 
 M.javascript_print = function()
   -- console.log(`issues (302): ${issues}`)
-  M.generate_logging('console.log(`%s (%d): ${%s}`);')
+  M.generate_logging('console.log("%s (%d): ", %s);')
 end
+
+M.dispatch_print = function()
+  local ft = vim.bo.filetype
+  if vim.tbl_contains({ "typescript", "typescriptreact", "javascript" }, ft) then
+    M.javascript_print()
+  elseif ft == "python" then
+    M.python_print()
+  elseif ft == "rust" then
+    M.rust_print()
+  elseif ft == "ps1" then
+    M.pwsh_print()
+  elseif ft == "lua" then
+    M.lua_print()
+  end
+end
+
 
 return M
