@@ -371,13 +371,13 @@ M.spec = {
         },
         formatters_by_ft = {
           -- Conform will run the first available formatter
-          javascript = { "prettierd", "prettier", stop_after_first = true },
-          typescript = { "prettierd", "prettier", stop_after_first = true },
-          typescriptreact = { "prettierd", "prettier", stop_after_first = true },
-          css = { "prettierd", "prettier", stop_after_first = true },
-          json = { "prettierd", "prettier", stop_after_first = true },
-          html = { "prettierd", "prettier", stop_after_first = true },
-          markdown = { "prettierd", "prettier", stop_after_first = true },
+          javascript = { "oxfmt", "prettierd", "prettier", stop_after_first = true },
+          typescript = { "oxfmt", "prettierd", "prettier", stop_after_first = true },
+          typescriptreact = { "oxfmt", "prettierd", "prettier", stop_after_first = true },
+          css = { "oxfmt", "prettierd", "prettier", stop_after_first = true },
+          json = { "oxfmt", "prettierd", "prettier", stop_after_first = true },
+          html = { "oxfmt", "prettierd", "prettier", stop_after_first = true },
+          markdown = { "oxfmt", "prettierd", "prettier", stop_after_first = true },
           --
           rust = { "rustfmt", lsp_format = "fallback" },
           cpp = { "clang_format" },

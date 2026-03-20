@@ -65,7 +65,10 @@ M.setup = function(opts)
     vim.keymap.set('n', 'gr', function()
       vim.cmd.normal("m'")
       -- Todo move the file_ignore_patterns to local config
-      require('telescope.builtin').lsp_references({ path_display = { "tail" }, file_ignore_patterns = { "%.gen.h", "%.gen.cpp" } })
+      require('telescope.builtin').lsp_references({
+        path_display = { "tail" },
+        file_ignore_patterns = { "%.gen.h", "%.gen.cpp" }
+      })
     end, bufopts)
     vim.keymap.set('n', 'gt', require('telescope.builtin').lsp_type_definitions, bufopts)
 
@@ -329,6 +332,14 @@ M.setup = function(opts)
       on_attach = on_attach,
     })
     vim.lsp.enable('ts_ls')
+  end
+
+  if vim.fn.executable('oxlint') == 1 then
+    vim.lsp.config('oxlint', {
+      capabilities = capabilities,
+      on_attach = on_attach,
+    })
+    vim.lsp.enable('oxlint')
   end
 
   if vim.fn.executable('vscode-eslint-language-server') == 1 then
