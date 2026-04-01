@@ -98,7 +98,6 @@ Register-ArgumentCompleter -Native -CommandName git -ScriptBlock {
                 $files += ($parts | Select-Object -Last 1)
             }
         }
-        $files = git status --porcelain=v2 | ForEach-Object {$_ -split ' ' | Select-Object -last 1}
         $files | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
             New-Object System.Management.Automation.CompletionResult $_
         }
