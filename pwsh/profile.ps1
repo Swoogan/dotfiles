@@ -83,15 +83,26 @@ Register-ArgumentCompleter -Native -CommandName git -ScriptBlock {
             New-Object System.Management.Automation.CompletionResult $_
         }
     }
-    elseif ($elements.Length -ge 1 -and @('add', 'diff', 'restore').Contains($elements[1].ToString())) {
-        # git status --porcelain | ForEach-Object { $_ -replace "^\s?.*?\s+","" } | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
-        # git ls-files --modified --others --deleted | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
+    elseif ($elements.Length -ge 1 -and @('diff', 'restore').Contains($elements[1].ToString())) {
         $files = git status --porcelain=v2 | ForEach-Object {$_ -split ' ' | Select-Object -last 1}
         $files | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
             New-Object System.Management.Automation.CompletionResult $_
         }
     }
-
+    elseif ($elements.Length -ge 1 -and $elements[1].ToString() -eq 'add') {
+        $status = git status --porcelain=v2 
+        $files = @()
+        foreach ($line in $status) {
+            $parts = $line -split ' '
+            if ($parts[0] -eq '?' -or $parts[1] -ne 'M.') {
+                $files += ($parts | Select-Object -Last 1)
+            }
+        }
+        $files = git status --porcelain=v2 | ForEach-Object {$_ -split ' ' | Select-Object -last 1}
+        $files | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
+            New-Object System.Management.Automation.CompletionResult $_
+        }
+    }
     else {
         git --list-cmds=main, others, alias | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
             New-Object System.Management.Automation.CompletionResult $_
