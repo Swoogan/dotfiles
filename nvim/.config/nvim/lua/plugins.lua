@@ -8,98 +8,136 @@ M.spec = {
   { "neovim/nvim-lspconfig" },     -- lsp configurations
   {
     "nvim-treesitter/nvim-treesitter",
-    branch = 'master',
+    branch = 'main',
     lazy = false,
     build = ":TSUpdate",
-    dependencies = { "nvim-treesitter/nvim-treesitter-textobjects" }, -- Additional textobjects for treesitter
     -- Treesitter configuration
     config = function()
-      require('nvim-treesitter.configs').setup {
-        ensure_installed = {
-          "c",
-          "c_sharp",
-          "css",
-          "go",
-          "html",
-          "javascript",
-          "json",
-          "lua",
-          "markdown",
-          "markdown_inline",
-          "python",
-          "query",
-          "regex",
-          "rust",
-          "tsx",
-          "typescript",
-          "vimdoc",
-          "zig",
-        },
-        highlight = {
-          enable = true, -- false will disable the whole extension
-        },
-        incremental_selection = {
-          enable = true,
-          keymaps = {
-            init_selection = 'gnn',
-            scope_incremental = 'grc',
-            node_incremental = 'grn',
-            node_decremental = 'grm',
-          },
-        },
-        indent = {
-          enable = true,
-        },
-        textobjects = {
-          select = {
-            enable = true,
-            lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
-            keymaps = {
-              -- You can use the capture groups defined in textobjects.scm
-              ['ac'] = '@class.outer',
-              ['ic'] = '@class.inner',
-              ['af'] = '@function.outer',
-              ['if'] = '@function.inner',
-              ["ia"] = "@parameter.inner",
-              ["aa"] = "@parameter.outer",
-              ['ab'] = '@block.outer',
-              ['ib'] = '@block.inner',
-            },
-            selection_modes = {
-              ['@block.outer'] = 'V',    -- linewise
-              ['@function.outer'] = 'V', -- linewise
-            },
-          },
-          move = {
-            enable = true,
-            set_jumps = true, -- whether to set jumps in the jumplist
-            goto_next_start = {
-              [']]'] = '@class.outer',
-              [']m'] = '@function.outer',
-              [']a'] = '@parameter.inner',
-              [']b'] = '@block.outer',
-            },
-            goto_previous_start = {
-              ['[['] = '@class.outer',
-              ['[m'] = '@function.outer',
-              ['[a'] = '@parameter.inner',
-              ['[b'] = '@block.outer',
-            },
-            goto_next_end = {
-              [']['] = '@class.outer',
-              [']M'] = '@function.outer',
-              [']A'] = '@parameter.outer',
-            },
-            goto_previous_end = {
-              ['[]'] = '@class.outer',
-              ['[M'] = '@function.outer',
-              ['[A'] = '@parameter.outer',
-            },
-          },
-        },
-      }
+      require('nvim-treesitter').install({
+        "c",
+        "c_sharp",
+        "css",
+        "go",
+        "html",
+        "javascript",
+        "json",
+        "lua",
+        "markdown",
+        "markdown_inline",
+        "python",
+        "query",
+        "regex",
+        "rust",
+        "tsx",
+        "typescript",
+        "vimdoc",
+        "zig",
+      })
     end
+    --   require('nvim-treesitter.configs').setup {
+    --     ensure_installed = {
+    --       "c",
+    --       "c_sharp",
+    --       "css",
+    --       "go",
+    --       "html",
+    --       "javascript",
+    --       "json",
+    --       "lua",
+    --       "markdown",
+    --       "markdown_inline",
+    --       "python",
+    --       "query",
+    --       "regex",
+    --       "rust",
+    --       "tsx",
+    --       "typescript",
+    --       "vimdoc",
+    --       "zig",
+    --     },
+    --     highlight = {
+    --       enable = true, -- false will disable the whole extension
+    --     },
+    --     incremental_selection = {
+    --       enable = true,
+    --       keymaps = {
+    --         init_selection = 'gnn',
+    --         scope_incremental = 'grc',
+    --         node_incremental = 'grn',
+    --         node_decremental = 'grm',
+    --       },
+    --     },
+    --     indent = {
+    --       enable = true,
+    --     },
+    --     textobjects = {
+    --       select = {
+    --         enable = true,
+    --         lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
+    --         keymaps = {
+    --           -- You can use the capture groups defined in textobjects.scm
+    --           ['ac'] = '@class.outer',
+    --           ['ic'] = '@class.inner',
+    --           ['af'] = '@function.outer',
+    --           ['if'] = '@function.inner',
+    --           ["ia"] = "@parameter.inner",
+    --           ["aa"] = "@parameter.outer",
+    --           ['ab'] = '@block.outer',
+    --           ['ib'] = '@block.inner',
+    --         },
+    --         selection_modes = {
+    --           ['@block.outer'] = 'V',    -- linewise
+    --           ['@function.outer'] = 'V', -- linewise
+    --         },
+    --       },
+    --       move = {
+    --         enable = true,
+    --         set_jumps = true, -- whether to set jumps in the jumplist
+    --         goto_next_start = {
+    --           [']]'] = '@class.outer',
+    --           [']m'] = '@function.outer',
+    --           [']a'] = '@parameter.inner',
+    --           [']b'] = '@block.outer',
+    --         },
+    --         goto_previous_start = {
+    --           ['[['] = '@class.outer',
+    --           ['[m'] = '@function.outer',
+    --           ['[a'] = '@parameter.inner',
+    --           ['[b'] = '@block.outer',
+    --         },
+    --         goto_next_end = {
+    --           [']['] = '@class.outer',
+    --           [']M'] = '@function.outer',
+    --           [']A'] = '@parameter.outer',
+    --         },
+    --         goto_previous_end = {
+    --           ['[]'] = '@class.outer',
+    --           ['[M'] = '@function.outer',
+    --           ['[A'] = '@parameter.outer',
+    --         },
+    --       },
+    --     },
+    --   }
+    -- end
   }, -- incremental language parser
+  {
+    "nvim-treesitter/nvim-treesitter-textobjects",
+    branch = "main",
+    init = function()
+      -- Disable entire built-in ftplugin mappings to avoid conflicts.
+      -- See https://github.com/neovim/neovim/tree/master/runtime/ftplugin for built-in ftplugins.
+      vim.g.no_plugin_maps = true
+
+      -- Or, disable per filetype (add as you like)
+      -- vim.g.no_python_maps = true
+      -- vim.g.no_ruby_maps = true
+      -- vim.g.no_rust_maps = true
+      -- vim.g.no_go_maps = true
+    end,
+    config = function()
+      -- put your config here
+    end,
+  },
   { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
 
   -- DAP
