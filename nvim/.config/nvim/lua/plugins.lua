@@ -34,54 +34,12 @@ M.spec = {
         "zig",
       })
     end
-    --   require('nvim-treesitter.configs').setup {
-    --     ensure_installed = {
-    --       "c",
-    --       "c_sharp",
-    --       "css",
-    --       "go",
-    --       "html",
-    --       "javascript",
-    --       "json",
-    --       "lua",
-    --       "markdown",
-    --       "markdown_inline",
-    --       "python",
-    --       "query",
-    --       "regex",
-    --       "rust",
-    --       "tsx",
-    --       "typescript",
-    --       "vimdoc",
-    --       "zig",
-    --     },
-    --     highlight = {
-    --       enable = true, -- false will disable the whole extension
-    --     },
-    --     incremental_selection = {
-    --       enable = true,
-    --       keymaps = {
-    --         init_selection = 'gnn',
-    --         scope_incremental = 'grc',
-    --         node_incremental = 'grn',
-    --         node_decremental = 'grm',
-    --       },
-    --     },
-    --     indent = {
-    --       enable = true,
-    --     },
     --     textobjects = {
     --       select = {
-    --         enable = true,
-    --         lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
     --         keymaps = {
     --           -- You can use the capture groups defined in textobjects.scm
     --           ['ac'] = '@class.outer',
     --           ['ic'] = '@class.inner',
-    --           ['af'] = '@function.outer',
-    --           ['if'] = '@function.inner',
-    --           ["ia"] = "@parameter.inner",
-    --           ["aa"] = "@parameter.outer",
     --           ['ab'] = '@block.outer',
     --           ['ib'] = '@block.inner',
     --         },
@@ -95,25 +53,19 @@ M.spec = {
     --         set_jumps = true, -- whether to set jumps in the jumplist
     --         goto_next_start = {
     --           [']]'] = '@class.outer',
-    --           [']m'] = '@function.outer',
-    --           [']a'] = '@parameter.inner',
     --           [']b'] = '@block.outer',
     --         },
     --         goto_previous_start = {
     --           ['[['] = '@class.outer',
-    --           ['[m'] = '@function.outer',
-    --           ['[a'] = '@parameter.inner',
     --           ['[b'] = '@block.outer',
     --         },
     --         goto_next_end = {
     --           [']['] = '@class.outer',
     --           [']M'] = '@function.outer',
-    --           [']A'] = '@parameter.outer',
     --         },
     --         goto_previous_end = {
     --           ['[]'] = '@class.outer',
     --           ['[M'] = '@function.outer',
-    --           ['[A'] = '@parameter.outer',
     --         },
     --       },
     --     },
@@ -127,15 +79,44 @@ M.spec = {
       -- Disable entire built-in ftplugin mappings to avoid conflicts.
       -- See https://github.com/neovim/neovim/tree/master/runtime/ftplugin for built-in ftplugins.
       vim.g.no_plugin_maps = true
-
-      -- Or, disable per filetype (add as you like)
-      -- vim.g.no_python_maps = true
-      -- vim.g.no_ruby_maps = true
-      -- vim.g.no_rust_maps = true
-      -- vim.g.no_go_maps = true
     end,
     config = function()
-      -- put your config here
+      require("nvim-treesitter-textobjects").setup {
+        move = {
+          set_jumps = true,
+        },
+        select = {
+          lookahead = true,
+          selection_modes = {
+            ['@function.inner'] = 'V',
+          },
+        }
+      }
+      vim.keymap.set({ "x", "o" }, "ia", function()
+        require("nvim-treesitter-textobjects.select").select_textobject("@parameter.inner", "textobjects")
+      end)
+      vim.keymap.set({ "x", "o" }, "aa", function()
+        require("nvim-treesitter-textobjects.select").select_textobject("@parameter.outer", "textobjects")
+      end)
+      vim.keymap.set({ "x", "o" }, "if", function()
+        require("nvim-treesitter-textobjects.select").select_textobject("@function.inner", "textobjects")
+      end)
+      vim.keymap.set({ "x", "o" }, "af", function()
+        require("nvim-treesitter-textobjects.select").select_textobject("@function.outer", "textobjects")
+      end)
+
+      vim.keymap.set({ "n", "x", "o" }, "]m", function()
+        require("nvim-treesitter-textobjects.move").goto_next_start("@function.outer", "textobjects")
+      end)
+      vim.keymap.set({ "n", "x", "o" }, "[m", function()
+        require("nvim-treesitter-textobjects.move").goto_previous_start("@function.outer", "textobjects")
+      end)
+      vim.keymap.set({ "n", "x", "o" }, "]a", function()
+        require("nvim-treesitter-textobjects.move").goto_next_start("@parameter.outer", "textobjects")
+      end)
+      vim.keymap.set({ "n", "x", "o" }, "[a", function()
+        require("nvim-treesitter-textobjects.move").goto_previous_start("@parameter.outer", "textobjects")
+      end)
     end,
   },
   { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
