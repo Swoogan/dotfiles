@@ -83,13 +83,7 @@ Register-ArgumentCompleter -Native -CommandName git -ScriptBlock {
             New-Object System.Management.Automation.CompletionResult $_
         }
     }
-    elseif ($elements.Length -ge 1 -and @('diff', 'restore').Contains($elements[1].ToString())) {
-        $files = git status --porcelain=v2 | ForEach-Object {$_ -split ' ' | Select-Object -last 1}
-        $files | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {
-            New-Object System.Management.Automation.CompletionResult $_
-        }
-    }
-    elseif ($elements.Length -ge 1 -and $elements[1].ToString() -eq 'add') {
+    elseif ($elements.Length -ge 1 -and @('diff', 'restore', 'add').Contains($elements[1].ToString())) {
         $status = git status --porcelain=v2 
         $files = @()
         foreach ($line in $status) {
