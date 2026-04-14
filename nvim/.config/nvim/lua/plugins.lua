@@ -15,6 +15,7 @@ M.spec = {
     config = function()
       require('nvim-treesitter').install({
         "c",
+        "cpp",
         "c_sharp",
         "css",
         "go",
