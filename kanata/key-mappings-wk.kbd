@@ -33,6 +33,8 @@
     cex (fork , S-1 (lsft rsft))
     pqu (fork . S-/ (lsft rsft))
     bde (fork @num del (lsft rsft))
+    
+    spt (fork ; S-5 (lsft rsft))
 )
 
 ;; colemak
@@ -51,7 +53,7 @@
 (deflayer colemak
     _    @qrt _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     caps _    _    _    _    _    _    _    _    _    _    _    _    _  
-    _    q    w    f    p    v    j    l    u    y    ;    @shi _    _  
+    _    q    w    f    p    v    j    l    u    y    @spt @shi _    _  
     @nav a    @alr @cts @sft g    h    @sfn @cte @ali o    ent  _
     @shi z    x    c    d    b    k    m    @cex @pqu '    @shi
     _    _    @nav      @sym           @bde _    _    _    _
@@ -85,7 +87,7 @@
 (deflayer shift
     _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _ 
     _    _    _    _    _    _    _    _    _    _    _    _    _    _  
-    _    Q    W    F    P    V    J    L    U    Y    %    _    _    _ 
+    _    Q    W    F    P    V    J    L    U    Y    S-5  _    _    _ 
     _    A    R    S    T    G    H    N    E    I    O    S-ent  _
     _    Z    X    C    D    B    K    M    !    ?    S-'  _  
     _    _    _         _              del  _    _    _    _
