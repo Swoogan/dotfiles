@@ -11,6 +11,7 @@
     oops = commit --amend --no-edit
     st = status
     fet = fetch -p
+    mt = mergetool
 
 # Logging -----------------------------------------------------------------------------------------
     ls = log --pretty=format:'%C(bold yellow)%h%C(bold red)%d %Creset%s%C(bold blue) [%cn]' --decorate
@@ -83,6 +84,6 @@
 [init]
 	defaultBranch = main
 [merge]
-	tool = vimdiff
+	tool = nvimdiff
 [mergetool]
-	path = nvim
+	prompt = false
